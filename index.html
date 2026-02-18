@@ -800,24 +800,23 @@
     </div>
 
     <!-- 隐藏的音频元素 - 使用HTML5 Audio -->
-    <audio id="beepSound" class="hidden-audio" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.ogg" type="audio/ogg">
-        您的浏览器不支持音频播放
-    </audio>
+<audio id="beepSound" class="hidden-audio" preload="auto">
+    <!-- 蜂鸣声的Base64编码音频 -->
+    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
+    您的浏览器不支持音频播放
+</audio>
     
-    <audio id="bellSound" class="hidden-audio" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3" type="audio/mpeg">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.ogg" type="audio/ogg">
-        您的浏览器不支持音频播放
-    </audio>
+<audio id="bellSound" class="hidden-audio" preload="auto">
+    <!-- 铃声的Base64编码音频 -->
+    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
+    您的浏览器不支持音频播放
+</audio>
     
-    <audio id="chordSound" class="hidden-audio" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3" type="audio/mpeg">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.ogg" type="audio/ogg">
-        您的浏览器不支持音频播放
-    </audio>
-
+<audio id="chordSound" class="hidden-audio" preload="auto">
+    <!-- 和弦音的Base64编码音频 -->
+    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
+    您的浏览器不支持音频播放
+</audio>
     <script>
         // 状态变量
         let pomodoroTimer = null;
@@ -1314,7 +1313,7 @@
             
             console.log('开始播放测试声音');
             
-            audioElement.play().then(() => {
+audioElement.play().then(() => {
                 console.log('测试声音播放成功');
                 soundEnabled = true; // 强制启用声音
                 soundTestResult.textContent = '✅ 声音测试成功！声音功能已启用';
@@ -1327,29 +1326,12 @@
                     isTestingSound = false;
                 }, 2000);
                 
-// 修改前：
-// 缺少 tryFallbackSound() 调用
-
-// 修改后：
-        }).catch(error => {
-            console.error('测试声音播放失败:', error);
-            console.log('详细错误信息:', error.name, error.message);
+            }).catch(error => {
+                console.error('测试声音播放失败:', error);
+                console.log('详细错误信息:', error.name, error.message);
     
-            // 尝试备用声音方案
-            tryFallbackSound();
-        });
-                
-                // 即使声音失败，也启用震动功能
-                soundEnabled = false;
-                vibrationEnabled = true;
-                soundTestResult.textContent = '⚠️ 声音播放失败，已启用震动提示';
-                soundTestResult.className = 'compatibility-warning';
-                updateStatus('声音测试失败，已启用震动提示', 3000);
-                
-                setTimeout(() => {
-                    soundTestResult.classList.add('hidden');
-                    isTestingSound = false;
-                }, 3000);
+                // 尝试备用声音方案
+                tryFallbackSound();
             });
         }
 
