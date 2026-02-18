@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <!-- iPhone全屏关键设置 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>番茄钟</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            gap: 20px;
+        }
+        
+        .pomodoro-section, .interrupt-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            flex: 1;
+        }
+        
+        h2 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 8px;
+        }
+        
+        .timer-display {
+            font-size: 4rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            max-width: 120px;
+        }
+        
+        button:hover { background: rgba(255, 255, 255, 0.3); }
+        button:active { transform: scale(0.95); }
+        
+        .time-settings {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .time-setting {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .time-setting label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .time-setting input {
+            width: 80px;
+            padding: 8px;
+            border: none;
+            border-radius: 10px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .interrupt-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        #interruptDuration {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        #interruptReason {
+            flex: 2;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .interrupt-history {
+            margin-top: 20px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        @media (min-width: 768px) {
+            .container { flex-direction: row; }
+            .pomodoro-section, .interrupt-section { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 番茄钟主区域 -->
+        <div class="pomodoro-section">
+            <h2>🍅 番茄钟</h2>
+            <div class="timer-display" id="timer">25:00</div>
+            <div class="controls">
+                <button id="startBtn">开始</button>
+                <button id="pauseBtn">暂停</button>
+                <button id="resetBtn">重置</button>
+            </div>
+            <div class="time-settings">
+                <div class="time-setting">
+                    <label>专注时间（分）</label>
+                    <input type="number" id="focusTime" value="25" min="1" max="120">
+                </div>
+                <div class="time-setting">
+                    <label>休息时间（分）</label>
+                    <input type="number" id="breakTime" value="5" min="1" max="60">
+                </div>
+            </div>
+        </div>
+        
+        <!-- 中断功能区域 -->
+        <div class="interrupt-section">
+            <h2>⏸️ 临时中断</h2>
+            <div class="interrupt-controls">
+                <input type="number" id="interruptDuration" placeholder="分钟" min="1" max="60">
+                <input type="text" id="interruptReason" placeholder="中断原因">
+                <button id="startInterruptBtn">开始中断</button>
+            </div>
+            <div class="interrupt-history">
+                <h3>中断记录</h3>
+                <div id="historyList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 番茄钟逻辑
+        let pomodoroTimer = null;
+        let pomodoroSeconds = 25 * 60;
+        let isPomodoroRunning = false;
+        let isFocusTime = true;
+        
+        // 中断计时器
+        let interruptTimer = null;
+        let interruptSeconds = 0;
+        let isInterruptRunning = false;
+        
+        // 元素引用
+        const timerDisplay = document.getElementById('timer');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const focusTimeInput = document.getElementById('focusTime');
+        const breakTimeInput = document.getElementById('breakTime');
+        const interruptDurationInput = document.getElementById('interruptDuration');
+        const interruptReasonInput = document.getElementById('interruptReason');
+        const startInterruptBtn = document.getElementById('startInterruptBtn');
+        const historyList = document.getElementById('historyList');
+        
+        // 初始化
+        loadSettings();
+        updateTimerDisplay();
+        loadHistory();
+        
+        // 番茄钟功能
+        function startPomodoro() {
+            if (isPomodoroRunning) return;
+            isPomodoroRunning = true;
+            pomodoroTimer = setInterval(updatePomodoro, 1000);
+            startBtn.textContent = '运行中';
+        }
+        
+        function pausePomodoro() {
+            if (!isPomodoroRunning) return;
+            clearInterval(pomodoroTimer);
+            isPomodoroRunning = false;
+            startBtn.textContent = '继续';
+        }
+        
+        function resetPomodoro() {
+            clearInterval(pomodoroTimer);
+            isPomodoroRunning = false;
+            isFocusTime = true;
+            pomodoroSeconds = parseInt(focusTimeInput.value) * 60;
+            updateTimerDisplay();
+            startBtn.textContent = '开始';
+        }
+        
+        function updatePomodoro() {
+            if (pomodoroSeconds <= 0) {
+                clearInterval(pomodoroTimer);
+                isPomodoroRunning = false;
+                
+                if (isFocusTime) {
+                    // 专注时间结束，开始休息
+                    isFocusTime = false;
+                    pomodoroSeconds = parseInt(breakTimeInput.value) * 60;
+                    playNotification('专注时间结束！开始休息。');
+                } else {
+                    // 休息时间结束，开始新的番茄钟
+                    isFocusTime = true;
+                    pomodoroSeconds = parseInt(focusTimeInput.value) * 60;
+                    playNotification('休息时间结束！开始新的番茄钟。');
+                }
+                
+                startPomodoro();
+            } else {
+                pomodoroSeconds--;
+            }
+            
+            updateTimerDisplay();
+            saveSettings();
+        }
+        
+        function updateTimerDisplay() {
+            const minutes = Math.floor(pomodoroSeconds / 60);
+            const seconds = pomodoroSeconds % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // 更新标题显示剩余时间
+            document.title = `${minutes}:${seconds.toString().padStart(2, '0')} - 番茄钟`;
+        }
+        
+        // 中断功能
+        function startInterrupt() {
+            if (isInterruptRunning) return;
+            
+            const duration = parseInt(interruptDurationInput.value);
+            const reason = interruptReasonInput.value.trim();
+            
+            if (!duration || duration < 1) {
+                alert('请输入有效的中断时间');
+                return;
+            }
+            
+            if (!reason) {
+                alert('请输入中断原因');
+                return;
+            }
+            
+            // 暂停番茄钟
+            if (isPomodoroRunning) {
+                pausePomodoro();
+            }
+            
+            // 开始中断计时
+            interruptSeconds = duration * 60;
+            isInterruptRunning = true;
+            
+            // 记录中断
+            const interruptRecord = {
+                time: new Date().toLocaleTimeString(),
+                duration: duration,
+                reason: reason,
+                remainingPomodoro: pomodoroSeconds
+            };
+            
+            addToHistory(interruptRecord);
+            saveHistory();
+            
+            interruptTimer = setInterval(() => {
+                if (interruptSeconds <= 0) {
+                    clearInterval(interruptTimer);
+                    isInterruptRunning = false;
+                    playNotification(`中断时间到！${reason}`);
+                    
+                    // 自动恢复番茄钟
+                    startPomodoro();
+                } else {
+                    interruptSeconds--;
+                }
+            }, 1000);
+            
+            // 清空输入
+            interruptDurationInput.value = '';
+            interruptReasonInput.value = '';
+        }
+        
+        function playNotification(message) {
+            // 尝试播放声音
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
+                audio.play();
+            } catch (e) {}
+            
+            // 显示浏览器通知
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("番茄钟提醒", { body: message });
+            }
+            
+            alert(message);
+        }
+        
+        // 历史记录功能
+        function addToHistory(record) {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.innerHTML = `
+                <strong>${record.time}</strong><br>
+                中断: ${record.duration}分钟 - ${record.reason}<br>
+                剩余番茄钟: ${Math.floor(record.remainingPomodoro / 60)}:${(record.remainingPomodoro % 60).toString().padStart(2, '0')}
+            `;
+            historyList.prepend(item);
+        }
+        
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('pomodoroInterruptHistory') || '[]');
+            history.forEach(record => addToHistory(record));
+        }
+        
+        function saveHistory() {
+            const items = Array.from(historyList.children).slice(0, 10).map(item => {
+                const text = item.textContent;
+                const parts = text.split('\n');
+                return {
+                    time: parts[0].trim(),
+                    duration: parseInt(parts[1].match(/\d+/)[0]),
+                    reason: parts[1].split('-')[1]?.trim() || '',
+                    remainingPomodoro: 0
+                };
+            });
+            localStorage.setItem('pomodoroInterruptHistory', JSON.stringify(items));
+        }
+        
+        // 设置保存
+        function saveSettings() {
+            const settings = {
+                focusTime: focusTimeInput.value,
+                breakTime: breakTimeInput.value,
+                pomodoroSeconds: pomodoroSeconds,
+                isFocusTime: isFocusTime,
+                isPomodoroRunning: isPomodoroRunning
+            };
+            localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
+        }
+        
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('pomodoroSettings') || '{}');
+            if (settings.focusTime) focusTimeInput.value = settings.focusTime;
+            if (settings.breakTime) breakTimeInput.value = settings.breakTime;
+            if (settings.pomodoroSeconds) pomodoroSeconds = settings.pomodoroSeconds;
+            if (settings.isFocusTime !== undefined) isFocusTime = settings.isFocusTime;
+            if (settings.isPomodoroRunning) startPomodoro();
+        }
+        
+        // 事件监听
+        startBtn.addEventListener('click', startPomodoro);
+        pauseBtn.addEventListener('click', pausePomodoro);
+        resetBtn.addEventListener('click', resetPomodoro);
+        startInterruptBtn.addEventListener('click', startInterrupt);
+        
+        focusTimeInput.addEventListener('change', () => {
+            if (!isPomodoroRunning && isFocusTime) {
+                pomodoroSeconds = parseInt(focusTimeInput.value) * 60;
+                updateTimerDisplay();
+            }
+            saveSettings();
+        });
+        
+        breakTimeInput.addEventListener('change', () => {
+            if (!isPomodoroRunning && !isFocusTime) {
+                pomodoroSeconds = parseInt(breakTimeInput.value) * 60;
+                updateTimerDisplay();
+            }
+            saveSettings();
+        });
+        
+        // 请求通知权限
+        if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+        
+        // 页面关闭前保存
+        window.addEventListener('beforeunload', saveSettings);
+    </script>
+</body>
+</html>
