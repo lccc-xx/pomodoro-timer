@@ -2,17 +2,19 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- iPhone全屏和触控优化 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="番茄钟">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>番茄钟</title>
+    <title>番茄钟 - 双端适配版</title>
     <style>
         :root {
             --primary-color: #667eea;
             --secondary-color: #764ba2;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
             --text-color: white;
             --button-bg: rgba(255, 255, 255, 0.15);
             --button-active: rgba(255, 255, 255, 0.25);
@@ -49,6 +51,50 @@
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
             padding-top: max(20px, env(safe-area-inset-top));
             padding-bottom: max(20px, env(safe-area-inset-bottom));
+        }
+        
+        /* 电脑端优化 */
+        @media (min-width: 768px) {
+            body {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 40px 20px;
+                border-radius: 24px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                min-height: 90vh;
+                max-height: 90vh;
+                overflow: auto;
+            }
+            
+            .container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: var(--spacing-xl);
+                height: auto;
+            }
+            
+            .timer-display {
+                font-size: 5.5rem !important;
+            }
+            
+            .button-group {
+                flex-direction: row !important;
+            }
+            
+            .button-group button {
+                height: 60px;
+                font-size: 1.2rem;
+            }
+            
+            /* 鼠标悬停效果 */
+            button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            }
+            
+            button:active {
+                transform: translateY(0);
+            }
         }
         
         /* 标题栏 */
@@ -160,6 +206,15 @@
             background: rgba(255, 180, 0, 0.35);
         }
         
+        .button-group button.danger {
+            background: rgba(239, 68, 68, 0.25);
+            color: white;
+        }
+        
+        .button-group button.danger:active {
+            background: rgba(239, 68, 68, 0.35);
+        }
+        
         /* 时间设置 */
         .time-settings {
             display: grid;
@@ -197,6 +252,64 @@
         .time-setting input:focus {
             outline: none;
             border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        /* 声音控制区域 */
+        .sound-controls {
+            margin-top: var(--spacing-lg);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sound-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .sound-option {
+            padding: var(--spacing-sm);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .sound-option.active {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+        }
+        
+        .sound-option:active {
+            transform: scale(0.95);
+        }
+        
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+        
+        .volume-control input[type="range"] {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        .volume-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
         }
         
         /* 中断卡片 */
@@ -344,6 +457,35 @@
             to { transform: translateY(0); }
         }
         
+        /* 声音状态指示器 */
+        .sound-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+        }
+        
+        .sound-status.show {
+            display: flex;
+        }
+        
+        .sound-status .stop-sound {
+            background: var(--danger-color);
+            border: none;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        
         /* iPhone X及以后机型的适配 */
         @supports (padding: max(0px)) {
             body {
@@ -408,8 +550,14 @@
 </head>
 <body>
     <div class="header">
-        <h1>🍅 番茄钟</h1>
-        <p>专注工作 · 灵活中断</p>
+        <h1>🍅 番茄钟 - 双端适配版</h1>
+        <p>专注工作 · 持续提醒 · 电脑手机通用</p>
+    </div>
+    
+    <!-- 声音状态指示器 -->
+    <div class="sound-status" id="soundStatus">
+        <span>🔊 提示音播放中...</span>
+        <button class="stop-sound" id="stopSoundBtn">停止声音</button>
     </div>
     
     <div class="container">
@@ -422,6 +570,7 @@
                 <button id="startBtn" class="primary">▶️ 开始</button>
                 <button id="pauseBtn" class="secondary">⏸️ 暂停</button>
                 <button id="resetBtn" class="warning">🔄 重置</button>
+                <button id="stopSoundBtn2" class="danger">🔇 停音</button>
             </div>
             
             <div class="time-settings">
@@ -432,6 +581,21 @@
                 <div class="time-setting">
                     <label for="breakTime">休息时间</label>
                     <input type="number" id="breakTime" value="5" min="1" max="30">
+                </div>
+            </div>
+            
+            <!-- 声音控制 -->
+            <div class="sound-controls">
+                <div class="card-title">🔊 声音设置</div>
+                <div class="sound-options">
+                    <div class="sound-option active" data-sound="beep">蜂鸣</div>
+                    <div class="sound-option" data-sound="bell">铃声</div>
+                    <div class="sound-option" data-sound="chord">和弦</div>
+                </div>
+                <div class="volume-control">
+                    <span>音量:</span>
+                    <input type="range" id="volumeControl" min="0" max="100" value="70">
+                    <span id="volumeValue">70%</span>
                 </div>
             </div>
         </div>
@@ -454,7 +618,6 @@
                     <button id="clearHistoryBtn" class="clear-history">清空</button>
                 </div>
                 <div class="history-list" id="historyList">
-                    <!-- 历史记录将通过JavaScript动态添加 -->
                     <div class="history-item empty-history">
                         暂无中断记录
                     </div>
@@ -478,11 +641,21 @@
         let isInterruptRunning = false;
         let pausedTime = 0;
         
+        // 声音控制变量
+        let audioContext = null;
+        let oscillator = null;
+        let gainNode = null;
+        let isSoundPlaying = false;
+        let currentSoundType = 'beep';
+        let volume = 0.7; // 默认音量 70%
+        
         // 元素引用
         const timerDisplay = document.getElementById('timer');
         const startBtn = document.getElementById('startBtn');
         const pauseBtn = document.getElementById('pauseBtn');
         const resetBtn = document.getElementById('resetBtn');
+        const stopSoundBtn = document.getElementById('stopSoundBtn');
+        const stopSoundBtn2 = document.getElementById('stopSoundBtn2');
         const focusTimeInput = document.getElementById('focusTime');
         const breakTimeInput = document.getElementById('breakTime');
         const interruptDurationInput = document.getElementById('interruptDuration');
@@ -492,12 +665,28 @@
         const historyList = document.getElementById('historyList');
         const statusBar = document.getElementById('statusBar');
         const statusText = document.getElementById('statusText');
+        const soundStatus = document.getElementById('soundStatus');
+        const volumeControl = document.getElementById('volumeControl');
+        const volumeValue = document.getElementById('volumeValue');
+        const soundOptions = document.querySelectorAll('.sound-option');
         
         // 初始化
         loadSettings();
         loadHistory();
         updateTimerDisplay();
         updateStatus('准备开始');
+        initAudioContext();
+        
+        // 初始化音频上下文
+        function initAudioContext() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log('音频上下文初始化成功');
+            } catch (e) {
+                console.error('音频上下文初始化失败:', e);
+                updateStatus('您的浏览器不支持高级音频功能，将使用基础提示');
+            }
+        }
         
         // 更新计时器显示
         function updateTimerDisplay() {
@@ -514,6 +703,91 @@
             setTimeout(() => {
                 statusBar.classList.remove('show');
             }, 3000);
+        }
+        
+        // 播放持续提示音
+        function playContinuousSound() {
+            if (!audioContext || isSoundPlaying) return;
+            
+            try {
+                // 创建振荡器和增益节点
+                oscillator = audioContext.createOscillator();
+                gainNode = audioContext.createGain();
+                
+                // 根据声音类型设置频率
+                switch(currentSoundType) {
+                    case 'beep':
+                        oscillator.frequency.value = 800; // 蜂鸣声
+                        break;
+                    case 'bell':
+                        oscillator.frequency.value = 1200; // 铃声
+                        break;
+                    case 'chord':
+                        oscillator.frequency.value = 1000; // 和弦声
+                        break;
+                }
+                
+                // 设置声音参数
+                oscillator.type = 'sine';
+                gainNode.gain.value = volume;
+                
+                // 连接节点
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // 开始播放
+                oscillator.start();
+                isSoundPlaying = true;
+                
+                // 显示声音状态
+                soundStatus.classList.add('show');
+                updateStatus('提示音开始播放，点击"停音"按钮停止');
+                
+                console.log('持续提示音开始播放');
+                
+            } catch (e) {
+                console.error('播放声音失败:', e);
+                // 备用方案：使用振动
+                if (navigator.vibrate) {
+                    navigator.vibrate([500, 250, 500, 250, 500]);
+                }
+                updateStatus('声音播放失败，请检查浏览器权限');
+            }
+        }
+        
+        // 停止提示音
+        function stopContinuousSound() {
+            if (!isSoundPlaying || !oscillator) return;
+            
+            try {
+                // 淡出效果
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+                
+                setTimeout(() => {
+                    if (oscillator) {
+                        oscillator.stop();
+                        oscillator.disconnect();
+                        oscillator = null;
+                        gainNode = null;
+                    }
+                    isSoundPlaying = false;
+                    soundStatus.classList.remove('show');
+                    console.log('提示音已停止');
+                }, 500);
+                
+            } catch (e) {
+                console.error('停止声音失败:', e);
+                isSoundPlaying = false;
+                soundStatus.classList.remove('show');
+            }
+        }
+        
+        // 播放振动提示
+        function playVibration() {
+            if (navigator.vibrate) {
+                // 长振动模式
+                navigator.vibrate([1000, 500, 1000, 500, 1000]);
+            }
         }
         
         // 番茄钟功能
@@ -537,13 +811,20 @@
                         isFocusTime = false;
                         pomodoroSeconds = parseInt(breakTimeInput.value) * 60;
                         updateStatus('专注时间结束，开始休息');
-                        playNotificationSound();
+                        
+                        // 播放持续提示音
+                        playContinuousSound();
+                        playVibration();
+                        
                     } else {
                         // 休息时间结束，开始新的番茄钟
                         isFocusTime = true;
                         pomodoroSeconds = parseInt(focusTimeInput.value) * 60;
                         updateStatus('休息时间结束，开始新的番茄钟');
-                        playNotificationSound();
+                        
+                        // 播放持续提示音
+                        playContinuousSound();
+                        playVibration();
                     }
                     
                     startPomodoro();
@@ -572,6 +853,9 @@
             updateTimerDisplay();
             startBtn.textContent = '▶️ 开始';
             updateStatus('已重置');
+            
+            // 停止提示音
+            stopContinuousSound();
             
             saveSettings();
         }
@@ -622,7 +906,10 @@
                     clearInterval(interruptTimer);
                     isInterruptRunning = false;
                     updateStatus('中断时间到，请返回继续');
-                    playNotificationSound();
+                    
+                    // 播放持续提示音
+                    playContinuousSound();
+                    playVibration();
                     
                     // 自动恢复番茄钟
                     if (confirm('中断时间结束，是否继续之前的番茄钟？')) {
@@ -637,33 +924,6 @@
             // 清空输入
             interruptDurationInput.value = '10';
             interruptReasonInput.value = '';
-        }
-        
-        // 播放提示音
-        function playNotificationSound() {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.frequency.value = 800;
-                oscillator.type = 'sine';
-                
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.5);
-            } catch (e) {
-                // 如果AudioContext不支持，使用备用方法
-                console.log('音频播放失败，将使用振动提示');
-                if (navigator.vibrate) {
-                    navigator.vibrate([200, 100, 200]);
-                }
-            }
         }
         
         // 历史记录功能
@@ -729,7 +989,9 @@
                 breakTime: breakTimeInput.value,
                 pomodoroSeconds: pomodoroSeconds,
                 isFocusTime: isFocusTime,
-                isPomodoroRunning: isPomodoroRunning
+                isPomodoroRunning: isPomodoroRunning,
+                volume: volume,
+                soundType: currentSoundType
             };
             localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
         }
@@ -741,14 +1003,66 @@
             if (settings.pomodoroSeconds) pomodoroSeconds = settings.pomodoroSeconds;
             if (settings.isFocusTime !== undefined) isFocusTime = settings.isFocusTime;
             if (settings.isPomodoroRunning) startPomodoro();
+            if (settings.volume) {
+                volume = settings.volume;
+                volumeControl.value = volume * 100;
+                volumeValue.textContent = Math.round(volume * 100) + '%';
+            }
+            if (settings.soundType) {
+                currentSoundType = settings.soundType;
+                updateSoundOptions();
+            }
+        }
+        
+        // 更新声音选项UI
+        function updateSoundOptions() {
+            soundOptions.forEach(option => {
+                if (option.dataset.sound === currentSoundType) {
+                    option.classList.add('active');
+                } else {
+                    option.classList.remove('active');
+                }
+            });
         }
         
         // 事件监听
         startBtn.addEventListener('click', startPomodoro);
         pauseBtn.addEventListener('click', pausePomodoro);
         resetBtn.addEventListener('click', resetPomodoro);
+        stopSoundBtn.addEventListener('click', stopContinuousSound);
+        stopSoundBtn2.addEventListener('click', stopContinuousSound);
         startInterruptBtn.addEventListener('click', startInterrupt);
         clearHistoryBtn.addEventListener('click', clearHistory);
+        
+        // 音量控制
+        volumeControl.addEventListener('input', function() {
+            volume = this.value / 100;
+            volumeValue.textContent = this.value + '%';
+            
+            // 实时更新增益节点
+            if (gainNode) {
+                gainNode.gain.value = volume;
+            }
+            
+            saveSettings();
+        });
+        
+        // 声音类型选择
+        soundOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                currentSoundType = this.dataset.sound;
+                updateSoundOptions();
+                saveSettings();
+                
+                // 如果正在播放声音，重新开始以应用新设置
+                if (isSoundPlaying) {
+                    stopContinuousSound();
+                    setTimeout(() => {
+                        playContinuousSound();
+                    }, 100);
+                }
+            });
+        });
         
         focusTimeInput.addEventListener('change', () => {
             if (!isPomodoroRunning && isFocusTime) {
@@ -767,7 +1081,7 @@
         });
         
         // 输入框触摸优化
-        const inputs = document.querySelectorAll('input[type="number"]');
+        const inputs = document.querySelectorAll('input[type="number"], input[type="text"]');
         inputs.forEach(input => {
             input.addEventListener('touchstart', function(e) {
                 e.stopPropagation();
@@ -778,9 +1092,8 @@
             });
         });
         
-        // 请求通知权限（静默请求，不弹窗）
+        // 请求通知权限
         if ('Notification' in window && Notification.permission === 'default') {
-            // 仅在用户交互后请求权限
             document.addEventListener('click', function requestPermission() {
                 if (Notification.permission === 'default') {
                     Notification.requestPermission();
@@ -792,17 +1105,43 @@
         // 页面可见性变化处理
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
-                // 页面隐藏时，更新标题显示剩余时间
                 const minutes = Math.floor(pomodoroSeconds / 60);
                 const seconds = pomodoroSeconds % 60;
                 document.title = `🍅 ${minutes}:${seconds.toString().padStart(2, '0')}`;
             } else {
-                document.title = '番茄钟';
+                document.title = '番茄钟 - 双端适配版';
             }
         });
         
         // 页面关闭前保存
         window.addEventListener('beforeunload', saveSettings);
+        
+        // 电脑端键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            // 空格键：开始/暂停
+            if (e.code === 'Space' && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                if (isPomodoroRunning) {
+                    pausePomodoro();
+                } else {
+                    startPomodoro();
+                }
+            }
+            
+            // R键：重置
+            if (e.code === 'KeyR' && e.ctrlKey) {
+                e.preventDefault();
+                resetPomodoro();
+            }
+            
+            // S键：停止声音
+            if (e.code === 'KeyS' && e.ctrlKey) {
+                e.preventDefault();
+                stopContinuousSound();
+            }
+        });
+        
+        console.log('番茄钟双端适配版已加载完成');
     </script>
 </body>
 </html>
