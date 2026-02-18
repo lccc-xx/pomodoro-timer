@@ -791,7 +791,7 @@
         <span id="statusText">准备开始</span>
     </div>
 
-    <!-- 移除原来的音频元素，完全使用Web Audio API -->
+    <!-- 完全使用Web Audio API，不需要音频文件 -->
     
     <script>
         // 状态变量
@@ -850,9 +850,10 @@
         function initAudioContext() {
             if (!audioContext && (window.AudioContext || window.webkitAudioContext)) {
                 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                audioContext = new AudioContext();
-                console.log('AudioContext初始化成功');
+                audioContext = new AudioContextClass();
+                console.log('AudioContext初始化成功:', audioContext.state);
             }
+            return audioContext;
         }
 
         // 事件监听器
@@ -937,6 +938,7 @@
                         // 专注时间结束，开始休息
                         pomodoroSeconds = parseInt(breakTimeInput.value) * 60;
                         isFocusTime = false;
+                        console.log('专注时间结束，开始播放结束声音');
                         playSound('end');
                         updateStatus('专注时间结束！开始休息', 5000);
                         
@@ -955,6 +957,7 @@
                         // 休息时间结束，回到专注
                         pomodoroSeconds = parseInt(focusTimeInput.value) * 60;
                         isFocusTime = true;
+                        console.log('休息时间结束，开始播放结束声音');
                         playSound('end');
                         updateStatus('休息时间结束！准备开始下一轮专注', 5000);
                     }
@@ -1095,6 +1098,9 @@
                     cancelInterruptBtn.style.display = 'none';
                     interruptReasonInput.value = '';
                     
+                    console.log('中断结束，开始播放结束声音');
+                    console.log('声音状态 - 启用:', soundEnabled, '类型:', currentSoundType, '音量:', volume);
+                    
                     playSound('end');
                     updateStatus('中断时间结束！可以继续专注了', 5000);
                 }
@@ -1139,23 +1145,27 @@
             const seconds = interruptSeconds % 60;
             interruptTimeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
-
-// 播放声音
-function playSound(type = 'end') {
-    console.log('播放声音，类型:', type, '声音已启用:', soundEnabled);
-    
-    // 【新增】清除之前可能存在的播放定时器
-    clearInterval(soundInterval);
-    soundInterval = null;
-    
-    // 总是尝试震动
-    if (vibrationEnabled && navigator.vibrate) {
-        if (type === 'test') {
-            navigator.vibrate(100);
-        } else {
-            navigator.vibrate([200, 100, 200, 100, 200]);
-        }
-    }
+        // 播放声音
+        function playSound(type = 'end') {
+            console.log('播放声音，类型:', type, '声音已启用:', soundEnabled);
+            
+            // 清除之前可能存在的播放定时器
+            clearInterval(soundInterval);
+            soundInterval = null;
+            
+            // 停止当前的持续播放
+            if (window.currentPlayback && window.currentPlayback.isPlaying) {
+                window.currentPlayback.stop();
+            }
+            
+            // 总是尝试震动
+            if (vibrationEnabled && navigator.vibrate) {
+                if (type === 'test') {
+                    navigator.vibrate(100);
+                } else {
+                    navigator.vibrate([200, 100, 200, 100, 200]);
+                }
+            }
             
             // 如果声音未启用，直接返回
             if (!soundEnabled) {
@@ -1164,321 +1174,246 @@ function playSound(type = 'end') {
             }
             
             // 初始化AudioContext
-            initAudioContext();
-            
-            if (!audioContext) {
+            const audioCtx = initAudioContext();
+            if (!audioCtx) {
                 console.log('Web Audio API 不支持');
                 return;
             }
             
-try {
-        // 确保音频上下文处于活动状态
-        if (audioContext.state === 'suspended') {
-            audioContext.resume();
+            // 确保音频上下文处于活动状态
+            if (audioCtx.state === 'suspended') {
+                console.log('AudioContext处于挂起状态，尝试恢复');
+                audioCtx.resume().then(() => {
+                    console.log('AudioContext已恢复');
+                    if (type === 'test') {
+                        playSingleSound();
+                    } else if (type === 'end') {
+                        startContinuousPlayback();
+                    }
+                }).catch(error => {
+                    console.error('恢复AudioContext失败:', error);
+                });
+            } else {
+                if (type === 'test') {
+                    // 测试声音：播放一次简短的声音
+                    playSingleSound();
+                } else if (type === 'end') {
+                    // 结束声音：无限循环播放，直到手动停止
+                    startContinuousPlayback();
+                }
+            }
         }
-        
-        if (type === 'test') {
-            // 测试声音：播放一次简短的声音
-            playSingleSound();
-        } else if (type === 'end') {
-            // 结束声音：无限循环播放，直到手动停止
-            startContinuousPlayback();
-        }
-        
-    } catch (error) {
-        console.error('播放声音失败:', error);
-    }
+
+        // 播放单个声音（用于测试）
+        function playSingleSound() {
+            try {
+                const audioCtx = initAudioContext();
+                if (!audioCtx) {
+                    console.log('无法创建AudioContext');
+                    return;
+                }
                 
-                // 创建振荡器
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
                 
-                // 连接节点
                 oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
+                gainNode.connect(audioCtx.destination);
                 
-                // 根据声音类型设置频率和持续时间
+                // 根据声音类型设置频率
                 let frequency, duration;
                 
                 switch(currentSoundType) {
                     case 'bell':
-                        frequency = 1200; // 铃声
-                        duration = 500; // 500ms
+                        frequency = 1200;
+                        duration = 500;
                         break;
                     case 'chord':
-                        frequency = 800; // 和弦
-                        duration = 700; // 700ms
+                        frequency = 800;
+                        duration = 700;
                         break;
                     case 'beep':
                     default:
-                        frequency = 600; // 蜂鸣声
-                        duration = 300; // 300ms
+                        frequency = 600;
+                        duration = 300;
                         break;
                 }
                 
-                // 设置参数
                 oscillator.frequency.value = frequency;
-                oscillator.type = 'sine'; // 正弦波
-                
-                // 设置音量
+                oscillator.type = 'sine';
                 gainNode.gain.value = volume;
                 
-                const now = audioContext.currentTime;
-                
-                // 添加淡入淡出效果
+                const now = audioCtx.currentTime;
                 gainNode.gain.setValueAtTime(0, now);
                 gainNode.gain.linearRampToValueAtTime(volume, now + 0.05);
                 gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
                 
-                // 开始播放
                 oscillator.start(now);
                 oscillator.stop(now + duration / 1000);
                 
-                console.log(`播放声音: ${currentSoundType}, 频率: ${frequency}Hz, 时长: ${duration}ms`);
-                
-                // 如果是结束提示音，循环播放3次
-                if (type === 'end') {
-                    let playCount = 1;
-                    soundStatus.classList.add('show');
-                    
-                    // 设置定时器播放后续声音
-                    const playNextSound = () => {
-                        if (playCount >= 3) {
-                            soundStatus.classList.remove('show');
-                            return;
-                        }
-                        
-                        setTimeout(() => {
-                            const newContext = new (window.AudioContext || window.webkitAudioContext)();
-                            const newOscillator = newContext.createOscillator();
-                            const newGainNode = newContext.createGain();
-                            
-                            newOscillator.connect(newGainNode);
-                            newGainNode.connect(newContext.destination);
-                            
-                            newOscillator.frequency.value = frequency;
-                            newOscillator.type = 'sine';
-                            
-                            const newNow = newContext.currentTime;
-                            newGainNode.gain.setValueAtTime(0, newNow);
-                            newGainNode.gain.linearRampToValueAtTime(volume, newNow + 0.05);
-                            newGainNode.gain.exponentialRampToValueAtTime(0.001, newNow + duration / 1000);
-                            
-                            newOscillator.start(newNow);
-                            newOscillator.stop(newNow + duration / 1000);
-                            
-                            playCount++;
-                            playNextSound();
-                            
-                            // 关闭音频上下文
-                            setTimeout(() => {
-                                newContext.close();
-                            }, duration + 50);
-                            
-                        }, 1000); // 每隔1秒播放一次
-                    };
-                    
-                    // 启动循环播放
-                    playNextSound();
-                }
+                console.log(`播放单个声音: ${currentSoundType}, 频率: ${frequency}Hz`);
                 
             } catch (error) {
-                console.error('播放声音失败:', error);
+                console.error('播放单个声音失败:', error);
             }
         }
-// 【新增】播放单个声音（用于测试）
-function playSingleSound() {
-    try {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        // 根据声音类型设置频率
-        let frequency, duration;
-        
-        switch(currentSoundType) {
-            case 'bell':
-                frequency = 1200;
-                duration = 500;
-                break;
-            case 'chord':
-                frequency = 800;
-                duration = 700;
-                break;
-            case 'beep':
-            default:
-                frequency = 600;
-                duration = 300;
-                break;
-        }
-        
-        oscillator.frequency.value = frequency;
-        oscillator.type = 'sine';
-        gainNode.gain.value = volume;
-        
-        const now = audioContext.currentTime;
-        gainNode.gain.setValueAtTime(0, now);
-        gainNode.gain.linearRampToValueAtTime(volume, now + 0.05);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
-        
-        oscillator.start(now);
-        oscillator.stop(now + duration / 1000);
-        
-        console.log(`播放单个声音: ${currentSoundType}, 频率: ${frequency}Hz`);
-        
-    } catch (error) {
-        console.error('播放单个声音失败:', error);
-    }
-}
 
-// 【新增】开始持续播放
-function startContinuousPlayback() {
-    // 显示声音状态指示器
-    soundStatus.classList.add('show');
-    updateStatus('时间到！提示音将持续播放，点击"停音"按钮停止', 5000);
-    
-    // 设置播放次数计数器
-    let playCount = 0;
-    let isPlaying = true;
-    
-    // 定义一个播放循环的函数
-    function playLoop() {
-        if (!isPlaying) {
-            console.log('播放已停止');
-            return;
-        }
-        
-        playCount++;
-        console.log(`播放第 ${playCount} 次`);
-        
-        try {
-            // 每次播放都创建新的AudioContext，避免状态问题
-            const newContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = newContext.createOscillator();
-            const gainNode = newContext.createGain();
+        // 开始持续播放
+        function startContinuousPlayback() {
+            console.log('开始持续播放声音');
             
-            oscillator.connect(gainNode);
-            gainNode.connect(newContext.destination);
+            // 显示声音状态指示器
+            soundStatus.classList.add('show');
+            updateStatus('时间到！提示音将持续播放，点击"停音"按钮停止', 5000);
             
-            // 根据声音类型设置频率
-            let frequency, duration;
+            // 设置播放状态
+            let isPlaying = true;
             
+            // 定义一个播放循环的函数
+            function playLoop() {
+                if (!isPlaying) {
+                    console.log('播放已停止');
+                    soundStatus.classList.remove('show');
+                    return;
+                }
+                
+                console.log(`播放持续提示音，声音类型: ${currentSoundType}`);
+                
+                try {
+                    // 每次播放都创建新的AudioContext，避免状态问题
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContextClass) {
+                        console.log('浏览器不支持Web Audio API');
+                        return;
+                    }
+                    
+                    const audioCtx = new AudioContextClass();
+                    
+                    // 确保音频上下文处于活动状态
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                    
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    // 根据声音类型设置频率
+                    let frequency, duration;
+                    
+                    switch(currentSoundType) {
+                        case 'bell':
+                            frequency = 1200;
+                            duration = 1000; // 铃声持续1秒
+                            break;
+                        case 'chord':
+                            frequency = 800;
+                            duration = 1200; // 和弦持续1.2秒
+                            break;
+                        case 'beep':
+                        default:
+                            frequency = 600;
+                            duration = 800; // 蜂鸣声持续0.8秒
+                            break;
+                    }
+                    
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = 'sine';
+                    
+                    const now = audioCtx.currentTime;
+                    
+                    // 添加淡入淡出效果
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(volume, now + 0.1);
+                    gainNode.gain.linearRampToValueAtTime(volume, now + (duration - 100) / 1000);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
+                    
+                    oscillator.start(now);
+                    oscillator.stop(now + duration / 1000);
+                    
+                    // 声音播放完成后关闭AudioContext
+                    setTimeout(() => {
+                        try {
+                            if (audioCtx.state !== 'closed') {
+                                audioCtx.close();
+                            }
+                        } catch (e) {
+                            // 忽略关闭错误
+                        }
+                    }, duration + 50);
+                    
+                } catch (error) {
+                    console.error('播放失败:', error);
+                }
+            }
+            
+            // 第一次播放
+            playLoop();
+            
+            // 设置播放间隔
+            let intervalDuration = 2000; // 默认间隔2秒
+            
+            // 根据声音类型设置不同的播放间隔
             switch(currentSoundType) {
                 case 'bell':
-                    frequency = 1200;
-                    duration = 1000; // 铃声持续1秒
+                    intervalDuration = 2500; // 铃声间隔2.5秒
                     break;
                 case 'chord':
-                    frequency = 800;
-                    duration = 1200; // 和弦持续1.2秒
+                    intervalDuration = 3000; // 和弦间隔3秒
                     break;
                 case 'beep':
                 default:
-                    frequency = 600;
-                    duration = 800; // 蜂鸣声持续0.8秒
+                    intervalDuration = 1500; // 蜂鸣声间隔1.5秒
                     break;
             }
             
-            oscillator.frequency.value = frequency;
-            oscillator.type = 'sine';
-            
-            const now = newContext.currentTime;
-            
-            // 添加更明显的淡入淡出效果
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(volume, now + 0.1);
-            gainNode.gain.linearRampToValueAtTime(volume, now + (duration - 100) / 1000);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
-            
-            oscillator.start(now);
-            oscillator.stop(now + duration / 1000);
-            
-            // 声音播放完成后关闭AudioContext
-            setTimeout(() => {
-                try {
-                    newContext.close();
-                } catch (e) {
-                    // 忽略关闭错误
+            // 设置定时器持续播放
+            soundInterval = setInterval(() => {
+                if (isPlaying) {
+                    playLoop();
+                } else {
+                    clearInterval(soundInterval);
+                    soundInterval = null;
                 }
-            }, duration + 50);
+            }, intervalDuration);
             
-        } catch (error) {
-            console.error('播放失败:', error);
+            // 保存当前播放状态，供停止功能使用
+            window.currentPlayback = {
+                isPlaying: true,
+                stop: function() {
+                    console.log('手动停止持续播放');
+                    isPlaying = false;
+                    clearInterval(soundInterval);
+                    soundInterval = null;
+                    soundStatus.classList.remove('show');
+                }
+            };
         }
-    }
-    
-    // 第一次播放
-    playLoop();
-    
-    // 设置定时器，在声音播放间隔后播放下一次
-    let intervalDuration = 2000; // 默认间隔2秒
-    
-    // 根据声音类型设置不同的播放间隔
-    switch(currentSoundType) {
-        case 'bell':
-            intervalDuration = 2500; // 铃声间隔2.5秒
-            break;
-        case 'chord':
-            intervalDuration = 3000; // 和弦间隔3秒
-            break;
-        case 'beep':
-        default:
-            intervalDuration = 1500; // 蜂鸣声间隔1.5秒
-            break;
-    }
-    
-    // 设置定时器持续播放
-    soundInterval = setInterval(() => {
-        if (isPlaying) {
-            playLoop();
-        } else {
+
+        // 停止所有声音
+        function stopAllSounds() {
+            console.log('停止所有声音');
+            
+            // 停止持续播放
+            if (window.currentPlayback && window.currentPlayback.isPlaying) {
+                window.currentPlayback.stop();
+            }
+            
+            // 清除声音播放定时器
             clearInterval(soundInterval);
             soundInterval = null;
-        }
-    }, intervalDuration);
-    
-    // 保存当前播放状态，供停止功能使用
-    window.currentPlayback = {
-        isPlaying: true,
-        stop: function() {
-            isPlaying = false;
-            clearInterval(soundInterval);
-            soundInterval = null;
+            
+            // 隐藏声音状态指示器
             soundStatus.classList.remove('show');
-            console.log('手动停止了持续播放');
+            
+            // 停止震动
+            if (navigator.vibrate) {
+                navigator.vibrate(0);
+            }
+            
+            updateStatus('声音已停止');
         }
-    };
-}
-// 停止所有声音
-function stopAllSounds() {
-    console.log('停止所有声音');
-    
-    // 【新增】停止持续播放
-    if (window.currentPlayback && window.currentPlayback.isPlaying) {
-        window.currentPlayback.stop();
-    }
-    
-    // 清除声音播放定时器
-    clearInterval(soundInterval);
-    soundInterval = null;
-    
-    // 隐藏声音状态指示器
-    soundStatus.classList.remove('show');
-    
-    // 【新增】停止震动
-    if (navigator.vibrate) {
-        navigator.vibrate(0);
-    }
-    
-    updateStatus('声音已停止');
-    
-    // 【新增】重置播放计数器
-    if (window.currentPlayback) {
-        window.currentPlayback.isPlaying = false;
-    }
-}
 
         // 更新音量
         function updateVolume() {
@@ -1525,20 +1460,20 @@ function stopAllSounds() {
             // 测试Web Audio API
             if (window.AudioContext || window.webkitAudioContext) {
                 try {
-                    initAudioContext();
+                    const audioCtx = initAudioContext();
                     
-                    if (!audioContext) {
+                    if (!audioCtx) {
                         throw new Error('无法创建AudioContext');
                     }
                     
-                    if (audioContext.state === 'suspended') {
+                    if (audioCtx.state === 'suspended') {
                         soundTestResult.textContent = '请点击页面任意位置以启用声音';
                         
                         // 添加点击事件解锁音频上下文
                         const unlockAudio = () => {
-                            audioContext.resume().then(() => {
+                            audioCtx.resume().then(() => {
                                 console.log('AudioContext已解锁');
-                                testWebAudio();
+                                testWebAudio(audioCtx);
                             }).catch(err => {
                                 console.error('解锁AudioContext失败:', err);
                                 handleSoundTestFailure();
@@ -1558,7 +1493,7 @@ function stopAllSounds() {
                         return;
                     }
                     
-                    testWebAudio();
+                    testWebAudio(audioCtx);
                     
                 } catch (error) {
                     console.error('测试声音失败:', error);
@@ -1571,20 +1506,20 @@ function stopAllSounds() {
         }
 
         // 测试Web Audio API
-        function testWebAudio() {
+        function testWebAudio(audioCtx) {
             try {
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
                 
                 oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
+                gainNode.connect(audioCtx.destination);
                 
                 // 播放一个简单的测试音
                 oscillator.frequency.value = 800;
                 gainNode.gain.value = volume;
                 oscillator.type = 'sine';
                 
-                const now = audioContext.currentTime;
+                const now = audioCtx.currentTime;
                 gainNode.gain.setValueAtTime(0, now);
                 gainNode.gain.linearRampToValueAtTime(volume, now + 0.05);
                 gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
@@ -1730,14 +1665,20 @@ function stopAllSounds() {
                     if (settings.soundType) {
                         currentSoundType = settings.soundType;
                         soundOptions.forEach(opt => opt.classList.remove('active'));
-                        document.querySelector(`[data-sound="${settings.soundType}"]`).classList.add('active');
+                        const activeOption = document.querySelector(`[data-sound="${settings.soundType}"]`);
+                        if (activeOption) {
+                            activeOption.classList.add('active');
+                        }
                     }
                     if (settings.soundEnabled !== undefined) {
                         soundEnabled = settings.soundEnabled;
                     }
                     if (settings.vibrationEnabled !== undefined) {
                         vibrationEnabled = settings.vibrationEnabled;
-                        document.getElementById('vibrationToggle').checked = vibrationEnabled;
+                        const vibrationToggle = document.getElementById('vibrationToggle');
+                        if (vibrationToggle) {
+                            vibrationToggle.checked = vibrationEnabled;
+                        }
                     }
                     
                     updatePomodoroTime();
@@ -1778,6 +1719,7 @@ function stopAllSounds() {
                 }));
             }
         });
+
         // 页面加载时恢复状态
         window.addEventListener('load', () => {
             const savedState = localStorage.getItem('pomodoroRunningState');
@@ -1871,8 +1813,10 @@ function stopAllSounds() {
             if (e.code === 'KeyV' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 const vibrationToggle = document.getElementById('vibrationToggle');
-                vibrationToggle.checked = !vibrationToggle.checked;
-                vibrationToggle.dispatchEvent(new Event('change'));
+                if (vibrationToggle) {
+                    vibrationToggle.checked = !vibrationToggle.checked;
+                    vibrationToggle.dispatchEvent(new Event('change'));
+                }
             }
             // Ctrl + T：测试声音
             if (e.code === 'KeyT' && (e.ctrlKey || e.metaKey)) {
