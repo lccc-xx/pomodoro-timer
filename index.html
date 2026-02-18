@@ -2,203 +2,481 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- iPhone全屏关键设置 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- iPhone全屏和触控优化 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="番茄钟">
     <meta name="mobile-web-app-capable" content="yes">
     <title>番茄钟</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; overflow: hidden; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            -webkit-tap-highlight-color: transparent;
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --text-color: white;
+            --button-bg: rgba(255, 255, 255, 0.15);
+            --button-active: rgba(255, 255, 255, 0.25);
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --border-radius: 16px;
+            --spacing-xs: 8px;
+            --spacing-sm: 12px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
         }
         
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-size: 16px;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+        }
+        
+        /* 标题栏 */
+        .header {
+            text-align: center;
+            padding: var(--spacing-md) var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        /* 主容器 */
         .container {
             display: flex;
             flex-direction: column;
             height: 100%;
-            gap: 20px;
+            gap: var(--spacing-lg);
+            padding: 0 var(--spacing-md);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         
-        .pomodoro-section, .interrupt-section {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            flex: 1;
+        /* 卡片样式 */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        h2 {
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-            padding-bottom: 8px;
+        /* 番茄钟卡片 */
+        .pomodoro-card {
+            flex: none;
         }
         
         .timer-display {
-            font-size: 4rem;
-            font-weight: bold;
+            font-size: 4.5rem;
+            font-weight: 700;
             text-align: center;
-            margin: 20px 0;
+            margin: var(--spacing-xl) 0;
             font-variant-numeric: tabular-nums;
+            letter-spacing: -2px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
         
-        .controls {
+        /* 按钮组 */
+        .button-group {
             display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 20px;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
         }
         
-        button {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
+        .button-group button {
             flex: 1;
-            max-width: 120px;
+            height: 52px;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         
-        button:hover { background: rgba(255, 255, 255, 0.3); }
-        button:active { transform: scale(0.95); }
+        .button-group button:active {
+            transform: scale(0.96);
+        }
         
+        .button-group button.primary {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+        }
+        
+        .button-group button.primary:active {
+            background: rgba(255, 255, 255, 0.35);
+        }
+        
+        .button-group button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .button-group button.secondary:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .button-group button.warning {
+            background: rgba(255, 180, 0, 0.25);
+            color: white;
+        }
+        
+        .button-group button.warning:active {
+            background: rgba(255, 180, 0, 0.35);
+        }
+        
+        /* 时间设置 */
         .time-settings {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
         }
         
         .time-setting {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 5px;
+            gap: var(--spacing-xs);
         }
         
         .time-setting label {
             font-size: 0.9rem;
             opacity: 0.8;
+            font-weight: 500;
         }
         
         .time-setting input {
-            width: 80px;
-            padding: 8px;
-            border: none;
-            border-radius: 10px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.2);
+            width: 100%;
+            height: 48px;
+            padding: var(--spacing-md);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
             color: white;
-            font-size: 1rem;
+            font-size: 1.1rem;
+            text-align: center;
+            -webkit-appearance: none;
+            appearance: none;
         }
         
+        .time-setting input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        /* 中断卡片 */
+        .interrupt-card {
+            flex: none;
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-title::before {
+            font-size: 1.2em;
+        }
+        
+        /* 中断控制 */
         .interrupt-controls {
             display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
         }
         
-        #interruptDuration {
+        .input-row {
+            display: flex;
+            gap: var(--spacing-sm);
+            width: 100%;
+        }
+        
+        .input-row input {
             flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.2);
+            height: 52px;
+            padding: var(--spacing-md);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.1);
             color: white;
             font-size: 1rem;
+            -webkit-appearance: none;
+            appearance: none;
         }
         
-        #interruptReason {
-            flex: 2;
-            padding: 12px;
+        .input-row input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .input-row input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .interrupt-button {
+            width: 100%;
+            height: 52px;
             border: none;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            background: rgba(255, 180, 0, 0.25);
             color: white;
-            font-size: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
         
+        .interrupt-button:active {
+            background: rgba(255, 180, 0, 0.35);
+            transform: scale(0.98);
+        }
+        
+        /* 中断历史 */
         .interrupt-history {
-            margin-top: 20px;
-            max-height: 150px;
+            margin-top: var(--spacing-lg);
+        }
+        
+        .history-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .history-list {
+            max-height: 200px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-right: 4px;
         }
         
         .history-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: var(--spacing-md);
+            border-radius: 12px;
+            margin-bottom: var(--spacing-sm);
             font-size: 0.9rem;
+            line-height: 1.4;
         }
         
-        @media (min-width: 768px) {
-            .container { flex-direction: row; }
-            .pomodoro-section, .interrupt-section { flex: 1; }
+        .history-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .history-time {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .history-details {
+            display: flex;
+            justify-content: space-between;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+        }
+        
+        /* 状态提示 */
+        .status-bar {
+            position: fixed;
+            bottom: max(20px, env(safe-area-inset-bottom));
+            left: 0;
+            right: 0;
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            text-align: center;
+            font-weight: 500;
+            z-index: 100;
+            display: none;
+        }
+        
+        .status-bar.show {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        
+        /* iPhone X及以后机型的适配 */
+        @supports (padding: max(0px)) {
+            body {
+                padding-top: max(20px, env(safe-area-inset-top));
+                padding-bottom: max(20px, env(safe-area-inset-bottom));
+                padding-left: max(20px, env(safe-area-inset-left));
+                padding-right: max(20px, env(safe-area-inset-right));
+            }
+        }
+        
+        /* 横屏优化 */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .container {
+                flex-direction: row;
+                padding: var(--spacing-sm);
+            }
+            
+            .pomodoro-card,
+            .interrupt-card {
+                flex: 1;
+                height: 100%;
+                overflow-y: auto;
+            }
+            
+            .timer-display {
+                font-size: 3.5rem;
+                margin: var(--spacing-md) 0;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+        
+        /* 大屏手机优化 */
+        @media (min-width: 400px) and (min-height: 700px) {
+            .timer-display {
+                font-size: 5rem;
+            }
+            
+            .button-group button {
+                height: 56px;
+                font-size: 1.2rem;
+            }
+        }
+        
+        /* 清除历史按钮 */
+        .clear-history {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .clear-history:active {
+            background: rgba(255, 255, 255, 0.1);
         }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1>🍅 番茄钟</h1>
+        <p>专注工作 · 灵活中断</p>
+    </div>
+    
     <div class="container">
         <!-- 番茄钟主区域 -->
-        <div class="pomodoro-section">
-            <h2>🍅 番茄钟</h2>
+        <div class="card pomodoro-card">
+            <div class="card-title">专注计时</div>
             <div class="timer-display" id="timer">25:00</div>
-            <div class="controls">
-                <button id="startBtn">开始</button>
-                <button id="pauseBtn">暂停</button>
-                <button id="resetBtn">重置</button>
+            
+            <div class="button-group">
+                <button id="startBtn" class="primary">▶️ 开始</button>
+                <button id="pauseBtn" class="secondary">⏸️ 暂停</button>
+                <button id="resetBtn" class="warning">🔄 重置</button>
             </div>
+            
             <div class="time-settings">
                 <div class="time-setting">
-                    <label>专注时间（分）</label>
-                    <input type="number" id="focusTime" value="25" min="1" max="120">
+                    <label for="focusTime">专注时间</label>
+                    <input type="number" id="focusTime" value="25" min="5" max="60">
                 </div>
                 <div class="time-setting">
-                    <label>休息时间（分）</label>
-                    <input type="number" id="breakTime" value="5" min="1" max="60">
+                    <label for="breakTime">休息时间</label>
+                    <input type="number" id="breakTime" value="5" min="1" max="30">
                 </div>
             </div>
         </div>
         
         <!-- 中断功能区域 -->
-        <div class="interrupt-section">
-            <h2>⏸️ 临时中断</h2>
+        <div class="card interrupt-card">
+            <div class="card-title">⏸️ 临时中断</div>
+            
             <div class="interrupt-controls">
-                <input type="number" id="interruptDuration" placeholder="分钟" min="1" max="60">
-                <input type="text" id="interruptReason" placeholder="中断原因">
-                <button id="startInterruptBtn">开始中断</button>
+                <div class="input-row">
+                    <input type="number" id="interruptDuration" placeholder="中断分钟" min="1" max="120" value="10">
+                    <input type="text" id="interruptReason" placeholder="中断原因（可选）">
+                </div>
+                <button id="startInterruptBtn" class="interrupt-button">开始临时中断</button>
             </div>
+            
             <div class="interrupt-history">
-                <h3>中断记录</h3>
-                <div id="historyList"></div>
+                <div class="history-title">
+                    <span>最近中断</span>
+                    <button id="clearHistoryBtn" class="clear-history">清空</button>
+                </div>
+                <div class="history-list" id="historyList">
+                    <!-- 历史记录将通过JavaScript动态添加 -->
+                    <div class="history-item empty-history">
+                        暂无中断记录
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    
+    <div class="status-bar" id="statusBar">
+        <span id="statusText">准备开始</span>
+    </div>
 
     <script>
-        // 番茄钟逻辑
+        // 状态变量
         let pomodoroTimer = null;
+        let interruptTimer = null;
         let pomodoroSeconds = 25 * 60;
+        let interruptSeconds = 0;
         let isPomodoroRunning = false;
         let isFocusTime = true;
-        
-        // 中断计时器
-        let interruptTimer = null;
-        let interruptSeconds = 0;
         let isInterruptRunning = false;
+        let pausedTime = 0;
         
         // 元素引用
         const timerDisplay = document.getElementById('timer');
@@ -210,26 +488,80 @@
         const interruptDurationInput = document.getElementById('interruptDuration');
         const interruptReasonInput = document.getElementById('interruptReason');
         const startInterruptBtn = document.getElementById('startInterruptBtn');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
         const historyList = document.getElementById('historyList');
+        const statusBar = document.getElementById('statusBar');
+        const statusText = document.getElementById('statusText');
         
         // 初始化
         loadSettings();
-        updateTimerDisplay();
         loadHistory();
+        updateTimerDisplay();
+        updateStatus('准备开始');
+        
+        // 更新计时器显示
+        function updateTimerDisplay() {
+            const minutes = Math.floor(pomodoroSeconds / 60);
+            const seconds = pomodoroSeconds % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.title = `${minutes}:${seconds.toString().padStart(2, '0')} - 番茄钟`;
+        }
+        
+        // 更新状态栏
+        function updateStatus(message) {
+            statusText.textContent = message;
+            statusBar.classList.add('show');
+            setTimeout(() => {
+                statusBar.classList.remove('show');
+            }, 3000);
+        }
         
         // 番茄钟功能
         function startPomodoro() {
             if (isPomodoroRunning) return;
+            
             isPomodoroRunning = true;
-            pomodoroTimer = setInterval(updatePomodoro, 1000);
-            startBtn.textContent = '运行中';
+            startBtn.textContent = '⏸️ 运行中';
+            updateStatus('专注时间开始');
+            
+            pomodoroTimer = setInterval(() => {
+                pomodoroSeconds--;
+                updateTimerDisplay();
+                
+                if (pomodoroSeconds <= 0) {
+                    clearInterval(pomodoroTimer);
+                    isPomodoroRunning = false;
+                    
+                    if (isFocusTime) {
+                        // 专注时间结束，开始休息
+                        isFocusTime = false;
+                        pomodoroSeconds = parseInt(breakTimeInput.value) * 60;
+                        updateStatus('专注时间结束，开始休息');
+                        playNotificationSound();
+                    } else {
+                        // 休息时间结束，开始新的番茄钟
+                        isFocusTime = true;
+                        pomodoroSeconds = parseInt(focusTimeInput.value) * 60;
+                        updateStatus('休息时间结束，开始新的番茄钟');
+                        playNotificationSound();
+                    }
+                    
+                    startPomodoro();
+                }
+            }, 1000);
+            
+            saveSettings();
         }
         
         function pausePomodoro() {
             if (!isPomodoroRunning) return;
+            
             clearInterval(pomodoroTimer);
             isPomodoroRunning = false;
-            startBtn.textContent = '继续';
+            startBtn.textContent = '▶️ 继续';
+            updateStatus('已暂停');
+            
+            saveSettings();
         }
         
         function resetPomodoro() {
@@ -238,124 +570,127 @@
             isFocusTime = true;
             pomodoroSeconds = parseInt(focusTimeInput.value) * 60;
             updateTimerDisplay();
-            startBtn.textContent = '开始';
-        }
-        
-        function updatePomodoro() {
-            if (pomodoroSeconds <= 0) {
-                clearInterval(pomodoroTimer);
-                isPomodoroRunning = false;
-                
-                if (isFocusTime) {
-                    // 专注时间结束，开始休息
-                    isFocusTime = false;
-                    pomodoroSeconds = parseInt(breakTimeInput.value) * 60;
-                    playNotification('专注时间结束！开始休息。');
-                } else {
-                    // 休息时间结束，开始新的番茄钟
-                    isFocusTime = true;
-                    pomodoroSeconds = parseInt(focusTimeInput.value) * 60;
-                    playNotification('休息时间结束！开始新的番茄钟。');
-                }
-                
-                startPomodoro();
-            } else {
-                pomodoroSeconds--;
-            }
+            startBtn.textContent = '▶️ 开始';
+            updateStatus('已重置');
             
-            updateTimerDisplay();
             saveSettings();
-        }
-        
-        function updateTimerDisplay() {
-            const minutes = Math.floor(pomodoroSeconds / 60);
-            const seconds = pomodoroSeconds % 60;
-            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            // 更新标题显示剩余时间
-            document.title = `${minutes}:${seconds.toString().padStart(2, '0')} - 番茄钟`;
         }
         
         // 中断功能
         function startInterrupt() {
-            if (isInterruptRunning) return;
+            if (isInterruptRunning) {
+                updateStatus('已有中断在进行中');
+                return;
+            }
             
             const duration = parseInt(interruptDurationInput.value);
             const reason = interruptReasonInput.value.trim();
             
             if (!duration || duration < 1) {
-                alert('请输入有效的中断时间');
-                return;
-            }
-            
-            if (!reason) {
-                alert('请输入中断原因');
+                updateStatus('请输入有效的中断时间');
                 return;
             }
             
             // 暂停番茄钟
             if (isPomodoroRunning) {
+                pausedTime = pomodoroSeconds;
                 pausePomodoro();
+            } else {
+                pausedTime = pomodoroSeconds;
             }
-            
-            // 开始中断计时
-            interruptSeconds = duration * 60;
-            isInterruptRunning = true;
             
             // 记录中断
             const interruptRecord = {
-                time: new Date().toLocaleTimeString(),
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 duration: duration,
-                reason: reason,
-                remainingPomodoro: pomodoroSeconds
+                reason: reason || '未指定原因',
+                remainingPomodoro: pausedTime
             };
             
             addToHistory(interruptRecord);
             saveHistory();
             
+            // 开始中断计时
+            interruptSeconds = duration * 60;
+            isInterruptRunning = true;
+            updateStatus(`中断开始: ${reason || '临时中断'}`);
+            
             interruptTimer = setInterval(() => {
+                interruptSeconds--;
+                
                 if (interruptSeconds <= 0) {
                     clearInterval(interruptTimer);
                     isInterruptRunning = false;
-                    playNotification(`中断时间到！${reason}`);
+                    updateStatus('中断时间到，请返回继续');
+                    playNotificationSound();
                     
                     // 自动恢复番茄钟
-                    startPomodoro();
-                } else {
-                    interruptSeconds--;
+                    if (confirm('中断时间结束，是否继续之前的番茄钟？')) {
+                        pomodoroSeconds = pausedTime;
+                        startPomodoro();
+                    } else {
+                        resetPomodoro();
+                    }
                 }
             }, 1000);
             
             // 清空输入
-            interruptDurationInput.value = '';
+            interruptDurationInput.value = '10';
             interruptReasonInput.value = '';
         }
         
-        function playNotification(message) {
-            // 尝试播放声音
+        // 播放提示音
+        function playNotificationSound() {
             try {
-                const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
-                audio.play();
-            } catch (e) {}
-            
-            // 显示浏览器通知
-            if ("Notification" in window && Notification.permission === "granted") {
-                new Notification("番茄钟提醒", { body: message });
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (e) {
+                // 如果AudioContext不支持，使用备用方法
+                console.log('音频播放失败，将使用振动提示');
+                if (navigator.vibrate) {
+                    navigator.vibrate([200, 100, 200]);
+                }
             }
-            
-            alert(message);
         }
         
         // 历史记录功能
         function addToHistory(record) {
+            // 移除"暂无中断记录"提示
+            const emptyItem = document.querySelector('.empty-history');
+            if (emptyItem) {
+                emptyItem.remove();
+            }
+            
             const item = document.createElement('div');
             item.className = 'history-item';
             item.innerHTML = `
-                <strong>${record.time}</strong><br>
-                中断: ${record.duration}分钟 - ${record.reason}<br>
-                剩余番茄钟: ${Math.floor(record.remainingPomodoro / 60)}:${(record.remainingPomodoro % 60).toString().padStart(2, '0')}
+                <div class="history-time">${record.time}</div>
+                <div class="history-details">
+                    <span>${record.duration}分钟</span>
+                    <span>${record.reason}</span>
+                    <span>剩余${Math.floor(record.remainingPomodoro / 60)}:${(record.remainingPomodoro % 60).toString().padStart(2, '0')}</span>
+                </div>
             `;
             historyList.prepend(item);
+            
+            // 限制最多显示10条记录
+            const items = historyList.querySelectorAll('.history-item');
+            if (items.length > 10) {
+                items[items.length - 1].remove();
+            }
         }
         
         function loadHistory() {
@@ -364,17 +699,27 @@
         }
         
         function saveHistory() {
-            const items = Array.from(historyList.children).slice(0, 10).map(item => {
-                const text = item.textContent;
-                const parts = text.split('\n');
+            const items = Array.from(historyList.querySelectorAll('.history-item')).slice(0, 10).map(item => {
+                const time = item.querySelector('.history-time').textContent;
+                const details = item.querySelector('.history-details');
+                const [duration, reason, remaining] = details.textContent.split('分钟');
+                
                 return {
-                    time: parts[0].trim(),
-                    duration: parseInt(parts[1].match(/\d+/)[0]),
-                    reason: parts[1].split('-')[1]?.trim() || '',
+                    time: time,
+                    duration: parseInt(duration),
+                    reason: reason?.trim() || '未指定原因',
                     remainingPomodoro: 0
                 };
             });
             localStorage.setItem('pomodoroInterruptHistory', JSON.stringify(items));
+        }
+        
+        function clearHistory() {
+            if (confirm('确定要清空所有中断记录吗？')) {
+                historyList.innerHTML = '<div class="history-item empty-history">暂无中断记录</div>';
+                localStorage.removeItem('pomodoroInterruptHistory');
+                updateStatus('历史记录已清空');
+            }
         }
         
         // 设置保存
@@ -403,6 +748,7 @@
         pauseBtn.addEventListener('click', pausePomodoro);
         resetBtn.addEventListener('click', resetPomodoro);
         startInterruptBtn.addEventListener('click', startInterrupt);
+        clearHistoryBtn.addEventListener('click', clearHistory);
         
         focusTimeInput.addEventListener('change', () => {
             if (!isPomodoroRunning && isFocusTime) {
@@ -420,10 +766,40 @@
             saveSettings();
         });
         
-        // 请求通知权限
-        if ("Notification" in window && Notification.permission === "default") {
-            Notification.requestPermission();
+        // 输入框触摸优化
+        const inputs = document.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+            input.addEventListener('touchstart', function(e) {
+                e.stopPropagation();
+            });
+            
+            input.addEventListener('focus', function() {
+                this.select();
+            });
+        });
+        
+        // 请求通知权限（静默请求，不弹窗）
+        if ('Notification' in window && Notification.permission === 'default') {
+            // 仅在用户交互后请求权限
+            document.addEventListener('click', function requestPermission() {
+                if (Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+                document.removeEventListener('click', requestPermission);
+            }, { once: true });
         }
+        
+        // 页面可见性变化处理
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // 页面隐藏时，更新标题显示剩余时间
+                const minutes = Math.floor(pomodoroSeconds / 60);
+                const seconds = pomodoroSeconds % 60;
+                document.title = `🍅 ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+                document.title = '番茄钟';
+            }
+        });
         
         // 页面关闭前保存
         window.addEventListener('beforeunload', saveSettings);
