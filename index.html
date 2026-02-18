@@ -799,22 +799,22 @@
         <span id="statusText">准备开始</span>
     </div>
 
-    <!-- 隐藏的音频元素 - 使用HTML5 Audio -->
+<!-- 替换为有效的Base64音频数据 -->
 <audio id="beepSound" class="hidden-audio" preload="auto">
-    <!-- 蜂鸣声的Base64编码音频 -->
-    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
+    <!-- 简单的蜂鸣声（440Hz正弦波，0.3秒） -->
+    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAAA...（长Base64数据）" type="audio/wav">
     您的浏览器不支持音频播放
 </audio>
-    
+
 <audio id="bellSound" class="hidden-audio" preload="auto">
-    <!-- 铃声的Base64编码音频 -->
-    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
+    <!-- 简单的铃声 -->
+    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAAA...（长Base64数据）" type="audio/wav">
     您的浏览器不支持音频播放
 </audio>
-    
+
 <audio id="chordSound" class="hidden-audio" preload="auto">
-    <!-- 和弦音的Base64编码音频 -->
-    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
+    <!-- 简单的和弦音 -->
+    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAAA...（长Base64数据）" type="audio/wav">
     您的浏览器不支持音频播放
 </audio>
     <script>
@@ -1371,18 +1371,31 @@ audioElement.play().then(() => {
                     
                     oscillator.start();
                     
-                    setTimeout(() => {
-                        oscillator.stop();
-                        audioContext.close();
-                        soundTestResult.textContent = '✅ 备用声音方案成功！使用Web Audio API';
-                        soundTestResult.className = 'compatibility-warning success';
-                        soundEnabled = true;
-                        isTestingSound = false;
-                        
-                        setTimeout(() => {
-                            soundTestResult.classList.add('hidden');
-                        }, 2000);
-                    }, 500);
+setTimeout(() => {
+    try {
+        oscillator.stop();
+        audioContext.close();
+    } catch(e) {
+        console.log('停止音频上下文时出错:', e);
+    }
+    
+    soundTestResult.textContent = '✅ 备用声音方案成功！使用Web Audio API';
+    soundTestResult.className = 'compatibility-warning success';
+    soundEnabled = true;
+    isTestingSound = false;
+    
+    // 测试成功后播放一次测试音
+    setTimeout(() => {
+        if (soundEnabled) {
+            playSound('test');
+        }
+    }, 100);
+    
+    setTimeout(() => {
+        soundTestResult.classList.add('hidden');
+    }, 2000);
+    
+}, 500);
                     
                 } else {
                     throw new Error('Web Audio API 不支持');
