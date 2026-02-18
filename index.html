@@ -1327,9 +1327,17 @@
                     isTestingSound = false;
                 }, 2000);
                 
-            }).catch(error => {
-                console.error('测试声音播放失败:', error);
-                console.log('详细错误信息:', error.name, error.message);
+// 修改前：
+// 缺少 tryFallbackSound() 调用
+
+// 修改后：
+        }).catch(error => {
+            console.error('测试声音播放失败:', error);
+            console.log('详细错误信息:', error.name, error.message);
+    
+            // 尝试备用声音方案
+            tryFallbackSound();
+        });
                 
                 // 即使声音失败，也启用震动功能
                 soundEnabled = false;
