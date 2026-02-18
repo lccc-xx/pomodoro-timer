@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="番茄钟">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>番茄钟 - v2.1.1 (iOS修复版)</title>
+    <title>番茄钟 - v2.2.0 (iOS音频修复版)</title>
     <style>
         :root {
             --primary-color: #667eea;
@@ -138,6 +138,74 @@
             padding: 2px 8px;
             border-radius: 10px;
             font-size: 0.7rem;
+        }
+        
+        /* iOS激活覆盖层样式 */
+        .ios-activation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .ios-activation-content {
+            background: rgba(255, 255, 255, 0.12);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .ios-activation-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .ios-activation-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .ios-activation-message {
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        .ios-activation-button {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        
+        .ios-activation-button:active {
+            transform: scale(0.95);
+        }
+        
+        .ios-activation-hint {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            opacity: 0.7;
         }
         
         /* 主容器 */
@@ -731,6 +799,17 @@
     </style>
 </head>
 <body>
+    <!-- iOS音频激活覆盖层（初始隐藏） -->
+    <div id="iosActivationOverlay" class="ios-activation-overlay" style="display: none;">
+        <div class="ios-activation-content">
+            <div class="ios-activation-icon">⏰</div>
+            <div class="ios-activation-title">时间到！</div>
+            <div class="ios-activation-message">iOS需要您的点击来激活提示音播放<br>请点击下方按钮开始播放</div>
+            <button id="iosActivateSoundBtn" class="ios-activation-button">🔊 点击激活提示音</button>
+            <div class="ios-activation-hint">提示音将持续播放，直到您点击"停音"按钮</div>
+        </div>
+    </div>
+    
     <!-- 调试信息框 -->
     <div class="debug-info" id="debugInfo"></div>
     
@@ -741,10 +820,10 @@
     </div>
     
     <div class="header">
-        <h1>🍅 番茄钟 - v2.1.1 (iOS修复版)</h1>
-        <p>专注工作 · 持续提醒 · iOS兼容修复</p>
+        <h1>🍅 番茄钟 - v2.2.0 (iOS音频修复版)</h1>
+        <p>专注工作 · 持续提醒 · iOS深度兼容</p>
         <div class="version-info">
-            <span class="version-badge">🔧 版本: v2.1.1</span>
+            <span class="version-badge">🔧 版本: v2.2.0</span>
             <span class="device-status" id="deviceStatus">检测设备中...</span>
         </div>
     </div>
@@ -868,6 +947,7 @@
         window.pendingSound = null;
         window.iosAudioUnlocked = false;
         window.debugMode = true; // 启用调试模式
+        window.iosAudioActivated = false; // iOS音频是否已激活
 
         // 元素引用
         const timerDisplay = document.getElementById('timer');
@@ -896,9 +976,11 @@
         const soundOptions = document.querySelectorAll('.sound-option');
         const deviceStatusElement = document.getElementById('deviceStatus');
         const debugInfoElement = document.getElementById('debugInfo');
+        const iosActivationOverlay = document.getElementById('iosActivationOverlay');
+        const iosActivateSoundBtn = document.getElementById('iosActivateSoundBtn');
 
         // 初始化
-        console.log('=== 番茄钟 v2.1.1 初始化 ===');
+        console.log('=== 番茄钟 v2.2.0 初始化 ===');
         console.log('设备检测 - iOS:', window.isIOS, '浏览器:', navigator.userAgent);
         console.log('用户代理:', navigator.userAgent);
         
@@ -936,44 +1018,56 @@
         updateDebugInfo('初始化完成');
 
         // 监听用户交互，解锁iOS音频
-        function handleUserInteraction() {
-            if (!window.userInteracted) {
-                window.userInteracted = true;
-                window.iosAudioUnlocked = true;
-                console.log('✅ 用户已交互，解锁音频系统');
-                updateDebugInfo('✅ 用户已交互，音频解锁');
-                updateDeviceStatus();
-                
-                // 初始化AudioContext
-                const audioCtx = initAudioContext();
-                if (audioCtx && audioCtx.state === 'suspended') {
-                    audioCtx.resume().then(() => {
-                        console.log('✅ iOS AudioContext已解锁');
-                        updateDebugInfo('✅ AudioContext已恢复');
-                        // 播放挂起的声音
-                        if (window.pendingSound) {
-                            console.log('播放挂起的声音:', window.pendingSound.type);
-                            setTimeout(() => {
-                                playSound(window.pendingSound.type);
-                                window.pendingSound = null;
-                            }, 300);
-                        }
-                    });
-                }
-                
-                updateStatus('✅ 音频已解锁，可以正常使用');
-            }
+        function setupIOSInteraction() {
+            if (!window.isIOS) return;
+            
+            console.log('📱 设置iOS交互监听');
+            
+            // 监听多种交互事件
+            const interactionEvents = ['touchstart', 'click', 'mousedown', 'keydown'];
+            interactionEvents.forEach(event => {
+                document.addEventListener(event, function iosInteractionHandler(e) {
+                    if (!window.userInteracted) {
+                        window.userInteracted = true;
+                        window.iosAudioUnlocked = true;
+                        console.log('✅ iOS用户交互检测到:', e.type);
+                        updateDebugInfo('✅ 用户交互检测到');
+                        updateDeviceStatus();
+                        
+                        // 移除监听器
+                        interactionEvents.forEach(evt => {
+                            document.removeEventListener(evt, iosInteractionHandler);
+                        });
+                    }
+                }, { once: true });
+            });
+            
+            // 特别监听按钮点击
+            document.querySelectorAll('button').forEach(button => {
+                button.addEventListener('touchstart', () => {
+                    if (!window.userInteracted) {
+                        window.userInteracted = true;
+                        console.log('✅ iOS按钮点击检测');
+                        updateDebugInfo('✅ 按钮交互检测到');
+                    }
+                });
+            });
         }
         
-        // 添加用户交互监听
-        document.addEventListener('touchstart', handleUserInteraction, { once: true });
-        document.addEventListener('click', handleUserInteraction, { once: true });
+        // 设置iOS交互监听
+        setupIOSInteraction();
         
-        // 为所有按钮添加iOS音频解锁
-        document.querySelectorAll('button').forEach(button => {
-            button.addEventListener('touchstart', handleUserInteraction);
-            button.addEventListener('click', handleUserInteraction);
-        });
+        // iOS音频激活按钮点击事件
+        if (iosActivateSoundBtn) {
+            iosActivateSoundBtn.addEventListener('click', function() {
+                console.log('✅ iOS用户点击激活音频按钮');
+                window.iosAudioActivated = true;
+                iosActivationOverlay.style.display = 'none';
+                
+                // 开始播放声音
+                startIOSSoundPlayback();
+            });
+        }
 
         // 初始化AudioContext
         function initAudioContext() {
@@ -1261,7 +1355,7 @@
                     interruptReasonInput.value = '';
                     
                     console.log('⏰ 中断结束，开始播放结束声音');
-                    console.log('📱 设备状态 - iOS:', window.isIOS, '用户已交互:', window.userInteracted);
+                    console.log('📱 设备状态 - iOS:', window.isIOS, '用户已交互:', window.userInteracted, '音频激活:', window.iosAudioActivated);
                     
                     playSound('end');
                     updateStatus('中断时间结束！可以继续专注了', 5000);
@@ -1321,7 +1415,7 @@
                 window.currentPlayback.stop();
             }
             
-            // 总是尝试震动
+            // 震动提示
             if (vibrationEnabled && navigator.vibrate) {
                 if (type === 'test') {
                     navigator.vibrate(100);
@@ -1337,48 +1431,52 @@
                 return;
             }
             
-            // iOS特殊处理
+            // 使用兼容的播放方式
             if (window.isIOS) {
-                handleIOSSoundPlayback(type);
+                playSoundIOS(type);
             } else {
-                // 非iOS设备正常播放
-                if (type === 'test') {
-                    playSingleSound();
-                } else if (type === 'end') {
-                    startContinuousPlayback();
-                }
+                playSoundDesktop(type);
             }
         }
         
-        // iOS声音播放处理
-        function handleIOSSoundPlayback(type) {
-            if (!window.userInteracted) {
-                console.log('📱 iOS: 用户未交互，保存声音请求');
-                updateDebugInfo('iOS: 等待用户交互');
-                window.pendingSound = { type: type };
-                
-                // 显示提示
-                if (type === 'end') {
-                    updateStatus('⏰ 时间到！请点击屏幕激活提示音', 5000);
-                }
-                return;
-            }
+        // iOS专用播放函数
+        function playSoundIOS(type) {
+            console.log('📱 iOS播放声音:', type);
             
-            console.log('✅ iOS: 用户已交互，开始播放声音');
-            updateDebugInfo('iOS: 播放声音中...');
-            
-            // 用户已交互，尝试播放
             if (type === 'test') {
-                playSingleSound();
+                // 测试声音：直接播放
+                playIOSTestSound();
             } else if (type === 'end') {
-                startIOSContinuousPlayback();
+                // 结束声音：显示激活界面
+                if (window.iosAudioActivated) {
+                    // 如果已经激活过，直接播放
+                    startIOSSoundPlayback();
+                } else {
+                    // 显示激活界面
+                    showIOSActivationOverlay();
+                }
             }
         }
         
-        // iOS持续播放
-        function startIOSContinuousPlayback() {
-            console.log('🎵 iOS开始持续播放');
-            updateDebugInfo('iOS: 持续播放开始');
+        // 显示iOS激活覆盖层
+        function showIOSActivationOverlay() {
+            console.log('📱 显示iOS激活覆盖层');
+            updateDebugInfo('iOS: 显示激活界面');
+            
+            if (iosActivationOverlay) {
+                iosActivationOverlay.style.display = 'flex';
+                updateStatus('⏰ 时间到！请点击激活界面播放提示音');
+            } else {
+                // 如果元素不存在，直接尝试播放
+                console.log('⚠️ iOS激活覆盖层元素不存在，直接尝试播放');
+                startIOSSoundPlayback();
+            }
+        }
+        
+        // 开始iOS声音播放
+        function startIOSSoundPlayback() {
+            console.log('🎵 开始iOS声音播放');
+            updateDebugInfo('iOS: 开始播放声音');
             
             // 显示状态
             soundStatus.classList.add('show');
@@ -1388,7 +1486,7 @@
             let playCount = 0;
             
             function playLoop() {
-                if (!isPlaying || playCount > 50) { // 限制最大播放次数
+                if (!isPlaying || playCount > 100) { // 限制最大播放次数
                     console.log('⏹️ iOS播放停止');
                     updateDebugInfo('iOS: 播放停止');
                     soundStatus.classList.remove('show');
@@ -1508,6 +1606,52 @@
             };
         }
         
+        // iOS测试声音
+        function playIOSTestSound() {
+            try {
+                console.log('🎵 iOS测试声音播放');
+                
+                // 创建新的AudioContext
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                const audioCtx = new AudioContextClass();
+                
+                // 立即恢复上下文
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                gainNode.gain.value = volume;
+                
+                oscillator.start();
+                
+                // 播放0.5秒
+                setTimeout(() => {
+                    oscillator.stop();
+                    audioCtx.close();
+                }, 500);
+                
+            } catch (error) {
+                console.error('❌ iOS测试声音失败:', error);
+            }
+        }
+        
+        // 桌面端播放
+        function playSoundDesktop(type) {
+            if (type === 'test') {
+                playSingleSound();
+            } else if (type === 'end') {
+                startContinuousPlayback();
+            }
+        }
+        
         // 播放单个声音
         function playSingleSound() {
             try {
@@ -1574,6 +1718,7 @@
             updateStatus('🔊 提示音持续播放中，点击停音按钮停止', 5000);
             
             let isPlaying = true;
+            let playCount = 0;
             
             function playLoop() {
                 if (!isPlaying) {
@@ -1583,8 +1728,9 @@
                     return;
                 }
                 
-                console.log(`🎵 播放持续提示音，声音类型: ${currentSoundType}`);
-                updateDebugInfo(`播放: ${currentSoundType}`);
+                playCount++;
+                console.log(`🎵 播放第 ${playCount} 次，声音类型: ${currentSoundType}`);
+                updateDebugInfo(`播放: ${currentSoundType} (${playCount}次)`);
                 
                 try {
                     const audioCtx = initAudioContext();
@@ -1699,6 +1845,11 @@
             
             // 隐藏声音状态指示器
             soundStatus.classList.remove('show');
+            
+            // 隐藏iOS激活覆盖层
+            if (iosActivationOverlay) {
+                iosActivationOverlay.style.display = 'none';
+            }
             
             // 停止震动
             if (navigator.vibrate) {
@@ -2139,8 +2290,9 @@
         });
 
         // 初始化完成
-        console.log('✅ 番茄钟 v2.1.1 初始化完成');
+        console.log('✅ 番茄钟 v2.2.0 初始化完成');
         console.log('📊 系统信息 - iOS:', window.isIOS, '用户已交互:', window.userInteracted, '声音启用:', soundEnabled, '震动:', vibrationEnabled);
+        console.log('📊 版本特性: iOS音频激活界面，深度兼容修复');
         
         // 桌面通知权限请求
         if ('Notification' in window && Notification.permission === 'default') {
@@ -2159,6 +2311,7 @@
         console.log('  震动启用状态:', vibrationEnabled);
         console.log('  当前声音类型:', currentSoundType);
         console.log('  音量设置:', volume);
+        console.log('  iOS音频激活状态:', window.iosAudioActivated);
         
         // PWA 安装提示（如果支持）
         let deferredPrompt;
