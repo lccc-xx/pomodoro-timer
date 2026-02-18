@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="番茄钟">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>番茄钟 - v3.0.0 (秒级高精度版)</title>
+    <title>番茄钟 - v3.1.0 (iOS音频修复版)</title>
     <style>
         :root {
             --primary-color: #667eea;
@@ -762,10 +762,10 @@
     </div>
     
     <div class="header">
-        <h1>🍅 番茄钟 - v3.0.0 (秒级高精度版)</h1>
-        <p>专注工作 · 秒级测试 · iOS自动播放</p>
+        <h1>🍅 番茄钟 - v3.1.0 (iOS音频修复版)</h1>
+        <p>专注工作 · 秒级测试 · iOS真静音修复</p>
         <div class="version-info">
-            <span class="version-badge">🔧 版本: v3.0.0</span>
+            <span class="version-badge">🔧 版本: v3.1.0</span>
             <span class="device-status" id="deviceStatus">检测设备中...</span>
         </div>
     </div>
@@ -879,7 +879,7 @@
         <span id="statusText">准备开始</span>
     </div>
 
-    <!-- iOS兼容性修复：静音音频元素 -->
+    <!-- iOS兼容性修复：真正的静音音频元素 -->
     <audio id="iosSilentAudio" style="display: none;"></audio>
     
     <script>
@@ -913,12 +913,16 @@
         window.iosAudioUnlocked = false;
         window.debugMode = true; // 启用调试模式
         
-        // iOS自动播放修复
+        // iOS自动播放修复 - 核心修复：使用真正的静音音频
         let iosSilentAudio = document.getElementById('iosSilentAudio');
         if (window.isIOS) {
-            // 创建一段静音音频（用于绕过iOS自动播放限制）
-            iosSilentAudio.volume = 0.001; // 几乎静音
+            // 创建一段真正的静音音频（用于绕过iOS自动播放限制）
+            iosSilentAudio.volume = 0; // 必须为0，不能是0.001或其他值
             iosSilentAudio.loop = true;
+            
+            // 添加一个空的静音WAV数据
+            const silentWavData = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==';
+            iosSilentAudio.src = silentWavData;
         }
 
         // 元素引用
@@ -952,9 +956,9 @@
         const quickTestButtons = document.querySelectorAll('.quick-test-btn');
 
         // 初始化
-        console.log('=== 番茄钟 v3.0.0 初始化 ===');
+        console.log('=== 番茄钟 v3.1.0 初始化 ===');
         console.log('设备检测 - iOS:', window.isIOS, '浏览器:', navigator.userAgent);
-        console.log('版本特性: 秒级精度计时，iOS自动播放修复');
+        console.log('版本特性: iOS真静音修复，解决提前播放问题');
         
         // 显示设备信息
         if (deviceStatusElement) {
@@ -987,7 +991,7 @@
         pauseBtn.disabled = true;
         
         // 初始调试信息
-        updateDebugInfo('v3.0.0初始化完成');
+        updateDebugInfo('v3.1.0初始化完成');
 
         // 监听用户交互，解锁iOS音频
         function handleUserInteraction() {
@@ -998,17 +1002,23 @@
                 updateDebugInfo('✅ 用户已交互，音频解锁');
                 updateDeviceStatus();
                 
-                // iOS自动播放修复：先播放静音音频
+                // iOS自动播放修复：先播放真正的静音音频
                 if (window.isIOS && iosSilentAudio) {
+                    // 确保音量为0
+                    iosSilentAudio.volume = 0;
+                    
                     iosSilentAudio.play().then(() => {
-                        console.log('✅ iOS静音音频已启动');
-                        updateDebugInfo('✅ iOS静音音频已启动');
+                        console.log('✅ iOS真静音音频已启动（volume=0）');
+                        updateDebugInfo('✅ iOS真静音音频已启动');
+                        updateStatus('✅ 音频已解锁，可以正常使用');
                     }).catch(e => {
                         console.error('❌ iOS静音音频播放失败:', e);
+                        updateDebugInfo(`iOS静音失败: ${e.message}`);
+                        updateStatus('❌ iOS音频解锁失败，请重试', 3000);
                     });
+                } else {
+                    updateStatus('✅ 音频已解锁，可以正常使用');
                 }
-                
-                updateStatus('✅ 音频已解锁，可以正常使用');
             }
         }
         
@@ -1423,6 +1433,13 @@
                 return;
             }
             
+            // iOS特殊处理：先停止静音音频
+            if (window.isIOS && iosSilentAudio && !iosSilentAudio.paused) {
+                console.log('⏹️ 停止iOS静音音频');
+                iosSilentAudio.pause();
+                iosSilentAudio.currentTime = 0;
+            }
+            
             // 使用兼容的播放方式
             if (window.isIOS) {
                 playSoundIOS(type);
@@ -1430,7 +1447,6 @@
                 playSoundDesktop(type);
             }
         }
-        
         // iOS专用播放函数
         function playSoundIOS(type) {
             console.log('📱 iOS播放声音:', type);
@@ -2291,9 +2307,9 @@
         });
 
         // 初始化完成
-        console.log('✅ 番茄钟 v3.0.0 初始化完成');
+        console.log('✅ 番茄钟 v3.1.0 初始化完成');
         console.log('📊 系统信息 - iOS:', window.isIOS, '用户已交互:', window.userInteracted, '声音启用:', soundEnabled, '震动:', vibrationEnabled);
-        console.log('📊 版本特性: 秒级精度计时，iOS自动播放修复');
+        console.log('📊 版本特性: 秒级精度计时，iOS真静音修复');
         
         // 桌面通知权限请求
         if ('Notification' in window && Notification.permission === 'default') {
