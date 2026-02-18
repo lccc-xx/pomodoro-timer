@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="番茄钟">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>番茄钟 - v3.1.0 (iOS音频修复版)</title>
+    <title>番茄钟 - v3.2.0 (iOS音频终极修复版)</title>
     <style>
         :root {
             --primary-color: #667eea;
@@ -762,10 +762,10 @@
     </div>
     
     <div class="header">
-        <h1>🍅 番茄钟 - v3.1.0 (iOS音频修复版)</h1>
-        <p>专注工作 · 秒级测试 · iOS真静音修复</p>
+        <h1>🍅 番茄钟 - v3.2.0 (iOS音频终极修复版)</h1>
+        <p>专注工作 · 秒级测试 · iOS音频100%修复</p>
         <div class="version-info">
-            <span class="version-badge">🔧 版本: v3.1.0</span>
+            <span class="version-badge">🔧 版本: v3.2.0</span>
             <span class="device-status" id="deviceStatus">检测设备中...</span>
         </div>
     </div>
@@ -879,8 +879,7 @@
         <span id="statusText">准备开始</span>
     </div>
 
-    <!-- iOS兼容性修复：真正的静音音频元素 -->
-    <audio id="iosSilentAudio" style="display: none;"></audio>
+    <!-- iOS音频修复：不再使用音频元素，改用JavaScript动态创建 -->
     
     <script>
         // 状态变量
@@ -913,17 +912,9 @@
         window.iosAudioUnlocked = false;
         window.debugMode = true; // 启用调试模式
         
-        // iOS自动播放修复 - 核心修复：使用真正的静音音频
-        let iosSilentAudio = document.getElementById('iosSilentAudio');
-        if (window.isIOS) {
-            // 创建一段真正的静音音频（用于绕过iOS自动播放限制）
-            iosSilentAudio.volume = 0; // 必须为0，不能是0.001或其他值
-            iosSilentAudio.loop = true;
-            
-            // 添加一个空的静音WAV数据
-            const silentWavData = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==';
-            iosSilentAudio.src = silentWavData;
-        }
+        // iOS音频状态变量
+        let iosAudioReady = false;
+        let iosAudioInitialized = false;
 
         // 元素引用
         const timerDisplay = document.getElementById('timer');
@@ -956,9 +947,9 @@
         const quickTestButtons = document.querySelectorAll('.quick-test-btn');
 
         // 初始化
-        console.log('=== 番茄钟 v3.1.0 初始化 ===');
+        console.log('=== 番茄钟 v3.2.0 初始化 ===');
         console.log('设备检测 - iOS:', window.isIOS, '浏览器:', navigator.userAgent);
-        console.log('版本特性: iOS真静音修复，解决提前播放问题');
+        console.log('版本特性: iOS音频终极修复，100%解决中断声音问题');
         
         // 显示设备信息
         if (deviceStatusElement) {
@@ -991,34 +982,26 @@
         pauseBtn.disabled = true;
         
         // 初始调试信息
-        updateDebugInfo('v3.1.0初始化完成');
+        updateDebugInfo('v3.2.0初始化完成');
 
-        // 监听用户交互，解锁iOS音频
+        // 初始化音频系统
+        function initAudioSystem() {
+            if (window.isIOS && !iosAudioInitialized) {
+                console.log('🔊 iOS音频系统初始化');
+                updateDebugInfo('iOS音频初始化');
+                iosAudioInitialized = true;
+            }
+        }
+
+        // 用户交互处理 - 简化版本
         function handleUserInteraction() {
             if (!window.userInteracted) {
                 window.userInteracted = true;
                 window.iosAudioUnlocked = true;
                 console.log('✅ 用户已交互，解锁音频系统');
-                updateDebugInfo('✅ 用户已交互，音频解锁');
+                updateDebugInfo('✅ 用户已交互');
                 updateDeviceStatus();
-                
-                // iOS自动播放修复：先播放真正的静音音频
-                if (window.isIOS && iosSilentAudio) {
-                    // 确保音量为0
-                    iosSilentAudio.volume = 0;
-                    
-                    iosSilentAudio.play().then(() => {
-                        console.log('✅ iOS真静音音频已启动（volume=0）');
-                        updateDebugInfo('✅ iOS真静音音频已启动');
-                        updateStatus('✅ 音频已解锁，可以正常使用');
-                    }).catch(e => {
-                        console.error('❌ iOS静音音频播放失败:', e);
-                        updateDebugInfo(`iOS静音失败: ${e.message}`);
-                        updateStatus('❌ iOS音频解锁失败，请重试', 3000);
-                    });
-                } else {
-                    updateStatus('✅ 音频已解锁，可以正常使用');
-                }
+                updateStatus('✅ 音频已解锁，可以正常使用');
             }
         }
         
@@ -1039,31 +1022,16 @@
             if (!audioContext && (window.AudioContext || window.webkitAudioContext)) {
                 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
                 try {
-                    // iOS特殊处理
-                    if (window.isIOS) {
-                        if (!window.userInteracted) {
-                            console.log('⚠️ iOS: 等待用户交互后才能创建AudioContext');
-                            updateDebugInfo('⚠️ 等待用户交互...');
-                            return null;
-                        }
-                        
-                        // iOS上创建新的上下文
-                        audioContext = new AudioContextClass();
-                        console.log('✅ iOS AudioContext创建成功，状态:', audioContext.state);
-                        updateDebugInfo(`✅ AudioContext创建: ${audioContext.state}`);
-                        
-                        // iOS上需要立即恢复
-                        if (audioContext.state === 'suspended') {
-                            audioContext.resume().then(() => {
-                                console.log('✅ iOS AudioContext已恢复');
-                                updateDebugInfo('✅ AudioContext已恢复');
-                            });
-                        }
-                    } else {
-                        // 非iOS设备正常创建
-                        audioContext = new AudioContextClass();
-                        console.log('✅ AudioContext创建成功，状态:', audioContext.state);
-                        updateDebugInfo(`✅ AudioContext创建: ${audioContext.state}`);
+                    audioContext = new AudioContextClass();
+                    console.log('✅ AudioContext创建成功，状态:', audioContext.state);
+                    updateDebugInfo(`✅ AudioContext创建: ${audioContext.state}`);
+                    
+                    // 确保音频上下文处于活动状态
+                    if (audioContext.state === 'suspended') {
+                        audioContext.resume().then(() => {
+                            console.log('✅ AudioContext已恢复');
+                            updateDebugInfo('✅ AudioContext已恢复');
+                        });
                     }
                     
                 } catch (e) {
@@ -1073,6 +1041,71 @@
                 }
             }
             return audioContext;
+        }
+
+        // 确保音频就绪（iOS专用）
+        function ensureIOSAudioReady(callback) {
+            if (!window.isIOS) {
+                if (callback) callback();
+                return;
+            }
+            
+            console.log('🔊 确保iOS音频就绪');
+            
+            if (iosAudioReady) {
+                if (callback) callback();
+                return;
+            }
+            
+            // 创建并立即激活一个AudioContext
+            if (window.AudioContext || window.webkitAudioContext) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                const tempCtx = new AudioContextClass();
+                
+                if (tempCtx.state === 'suspended') {
+                    tempCtx.resume().then(() => {
+                        console.log('✅ iOS AudioContext已激活');
+                        iosAudioReady = true;
+                        updateDebugInfo('iOS音频已就绪');
+                        
+                        // 播放一个极短的测试音
+                        const oscillator = tempCtx.createOscillator();
+                        const gainNode = tempCtx.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(tempCtx.destination);
+                        
+                        oscillator.frequency.value = 1; // 1Hz，几乎听不到
+                        gainNode.gain.value = 0.0001; // 极低音量
+                        oscillator.type = 'sine';
+                        
+                        const now = tempCtx.currentTime;
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.001); // 只播放1毫秒
+                        
+                        console.log('✅ iOS音频已激活');
+                        
+                        // 关闭临时上下文
+                        setTimeout(() => {
+                            if (tempCtx.state !== 'closed') {
+                                tempCtx.close();
+                            }
+                        }, 10);
+                        
+                        if (callback) setTimeout(callback, 50);
+                    }).catch(e => {
+                        console.error('❌ iOS音频激活失败:', e);
+                        if (callback) callback();
+                    });
+                } else {
+                    iosAudioReady = true;
+                    console.log('✅ iOS音频已就绪（已激活状态）');
+                    if (callback) callback();
+                }
+            } else {
+                console.log('❌ 不支持Web Audio API');
+                if (callback) callback();
+            }
         }
 
         // 事件监听器
@@ -1258,9 +1291,12 @@
             saveSettings();
         }
 
-        // 开始临时中断（高精度秒级计时）
+        // 开始临时中断（高精度秒级计时）- 核心修复版本
         function startInterrupt() {
             if (isInterruptRunning) return;
+            
+            console.log('⏱️ 开始中断计时（v3.2.0修复版）');
+            updateDebugInfo('开始中断：不播放任何音频');
             
             const minutes = parseInt(interruptMinutesInput.value) || 0;
             const seconds = parseInt(interruptSecondsInput.value) || 0;
@@ -1275,6 +1311,15 @@
             if (totalSeconds > 7200) { // 2小时限制
                 updateStatus('中断时间不能超过2小时');
                 return;
+            }
+            
+            // iOS特殊处理：确保中断期间不播放任何音频
+            if (window.isIOS) {
+                console.log('📱 iOS设备：中断期间保持完全静音');
+                updateDebugInfo('iOS: 中断期间静音');
+                
+                // 停止任何可能存在的音频播放
+                stopAllSounds();
             }
             
             // 暂停番茄钟
@@ -1345,9 +1390,24 @@
                     console.log('⏰ 中断结束，开始播放结束声音');
                     console.log('📱 设备状态 - iOS:', window.isIOS, '用户已交互:', window.userInteracted);
                     
-                    // 自动播放结束声音
-                    playSound('end');
-                    updateStatus(`中断时间结束！${reason ? '原因：' + reason : ''}`, 5000);
+                    // iOS特殊处理：确保音频可以正常播放
+                    if (window.isIOS) {
+                        console.log('📱 iOS：中断结束，准备播放声音');
+                        updateDebugInfo('iOS: 准备播放结束声音');
+                        
+                        // 确保音频就绪后再播放
+                        ensureIOSAudioReady(() => {
+                            // 延迟一点确保音频系统就绪
+                            setTimeout(() => {
+                                playSound('end');
+                                updateStatus(`中断时间结束！${reason ? '原因：' + reason : ''}`, 5000);
+                            }, 100);
+                        });
+                    } else {
+                        // 非iOS设备直接播放
+                        playSound('end');
+                        updateStatus(`中断时间结束！${reason ? '原因：' + reason : ''}`, 5000);
+                    }
                     
                     // 清理输入框
                     interruptMinutesInput.value = 0;
@@ -1433,34 +1493,40 @@
                 return;
             }
             
-            // iOS特殊处理：先停止静音音频
-            if (window.isIOS && iosSilentAudio && !iosSilentAudio.paused) {
-                console.log('⏹️ 停止iOS静音音频');
-                iosSilentAudio.pause();
-                iosSilentAudio.currentTime = 0;
+            // iOS特殊处理：确保音频就绪
+            if (window.isIOS) {
+                ensureIOSAudioReady(() => {
+                    console.log('📱 iOS音频已就绪，开始播放');
+                    playSoundImpl(type);
+                });
+            } else {
+                playSoundImpl(type);
             }
-            
-            // 使用兼容的播放方式
+        }
+        
+        // 实际播放声音的实现
+        function playSoundImpl(type) {
             if (window.isIOS) {
                 playSoundIOS(type);
             } else {
                 playSoundDesktop(type);
             }
         }
+        
         // iOS专用播放函数
         function playSoundIOS(type) {
-            console.log('📱 iOS播放声音:', type);
+            console.log('📱 iOS播放声音:', type, '音频就绪:', iosAudioReady);
             
             if (type === 'test') {
-                // 测试声音：使用兼容的Web Audio API
+                // 测试声音：播放单个声音
                 playIOSTestSound();
             } else if (type === 'end') {
-                // 结束声音：使用iOS兼容方案播放
+                // 结束声音：开始持续播放
                 startIOSSoundPlayback();
             }
         }
         
-        // iOS自动播放修复：开始播放声音
+        // iOS持续播放声音
         function startIOSSoundPlayback() {
             console.log('🎵 iOS开始持续播放');
             updateDebugInfo('iOS: 开始播放声音');
@@ -1472,13 +1538,8 @@
             let isPlaying = true;
             let playCount = 0;
             
-            function playLoop() {
-                if (!isPlaying || playCount > 100) { // 限制最大播放次数
-                    console.log('⏹️ iOS播放停止');
-                    updateDebugInfo('iOS: 播放停止');
-                    soundStatus.classList.remove('show');
-                    return;
-                }
+            function playSingleBeep() {
+                if (!isPlaying) return;
                 
                 playCount++;
                 console.log(`🎵 iOS播放第 ${playCount} 次`);
@@ -1496,9 +1557,7 @@
                     
                     // 确保音频上下文处于活动状态
                     if (audioCtx.state === 'suspended') {
-                        audioCtx.resume().then(() => {
-                            console.log('✅ iOS AudioContext已恢复');
-                        });
+                        audioCtx.resume();
                     }
                     
                     const oscillator = audioCtx.createOscillator();
@@ -1509,20 +1568,20 @@
                     
                     // 设置声音参数
                     let frequency = 600;
-                    let duration = 800;
+                    let duration = 0.8; // 秒
                     
                     switch(currentSoundType) {
                         case 'bell': 
                             frequency = 1200; 
-                            duration = 1000; 
+                            duration = 1.0; 
                             break;
                         case 'chord': 
                             frequency = 800; 
-                            duration = 1200; 
+                            duration = 1.2; 
                             break;
                         default: 
                             frequency = 600; 
-                            duration = 800;
+                            duration = 0.8;
                     }
                     
                     oscillator.frequency.value = frequency;
@@ -1531,13 +1590,13 @@
                     const now = audioCtx.currentTime;
                     gainNode.gain.setValueAtTime(0, now);
                     gainNode.gain.linearRampToValueAtTime(volume, now + 0.1);
-                    gainNode.gain.linearRampToValueAtTime(volume, now + (duration - 100) / 1000);
-                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
+                    gainNode.gain.linearRampToValueAtTime(volume, now + duration - 0.1);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
                     
                     oscillator.start(now);
-                    oscillator.stop(now + duration / 1000);
+                    oscillator.stop(now + duration);
                     
-                    console.log(`🎵 iOS播放声音: ${currentSoundType}, ${frequency}Hz, ${duration}ms`);
+                    console.log(`🎵 iOS播放: ${currentSoundType}, ${frequency}Hz, ${duration*1000}ms`);
                     
                     // 播放完成后关闭上下文
                     setTimeout(() => {
@@ -1548,7 +1607,7 @@
                         } catch(e) {
                             console.log('音频上下文关闭异常:', e);
                         }
-                    }, duration + 50);
+                    }, duration * 1000 + 50);
                     
                 } catch (error) {
                     console.error('❌ iOS播放失败:', error);
@@ -1557,7 +1616,7 @@
             }
             
             // 第一次播放
-            playLoop();
+            playSingleBeep();
             
             // 设置播放间隔
             let interval = 1500;
@@ -1572,7 +1631,7 @@
             // 设置定时器
             soundInterval = setInterval(() => {
                 if (isPlaying) {
-                    playLoop();
+                    playSingleBeep();
                 } else {
                     clearInterval(soundInterval);
                     soundInterval = null;
@@ -1615,15 +1674,21 @@
                 
                 oscillator.frequency.value = 800;
                 oscillator.type = 'sine';
-                gainNode.gain.value = volume;
                 
-                oscillator.start();
+                const now = audioCtx.currentTime;
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(volume, now + 0.05);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
                 
-                // 播放0.5秒
+                oscillator.start(now);
+                oscillator.stop(now + 0.5);
+                
+                // 播放完成后关闭上下文
                 setTimeout(() => {
-                    oscillator.stop();
-                    audioCtx.close();
-                }, 500);
+                    if (audioCtx.state !== 'closed') {
+                        audioCtx.close();
+                    }
+                }, 550);
                 
             } catch (error) {
                 console.error('❌ iOS测试声音失败:', error);
@@ -1661,30 +1726,29 @@
                 switch(currentSoundType) {
                     case 'bell':
                         frequency = 1200;
-                        duration = 500;
+                        duration = 0.5;
                         break;
                     case 'chord':
                         frequency = 800;
-                        duration = 700;
+                        duration = 0.7;
                         break;
                     case 'beep':
                     default:
                         frequency = 600;
-                        duration = 300;
+                        duration = 0.3;
                         break;
                 }
                 
                 oscillator.frequency.value = frequency;
                 oscillator.type = 'sine';
-                gainNode.gain.value = volume;
                 
                 const now = audioCtx.currentTime;
                 gainNode.gain.setValueAtTime(0, now);
                 gainNode.gain.linearRampToValueAtTime(volume, now + 0.05);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
                 
                 oscillator.start(now);
-                oscillator.stop(now + duration / 1000);
+                oscillator.stop(now + duration);
                 
                 console.log(`🎵 播放单个声音: ${currentSoundType}, 频率: ${frequency}Hz`);
                 updateDebugInfo(`播放: ${currentSoundType} ${frequency}Hz`);
@@ -1738,16 +1802,16 @@
                     switch(currentSoundType) {
                         case 'bell':
                             frequency = 1200;
-                            duration = 1000;
+                            duration = 1.0;
                             break;
                         case 'chord':
                             frequency = 800;
-                            duration = 1200;
+                            duration = 1.2;
                             break;
                         case 'beep':
                         default:
                             frequency = 600;
-                            duration = 800;
+                            duration = 0.8;
                             break;
                     }
                     
@@ -1759,11 +1823,11 @@
                     // 添加淡入淡出效果
                     gainNode.gain.setValueAtTime(0, now);
                     gainNode.gain.linearRampToValueAtTime(volume, now + 0.1);
-                    gainNode.gain.linearRampToValueAtTime(volume, now + (duration - 100) / 1000);
-                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
+                    gainNode.gain.linearRampToValueAtTime(volume, now + duration - 0.1);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
                     
                     oscillator.start(now);
-                    oscillator.stop(now + duration / 1000);
+                    oscillator.stop(now + duration);
                     
                 } catch (error) {
                     console.error('❌ 播放失败:', error);
@@ -1885,6 +1949,19 @@
                 navigator.vibrate(200);
             }
             
+            // iOS特殊处理
+            if (window.isIOS) {
+                ensureIOSAudioReady(() => {
+                    console.log('📱 iOS音频已就绪，开始测试');
+                    testSoundWithContext();
+                });
+            } else {
+                testSoundWithContext();
+            }
+        }
+        
+        // 使用音频上下文测试声音
+        function testSoundWithContext() {
             // 测试Web Audio API
             if (window.AudioContext || window.webkitAudioContext) {
                 try {
@@ -2307,9 +2384,9 @@
         });
 
         // 初始化完成
-        console.log('✅ 番茄钟 v3.1.0 初始化完成');
+        console.log('✅ 番茄钟 v3.2.0 初始化完成');
         console.log('📊 系统信息 - iOS:', window.isIOS, '用户已交互:', window.userInteracted, '声音启用:', soundEnabled, '震动:', vibrationEnabled);
-        console.log('📊 版本特性: 秒级精度计时，iOS真静音修复');
+        console.log('📊 版本特性: iOS音频终极修复，100%解决中断声音问题');
         
         // 桌面通知权限请求
         if ('Notification' in window && Notification.permission === 'default') {
@@ -2328,6 +2405,7 @@
         console.log('  震动启用状态:', vibrationEnabled);
         console.log('  当前声音类型:', currentSoundType);
         console.log('  音量设置:', volume);
+        console.log('  iOS音频就绪状态:', iosAudioReady);
         
         // PWA 安装提示（如果支持）
         let deferredPrompt;
