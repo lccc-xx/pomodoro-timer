@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="番茄钟">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>番茄钟 - v6.0.1 (修复版)</title>
+    <title>番茄钟 - v6.1.0 (稳定版)</title>
     <style>
         :root {
             --primary-color: #667eea;
@@ -302,7 +302,7 @@
             background: rgba(59, 130, 246, 0.35);
         }
         
-        /* 时间设置 - 新增自由调节功能 */
+        /* 时间设置 - 自由调节功能 */
         .time-settings {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -810,11 +810,28 @@
         <button class="stop-sound" id="stopSoundBtn">停止声音</button>
     </div>
     
+    <!-- 诊断面板 -->
+    <div id="diagnosticPanel" style="
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        z-index: 9999;
+        display: none;
+    ">
+        <div>系统诊断</div>
+        <div id="diagnosticInfo">准备中...</div>
+    </div>
+    
     <div class="header">
-        <h1>🍅 番茄钟 - v6.0.1 (修复版)</h1>
+        <h1>🍅 番茄钟 - v6.1.0 (稳定版)</h1>
         <p>专注工作 · 自由调节时间 · 按键点击音效</p>
         <div class="version-info">
-            <span class="version-badge">🔧 版本: v6.0.0</span>
+            <span class="version-badge">🔧 版本: v6.1.0</span>
             <span class="device-status" id="deviceStatus">检测设备中...</span>
         </div>
     </div>
@@ -952,7 +969,12 @@
     </div>
     
     <script>
-        // 状态变量
+        // ============================================
+        // 番茄钟 v6.1.0 稳定版
+        // 修复了所有按钮功能失效的问题
+        // ============================================
+        
+        // 全局状态变量
         let pomodoroTimer = null;
         let pomodoroSeconds = 25 * 60;
         let interruptDuration = 0;
@@ -1007,16 +1029,13 @@
                     globalAudioContext = this.audioContext;
                     
                     this.audioContext.onstatechange = () => {
-                        console.log('AudioContext状态:', this.audioContext.state);
                         updateDebugInfo(`AudioContext: ${this.audioContext.state}`);
                     };
                     
                     this.isInitialized = true;
-                    console.log('✅ AudioContext初始化成功，状态:', this.audioContext.state);
                     return this.audioContext;
                 }
                 
-                console.log('❌ 浏览器不支持Web Audio API');
                 return null;
             }
             
@@ -1028,10 +1047,8 @@
                 if (this.audioContext && this.audioContext.state === 'suspended') {
                     try {
                         await this.audioContext.resume();
-                        console.log('✅ AudioContext已恢复运行');
                         return true;
                     } catch (error) {
-                        console.error('❌ 恢复AudioContext失败:', error);
                         return false;
                     }
                 }
@@ -1041,7 +1058,6 @@
             
             async play(soundType, customVolume = null) {
                 if (!this.ensureRunning()) {
-                    console.log('❌ AudioContext未就绪，无法播放声音');
                     return false;
                 }
                 
@@ -1067,10 +1083,8 @@
                     oscillator.start(now);
                     oscillator.stop(now + sound.duration);
                     
-                    console.log(`🎵 播放 ${soundType} 音效 (${sound.frequency}Hz, ${sound.duration}s)`);
                     return true;
                 } catch (error) {
-                    console.error('❌ 播放音效失败:', error);
                     return false;
                 }
             }
@@ -1105,7 +1119,6 @@
                     this.isInitialized = false;
                     this.audioContext = null;
                     globalAudioContext = null;
-                    console.log('⏹️ 停止所有声音，释放AudioContext');
                 }
             }
         }
@@ -1147,14 +1160,6 @@
         const setCustomTimeBtn = document.getElementById('setCustomTime');
         const clickSoundToggle = document.getElementById('clickSoundToggle');
 
-        // 初始化
-        console.log('=== 番茄钟 v6.0.0 修复版初始化 ===');
-        
-        // 显示设备信息
-        if (deviceStatusElement) {
-            deviceStatusElement.textContent = `设备: ${window.isIOS ? 'iOS' : 'PC/Android'}`;
-        }
-        
         // 显示调试信息
         function updateDebugInfo(message) {
             if (debugInfoElement && window.debugMode) {
@@ -1175,1057 +1180,1084 @@
         
         // 初始化音频系统
         function initAudioSystem() {
-            console.log('🔊 初始化JavaScript音频系统');
-            
             const ctx = audioGenerator.init();
             
             if (ctx) {
                 soundEnabled = true;
                 updateDeviceStatus();
-                console.log('✅ JavaScript音频系统初始化成功');
                 updateDebugInfo('JavaScript音频已就绪');
             } else {
-                console.log('❌ JavaScript音频系统初始化失败');
                 updateDebugInfo('音频系统初始化失败');
             }
-            
-            if (window.isIOS) {
-                console.log('📱 iOS设备：等待用户交互解锁音频');
-                updateDebugInfo('iOS: 等待用户交互');
+        }
+        // 状态条显示
+        function showStatus(message, duration = 3000) {
+            if (statusBar && statusText) {
+                statusText.textContent = message;
+                statusBar.classList.add('show');
+                
+                clearTimeout(statusBar.timeout);
+                statusBar.timeout = setTimeout(() => {
+                    statusBar.classList.remove('show');
+                }, duration);
             }
         }
         
-        // 用户交互处理
-        function handleUserInteraction() {
-            if (!window.userInteracted) {
-                window.userInteracted = true;
-                console.log('✅ 用户已交互，解锁音频系统');
-                updateDebugInfo('✅ 用户已交互');
-                updateDeviceStatus();
-                
-                audioGenerator.ensureRunning();
-                soundEnabled = true;
-                updateDeviceStatus();
-                updateStatus('✅ 音频已解锁，可以正常使用');
+        // 显示声音状态
+        function showSoundStatus() {
+            if (soundStatus) {
+                soundStatus.classList.add('show');
+                setTimeout(() => {
+                    soundStatus.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        // 播放音效
+        async function playSound(soundType = 'beep') {
+            if (!soundEnabled || !audioGenerator) {
+                updateDebugInfo('音频未启用或初始化失败');
+                return false;
+            }
+            
+            try {
+                const success = await audioGenerator.play(soundType);
+                if (success) {
+                    updateDebugInfo(`播放音效: ${soundType}`);
+                    if (soundType !== 'click' && soundType !== 'buttonClick' && soundType !== 'softClick') {
+                        showSoundStatus();
+                    }
+                }
+                return success;
+            } catch (error) {
+                updateDebugInfo(`播放音效失败: ${error.message}`);
+                return false;
             }
         }
         
         // 播放点击音效
-        function playClickSound(buttonType = 'normal') {
-            if (!soundEnabled || !clickSoundEnabled) return;
+        async function playClickSound(buttonType = 'normal') {
+            if (!clickSoundEnabled || !audioGenerator) return false;
             
-            setTimeout(() => {
-                audioGenerator.playClickSound(buttonType);
-            }, 10);
-        }
-        
-        // 为所有按钮添加点击音效
-        function addClickSoundToButtons() {
-            const allButtons = document.querySelectorAll('button');
-            allButtons.forEach(button => {
-                const newButton = button.cloneNode(true);
-                button.parentNode.replaceChild(newButton, button);
-                
-                newButton.addEventListener('click', function(e) {
-                    let buttonType = 'normal';
-                    
-                    if (this.id === 'startBtn') buttonType = 'start';
-                    else if (this.id === 'stopSoundBtn2' || this.id === 'stopSoundBtn') buttonType = 'stop';
-                    else if (this.id === 'testSoundBtn') buttonType = 'test';
-                    else if (this.id === 'startInterruptBtn') buttonType = 'start';
-                    else if (this.id === 'cancelInterruptBtn') buttonType = 'stop';
-                    else if (this.id === 'setCustomTime') buttonType = 'test';
-                    
-                    playClickSound(buttonType);
-                });
-            });
-            
-            presetTimeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    playClickSound('test');
-                });
-            });
-        }
-        
-        // 播放JavaScript生成的音效
-        function playSound(type = 'end') {
-            console.log('🎵 播放音效，类型:', type, '设备:', window.isIOS ? 'iOS' : 'PC');
-            updateDebugInfo(`播放音效: ${type}`);
-            
-            clearInterval(soundInterval);
-            soundInterval = null;
-            
-            if (window.currentPlayback && window.currentPlayback.isPlaying) {
-                window.currentPlayback.stop();
-            }
-            
-            if (vibrationEnabled && navigator.vibrate) {
-                if (type === 'test') {
-                    navigator.vibrate(100);
-                } else {
-                    navigator.vibrate([200, 100, 200, 100, 200]);
-                }
-            }
-            
-            if (!soundEnabled) {
-                console.log('🔇 声音未启用，只使用震动');
-                updateDebugInfo('声音未启用');
-                return;
-            }
-            
-            if (type === 'test') {
-                audioGenerator.play(currentSoundType);
-            } else if (type === 'end') {
-                startContinuousAudioPlayback();
+            try {
+                return await audioGenerator.playClickSound(buttonType);
+            } catch (error) {
+                console.warn('点击音效播放失败:', error);
+                return false;
             }
         }
         
-        // 开始持续播放
-        function startContinuousAudioPlayback() {
-            console.log('🎵 开始持续播放');
-            updateDebugInfo('持续播放开始');
-            
-            soundStatus.classList.add('show');
-            updateStatus('🔊 提示音持续播放中，点击停音按钮停止', 5000);
-            
-            let isPlaying = true;
-            let playCount = 0;
-            
-            function playLoop() {
-                if (!isPlaying) {
-                    console.log('⏹️ 播放已停止');
-                    updateDebugInfo('播放停止');
-                    soundStatus.classList.remove('show');
-                    return;
-                }
-                
-                playCount++;
-                console.log(`🎵 播放第 ${playCount} 次，声音类型: ${currentSoundType}`);
-                updateDebugInfo(`播放: ${currentSoundType} (${playCount}次)`);
-                
-                audioGenerator.play(currentSoundType);
-            }
-            
-            playLoop();
-            
-            let intervalDuration = 2000;
-            switch(currentSoundType) {
-                case 'bell': intervalDuration = 2500; break;
-                case 'chord': intervalDuration = 3000; break;
-                case 'beep': default: intervalDuration = 1500; break;
-            }
-            
-            console.log(`⏱️ 播放间隔: ${intervalDuration}ms`);
-            
-            soundInterval = setInterval(() => {
-                if (isPlaying) {
-                    playLoop();
-                } else {
-                    clearInterval(soundInterval);
-                    soundInterval = null;
-                }
-            }, intervalDuration);
-            
-            window.currentPlayback = {
-                isPlaying: true,
-                stop: function() {
-                    console.log('⏹️ 手动停止播放');
-                    updateDebugInfo('手动停止');
-                    isPlaying = false;
-                    clearInterval(soundInterval);
-                    soundInterval = null;
-                    soundStatus.classList.remove('show');
-                }
-            };
-        }
-        
-        // 停止所有声音
-        function stopAllSounds() {
-            console.log('⏹️ 停止所有声音');
-            updateDebugInfo('停止声音');
-            
-            if (window.currentPlayback && window.currentPlayback.isPlaying) {
-                window.currentPlayback.stop();
-            }
-            
-            audioGenerator.stopAll();
-            
-            clearInterval(soundInterval);
-            soundInterval = null;
-            
-            soundStatus.classList.remove('show');
+        // 振动
+        function vibrate(duration = 200) {
+            if (!vibrationEnabled) return;
             
             if (navigator.vibrate) {
-                navigator.vibrate(0);
+                try {
+                    navigator.vibrate(duration);
+                } catch (error) {
+                    updateDebugInfo(`振动失败: ${error.message}`);
+                }
+            }
+        }
+        
+        // 显示番茄钟时间
+        function updateTimerDisplay(seconds) {
+            if (!timerDisplay) return;
+            
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+            
+            // 最后5秒添加动画
+            if (seconds <= 5) {
+                timerDisplay.classList.add('timer-pulse');
+            } else {
+                timerDisplay.classList.remove('timer-pulse');
             }
             
-            updateStatus('🔇 声音已停止');
+            // 更新页面标题
+            if (minutes > 0 || remainingSeconds > 0) {
+                document.title = `${minutes}:${remainingSeconds.toString().padStart(2, '0')} - 番茄钟`;
+            }
         }
-        // 设置自定义时间
-        function setCustomTime(minutes) {
-            if (isNaN(minutes) || minutes < 1 || minutes > 120) {
-                updateStatus('请输入1-120分钟之间的有效时间');
+        
+        // 显示中断计时器
+        function updateInterruptTimerDisplay(seconds) {
+            if (!interruptTimeDisplay) return;
+            
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            interruptTimeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 开始番茄钟
+        async function startPomodoro() {
+            console.log("▶️ 开始番茄钟被调用");
+            await playClickSound('start');
+            
+            if (isPomodoroRunning) {
+                showStatus('番茄钟已经在运行');
                 return;
-            }
-            
-            focusTimeInput.value = minutes;
-            updatePomodoroTime();
-            updateStatus(`已设置专注时间为 ${minutes} 分钟`);
-            playClickSound('test');
-        }
-
-        // 启动番茄钟
-        function startPomodoro() {
-            console.log('▶️ 开始番茄钟');
-            if (isPomodoroRunning) return;
-            
-            if (pomodoroTimer) {
-                clearInterval(pomodoroTimer);
             }
             
             isPomodoroRunning = true;
+            isFocusTime = true;
+            
+            const focusMinutes = parseInt(focusTimeInput.value) || 25;
+            pomodoroSeconds = focusMinutes * 60;
+            clearInterval(pomodoroTimer);
+            
             startBtn.disabled = true;
             pauseBtn.disabled = false;
-            timerDisplay.classList.add('timer-pulse');
             
-            if (isFocusTime) {
-                updateStatus('专注时间开始！保持专注');
-            } else {
-                updateStatus('休息时间开始，请放松一下');
+            if (isInterruptRunning) {
+                pauseInterrupt();
             }
+            
+            showStatus('专注时间开始！', 2000);
+            updateTimerDisplay(pomodoroSeconds);
             
             pomodoroTimer = setInterval(() => {
                 pomodoroSeconds--;
-                updateTimerDisplay();
+                updateTimerDisplay(pomodoroSeconds);
+                
+                if (pomodoroSeconds <= 5 && pomodoroSeconds > 0) {
+                    playSound('beep');
+                    vibrate(100);
+                }
                 
                 if (pomodoroSeconds <= 0) {
                     clearInterval(pomodoroTimer);
                     pomodoroTimer = null;
                     isPomodoroRunning = false;
-                    timerDisplay.classList.remove('timer-pulse');
-                    timerDisplay.classList.add('complete-animation');
                     
-                    setTimeout(() => {
-                        timerDisplay.classList.remove('complete-animation');
-                    }, 1500);
+                    const breakMinutes = parseInt(breakTimeInput.value) || 5;
+                    pomodoroSeconds = breakMinutes * 60;
                     
-                    if (isFocusTime) {
-                        pomodoroSeconds = parseInt(breakTimeInput.value) * 60;
+                    playSound('bell');
+                    vibrate([200, 100, 200]);
+                    showStatus('专注时间结束！休息一下吧！', 5000);
+                    
+                    // 询问是否开始休息
+                    if (confirm('专注时间结束！是否开始休息？')) {
                         isFocusTime = false;
-                        console.log('⏰ 专注时间结束');
-                        
-                        playSound('end');
-                        updateStatus('专注时间结束！开始休息', 5000);
-                        
-                        currentSessionHistory.push({
-                            type: 'pomodoro_completed',
-                            time: new Date().toLocaleTimeString(),
-                            duration: parseInt(focusTimeInput.value)
-                        });
-                        
-                        setTimeout(() => {
-                            startPomodoro();
-                        }, 2000);
+                        pomodoroTimer = setInterval(() => {
+                            pomodoroSeconds--;
+                            updateTimerDisplay(pomodoroSeconds);
+                            
+                            if (pomodoroSeconds <= 5 && pomodoroSeconds > 0) {
+                                playSound('beep');
+                                vibrate(100);
+                            }
+                            
+                            if (pomodoroSeconds <= 0) {
+                                clearInterval(pomodoroTimer);
+                                pomodoroTimer = null;
+                                isPomodoroRunning = false;
+                                
+                                playSound('chord');
+                                vibrate([200, 100, 200, 100, 200]);
+                                showStatus('休息时间结束！准备开始下一轮专注！', 5000);
+                                timerDisplay.classList.add('complete-animation');
+                                
+                                setTimeout(() => {
+                                    timerDisplay.classList.remove('complete-animation');
+                                }, 2000);
+                                
+                                startBtn.disabled = false;
+                                pauseBtn.disabled = true;
+                            }
+                        }, 1000);
                     } else {
-                        pomodoroSeconds = parseInt(focusTimeInput.value) * 60;
-                        isFocusTime = true;
-                        console.log('⏰ 休息时间结束');
-                        
-                        playSound('end');
-                        updateStatus('休息时间结束！准备开始下一轮专注', 5000);
+                        startBtn.disabled = false;
+                        pauseBtn.disabled = true;
                     }
-                    
-                    saveHistory();
                 }
             }, 1000);
-        }
-
-        // 暂停番茄钟
-        function pausePomodoro() {
-            console.log('⏸️ 暂停番茄钟');
-            if (!isPomodoroRunning) return;
             
+            updateDeviceStatus();
+        }
+        
+        // 暂停番茄钟
+        async function pausePomodoro() {
+            console.log("⏸️ 暂停番茄钟被调用");
+            await playClickSound('stop');
+            
+            if (!isPomodoroRunning) {
+                showStatus('番茄钟没有在运行');
+                return;
+            }
+            
+            isPomodoroRunning = false;
             clearInterval(pomodoroTimer);
             pomodoroTimer = null;
-            isPomodoroRunning = false;
-            startBtn.disabled = false;
-            timerDisplay.classList.remove('timer-pulse');
-            
-            updateStatus('计时已暂停');
-        }
-
-        // 重置番茄钟
-        function resetPomodoro() {
-            console.log('🔄 重置番茄钟');
-            if (pomodoroTimer) {
-                clearInterval(pomodoroTimer);
-            }
-            
-            if (interruptAnimationFrame) {
-                cancelAnimationFrame(interruptAnimationFrame);
-                interruptAnimationFrame = null;
-            }
-            
-            isPomodoroRunning = false;
-            isFocusTime = true;
-            pomodoroSeconds = parseInt(focusTimeInput.value) * 60;
             
             startBtn.disabled = false;
             pauseBtn.disabled = true;
+            
+            showStatus('已暂停', 2000);
+            updateDeviceStatus();
+        }
+        
+        // 重置番茄钟
+        async function resetPomodoro() {
+            console.log("🔄 重置番茄钟被调用");
+            await playClickSound('normal');
+            
+            isPomodoroRunning = false;
+            isFocusTime = true;
+            clearInterval(pomodoroTimer);
+            pomodoroTimer = null;
+            
+            const focusMinutes = parseInt(focusTimeInput.value) || 25;
+            pomodoroSeconds = focusMinutes * 60;
+            updateTimerDisplay(pomodoroSeconds);
+            
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            
+            document.title = '番茄钟';
             timerDisplay.classList.remove('timer-pulse');
-            timerDisplay.classList.remove('complete-animation');
             
-            updateTimerDisplay();
-            updateStatus('计时器已重置');
+            showStatus('已重置', 2000);
+            updateDeviceStatus();
         }
-
-        // 更新番茄钟时间
-        function updatePomodoroTime() {
-            const focusMinutes = parseInt(focusTimeInput.value);
-            const breakMinutes = parseInt(breakTimeInput.value);
+        
+        // 秒级中断计时函数
+        function updateInterruptTimer() {
+            if (!isInterruptRunning) return;
             
-            if (isNaN(focusMinutes) || focusMinutes < 1 || focusMinutes > 120) {
-                focusTimeInput.value = 25;
-            }
+            const now = Date.now();
+            const elapsedSeconds = Math.floor((now - interruptStartTime) / 1000);
+            const remainingSeconds = Math.max(0, interruptDuration - elapsedSeconds);
             
-            if (isNaN(breakMinutes) || breakMinutes < 1 || breakMinutes > 60) {
-                breakTimeInput.value = 5;
-            }
+            updateInterruptTimerDisplay(remainingSeconds);
             
-            if (!isPomodoroRunning) {
-                if (isFocusTime) {
-                    pomodoroSeconds = parseInt(focusTimeInput.value) * 60;
-                } else {
-                    pomodoroSeconds = parseInt(breakTimeInput.value) * 60;
+            if (remainingSeconds <= 0) {
+                interruptFinished();
+            } else {
+                if (remainingSeconds <= 3 && remainingSeconds > 0) {
+                    playSound('beep');
+                    vibrate(100);
                 }
-                updateTimerDisplay();
+                interruptAnimationFrame = requestAnimationFrame(updateInterruptTimer);
             }
-            
-            saveSettings();
         }
-
-        // 开始临时中断
-        function startInterrupt() {
-            console.log('⏱️ 开始中断计时');
-            if (isInterruptRunning) return;
-            
-            updateDebugInfo('开始中断');
-            
-            const minutes = parseInt(interruptMinutesInput.value) || 0;
-            const seconds = parseInt(interruptSecondsInput.value) || 0;
-            const totalSeconds = minutes * 60 + seconds;
-            const reason = interruptReasonInput.value.trim();
-            
-            if (totalSeconds <= 0) {
-                updateStatus('请输入有效的秒数（至少1秒）');
-                return;
-            }
-            
-            if (totalSeconds > 7200) {
-                updateStatus('中断时间不能超过2小时');
-                return;
-            }
+        
+        // 开始中断
+        async function startInterrupt() {
+            console.log("⏱️ 开始中断被调用");
+            await playClickSound('start');
             
             if (isPomodoroRunning) {
                 pausePomodoro();
             }
             
-            interruptDuration = totalSeconds;
-            remainingSeconds = totalSeconds;
-            isInterruptRunning = true;
-            startInterruptBtn.style.display = 'none';
-            cancelInterruptBtn.style.display = 'block';
-            interruptTimerDisplay.classList.add('show');
-            
-            interruptStartTime = Date.now();
-            
-            const interruptStart = new Date();
-            const interruptRecord = {
-                type: 'interrupt_start',
-                time: interruptStart.toLocaleTimeString(),
-                duration: totalSeconds,
-                minutes: minutes,
-                seconds: seconds,
-                reason: reason || '未说明原因'
-            };
-            
-            currentSessionHistory.push(interruptRecord);
-            addToHistory(interruptRecord);
-            saveHistory();
-            
-            updateStatus(`开始中断：${minutes}分${seconds}秒`);
-            
-            function updateInterruptTimer() {
-                if (!isInterruptRunning) return;
-                
-                const now = Date.now();
-                const elapsed = Math.floor((now - interruptStartTime) / 1000);
-                remainingSeconds = Math.max(0, interruptDuration - elapsed);
-                
-                updateInterruptTimerDisplay();
-                
-                if (remainingSeconds <= 0) {
-                    isInterruptRunning = false;
-                    startInterruptBtn.style.display = 'block';
-                    cancelInterruptBtn.style.display = 'none';
-                    interruptTimerDisplay.classList.remove('show');
-                    
-                    const interruptEnd = new Date();
-                    const endRecord = {
-                        type: 'interrupt_end',
-                        time: interruptEnd.toLocaleTimeString(),
-                        duration: totalSeconds,
-                        minutes: minutes,
-                        seconds: seconds,
-                        reason: reason || '未说明原因'
-                    };
-                    
-                    currentSessionHistory.push(endRecord);
-                    addToHistory(endRecord);
-                    saveHistory();
-                    
-                    console.log('⏰ 中断结束，播放提示音');
-                    
-                    playSound('end');
-                    updateStatus(`中断时间结束！${reason ? '原因：' + reason : ''}`, 5000);
-                    
-                    interruptMinutesInput.value = 0;
-                    interruptSecondsInput.value = 10;
-                    interruptReasonInput.value = '';
-                } else {
-                    interruptAnimationFrame = requestAnimationFrame(updateInterruptTimer);
-                }
+            if (isInterruptRunning) {
+                showStatus('中断已在运行');
+                return;
             }
             
+            const minutes = parseInt(interruptMinutesInput.value) || 0;
+            const seconds = parseInt(interruptSecondsInput.value) || 10;
+            const totalSeconds = minutes * 60 + seconds;
+            
+            if (totalSeconds <= 0) {
+                showStatus('请输入有效的时间', 2000);
+                return;
+            }
+            
+            interruptDuration = totalSeconds;
+            interruptStartTime = Date.now();
+            isInterruptRunning = true;
+            
+            interruptTimerDisplay.classList.add('show');
+            startInterruptBtn.disabled = true;
+            cancelInterruptBtn.style.display = 'block';
+            
+            const reason = interruptReasonInput.value.trim() || '临时中断';
+            
+            // 添加中断记录
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+            const historyItem = {
+                time: timeStr,
+                duration: interruptDuration,
+                reason: reason
+            };
+            
+            currentSessionHistory.unshift(historyItem);
+            updateHistoryDisplay();
+            
+            showStatus(`开始${reason}，倒计时${minutes}分${seconds}秒`, 2000);
+            
+            // 隐藏状态条
+            setTimeout(() => {
+                statusBar.classList.remove('show');
+            }, 2000);
+            
+            updateInterruptTimerDisplay(interruptDuration);
+            
+            // 启动高精度中断计时器
             interruptAnimationFrame = requestAnimationFrame(updateInterruptTimer);
+            
+            updateDeviceStatus();
         }
-
-        // 取消中断
-        function cancelInterrupt() {
-            console.log('❌ 取消中断');
+        
+        // 暂停中断
+        function pauseInterrupt() {
+            if (!isInterruptRunning) return;
+            
+            isInterruptRunning = false;
             if (interruptAnimationFrame) {
                 cancelAnimationFrame(interruptAnimationFrame);
                 interruptAnimationFrame = null;
             }
             
-            isInterruptRunning = false;
+            const elapsedSeconds = Math.floor((Date.now() - interruptStartTime) / 1000);
+            remainingSeconds = Math.max(0, interruptDuration - elapsedSeconds);
+            
             interruptTimerDisplay.classList.remove('show');
-            startInterruptBtn.style.display = 'block';
+            startInterruptBtn.disabled = false;
             cancelInterruptBtn.style.display = 'none';
+            
+            showStatus('中断已暂停', 2000);
+        }
+        
+        // 中断完成
+        function interruptFinished() {
+            isInterruptRunning = false;
+            
+            if (interruptAnimationFrame) {
+                cancelAnimationFrame(interruptAnimationFrame);
+                interruptAnimationFrame = null;
+            }
+            
+            interruptTimerDisplay.classList.remove('show');
+            startInterruptBtn.disabled = false;
+            cancelInterruptBtn.style.display = 'none';
+            
             interruptMinutesInput.value = 0;
             interruptSecondsInput.value = 10;
             interruptReasonInput.value = '';
             
-            updateStatus('中断已取消');
-        }
-
-        // 更新计时器显示
-        function updateTimerDisplay() {
-            const minutes = Math.floor(pomodoroSeconds / 60);
-            const seconds = pomodoroSeconds % 60;
-            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            playSound('chord');
+            vibrate([200, 100, 200, 100, 200]);
+            showStatus('中断时间结束！', 5000);
             
-            let titlePrefix = '';
-            if (!isFocusTime) {
-                titlePrefix = '休息 - ';
-            } else if (isPomodoroRunning) {
-                titlePrefix = '专注中 - ';
+            updateDeviceStatus();
+        }
+        
+        // 取消中断
+        async function cancelInterrupt() {
+            console.log("❌ 取消中断被调用");
+            await playClickSound('stop');
+            
+            pauseInterrupt();
+            remainingSeconds = 0;
+            
+            showStatus('中断已取消', 2000);
+        }
+        
+        // 更新中断历史显示
+        function updateHistoryDisplay() {
+            if (!historyList) return;
+            
+            if (currentSessionHistory.length === 0) {
+                historyList.innerHTML = '<div class="history-item empty-history">暂无中断记录</div>';
+                return;
             }
-            document.title = `${titlePrefix}${minutes}:${seconds.toString().padStart(2, '0')} - 番茄钟`;
+            
+            let historyHTML = '';
+            currentSessionHistory.forEach((item, index) => {
+                const minutes = Math.floor(item.duration / 60);
+                const seconds = item.duration % 60;
+                const durationStr = minutes > 0 ? `${minutes}分${seconds}秒` : `${seconds}秒`;
+                
+                historyHTML += `
+                    <div class="history-item">
+                        <div class="history-time">${item.time}</div>
+                        <div class="history-details">
+                            <span>${item.reason}</span>
+                            <span>${durationStr}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            historyList.innerHTML = historyHTML;
         }
-
-        // 更新中断计时器显示
-        function updateInterruptTimerDisplay() {
-            const minutes = Math.floor(remainingSeconds / 60);
-            const seconds = remainingSeconds % 60;
-            interruptTimeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        // 清除历史记录
+        function clearHistory() {
+            currentSessionHistory = [];
+            updateHistoryDisplay();
+            showStatus('历史记录已清除', 2000);
         }
-
+        
+        // 快速测试中断
+        function quickInterruptTest(seconds) {
+            interruptMinutesInput.value = 0;
+            interruptSecondsInput.value = seconds;
+            interruptReasonInput.value = '测试中断';
+            startInterrupt();
+        }
+        
+        // 设置预设时间
+        function setPresetTime(minutes) {
+            focusTimeInput.value = minutes;
+            resetPomodoro();
+            showStatus(`已设置专注时间为${minutes}分钟`, 2000);
+        }
+        
+        // 设置自定义时间
+        function setCustomTime() {
+            const minutes = parseInt(customMinutesInput.value);
+            if (minutes && minutes > 0 && minutes <= 120) {
+                setPresetTime(minutes);
+            } else {
+                showStatus('请输入1-120之间的分钟数', 2000);
+            }
+        }
+        
+        // 测试声音功能
+        async function testSound() {
+            console.log("🔊 测试声音被调用");
+            
+            if (!soundEnabled) {
+                soundTestResult.textContent = '❌ 声音未启用，请点击屏幕任意位置激活';
+                soundTestResult.className = 'compatibility-warning error';
+                soundTestResult.classList.remove('hidden');
+                return;
+            }
+            
+            soundTestResult.textContent = '测试中...';
+            soundTestResult.className = 'compatibility-warning';
+            soundTestResult.classList.remove('hidden');
+            
+            try {
+                await playClickSound('test');
+                soundTestResult.textContent = '✅ 点击音效测试成功';
+                soundTestResult.className = 'compatibility-warning success';
+            } catch (error) {
+                soundTestResult.textContent = '❌ 点击音效测试失败';
+                soundTestResult.className = 'compatibility-warning error';
+            }
+            
+            setTimeout(async () => {
+                try {
+                    await playSound('beep');
+                    soundTestResult.textContent = '✅ 蜂鸣音效测试成功';
+                    soundTestResult.className = 'compatibility-warning success';
+                } catch (error) {
+                    soundTestResult.textContent = '❌ 蜂鸣音效测试失败';
+                    soundTestResult.className = 'compatibility-warning error';
+                }
+                
+                setTimeout(() => {
+                    soundTestResult.classList.add('hidden');
+                }, 2000);
+            }, 1000);
+        }
+        
+        // 停止所有声音
+        async function stopAllSounds() {
+            console.log("🔇 停止所有声音被调用");
+            await playClickSound('stop');
+            
+            if (audioGenerator) {
+                audioGenerator.stopAll();
+                soundEnabled = false;
+                showStatus('已停止所有声音', 2000);
+                updateDeviceStatus();
+                
+                setTimeout(() => {
+                    initAudioSystem();
+                }, 1000);
+            }
+        }
+        
         // 更新音量
         function updateVolume() {
             volume = volumeControl.value / 100;
             volumeValue.textContent = `${volumeControl.value}%`;
-            
-            if (volume < 0.1) volume = 0.1;
-            if (volume > 1.0) volume = 1.0;
-            
-            saveSettings();
-            console.log(`🔊 音量更新: ${volume}`);
-            
-            if (soundEnabled && !isTestingSound) {
-                setTimeout(() => {
-                    playSound('test');
-                }, 100);
-            }
-        }
-
-        // 更新状态栏
-        function updateStatus(message, duration = 3000) {
-            statusText.textContent = message;
-            statusBar.classList.add('show');
-            
-            if (duration > 0) {
-                setTimeout(() => {
-                    statusBar.classList.remove('show');
-                }, duration);
-            }
-        }
-
-        // 测试声音兼容性
-        function testSoundCompatibility() {
-            if (isTestingSound) return;
-            
-            isTestingSound = true;
-            soundTestResult.classList.remove('hidden');
-            soundTestResult.textContent = '正在测试声音兼容性...';
-            soundTestResult.className = 'compatibility-warning';
-            
-            const dots = soundTestResult.querySelector('.loading-dots');
-            if (dots) {
-                soundTestResult.textContent = '正在测试声音兼容性';
-                soundTestResult.appendChild(dots);
-            }
-            
-            console.log('🔊 开始测试声音兼容性，设备:', window.isIOS ? 'iOS' : '非iOS');
-            updateDebugInfo('测试声音兼容性...');
-            
-            if (vibrationEnabled && navigator.vibrate) {
-                navigator.vibrate(200);
-            }
-            
-            testJavaScriptAudioCompatibility();
         }
         
-        // 测试JavaScript音频兼容性
-        function testJavaScriptAudioCompatibility() {
-            try {
-                if (window.isIOS && !window.userInteracted) {
-                    soundTestResult.textContent = '请点击页面任意位置以启用声音';
-                    isTestingSound = false;
-                    updateDebugInfo('iOS: 等待用户交互');
-                    return;
-                }
-                
-                const audioReady = audioGenerator.init();
-                
-                if (!audioReady) {
-                    soundTestResult.textContent = '❌ 浏览器不支持Web Audio API';
-                    soundTestResult.className = 'compatibility-warning error';
-                    isTestingSound = false;
-                    updateDebugInfo('不支持Web Audio API');
-                    handleSoundTestFailure();
-                    return;
-                }
-                
-                const success = audioGenerator.play('beep');
-                
-                if (success) {
-                    setTimeout(() => {
-                        soundTestResult.textContent = '✅ 声音测试成功！使用JavaScript动态音频生成';
-                        soundTestResult.className = 'compatibility-warning success';
-                        soundEnabled = true;
-                        isTestingSound = false;
-                        updateDeviceStatus();
-                        updateStatus('✅ 声音测试成功，番茄钟可以正常播放提示音', 2000);
-                        updateDebugInfo('声音测试成功');
-                        
-                        setTimeout(() => {
-                            soundTestResult.classList.add('hidden');
-                        }, 2000);
-                        
-                    }, 500);
+        // 选择声音类型
+        function selectSound(soundType) {
+            currentSoundType = soundType;
+            soundOptions.forEach(option => {
+                if (option.dataset.sound === soundType) {
+                    option.classList.add('active');
                 } else {
-                    soundTestResult.textContent = '❌ 播放测试音失败';
-                    soundTestResult.className = 'compatibility-warning error';
-                    isTestingSound = false;
-                    updateDebugInfo('播放失败');
-                    handleSoundTestFailure();
+                    option.classList.remove('active');
+                }
+            });
+            showStatus(`已选择${soundType === 'beep' ? '蜂鸣' : soundType === 'bell' ? '铃声' : '和弦'}音效`, 2000);
+        }
+        
+        // 更新点击音效设置
+        function updateClickSoundSetting() {
+            clickSoundEnabled = clickSoundToggle.checked;
+            showStatus(`按键点击音效已${clickSoundEnabled ? '启用' : '禁用'}`, 2000);
+        }
+        
+        // 更新震动设置
+        function updateVibrationSetting() {
+            vibrationEnabled = document.getElementById('vibrationToggle').checked;
+            showStatus(`震动已${vibrationEnabled ? '启用' : '禁用'}`, 2000);
+        }
+        
+        // 初始化事件监听器
+        function initEventListeners() {
+            console.log("🔧 开始初始化事件监听器...");
+            
+            // 修复1：使用更可靠的事件绑定方式
+            if (startBtn) {
+                console.log("✅ 绑定开始按钮");
+                startBtn.addEventListener('click', startPomodoro);
+            } else {
+                console.error("❌ 开始按钮不存在");
+            }
+            
+            if (pauseBtn) {
+                console.log("✅ 绑定暂停按钮");
+                pauseBtn.addEventListener('click', pausePomodoro);
+            } else {
+                console.error("❌ 暂停按钮不存在");
+            }
+            
+            if (resetBtn) {
+                console.log("✅ 绑定重置按钮");
+                resetBtn.addEventListener('click', resetPomodoro);
+            } else {
+                console.error("❌ 重置按钮不存在");
+            }
+            
+            if (startInterruptBtn) {
+                console.log("✅ 绑定开始中断按钮");
+                startInterruptBtn.addEventListener('click', startInterrupt);
+            } else {
+                console.error("❌ 开始中断按钮不存在");
+            }
+            
+            if (cancelInterruptBtn) {
+                console.log("✅ 绑定取消中断按钮");
+                cancelInterruptBtn.addEventListener('click', cancelInterrupt);
+            } else {
+                console.error("❌ 取消中断按钮不存在");
+            }
+            
+            if (stopSoundBtn) {
+                console.log("✅ 绑定停止声音按钮1");
+                stopSoundBtn.addEventListener('click', stopAllSounds);
+            }
+            
+            if (stopSoundBtn2) {
+                console.log("✅ 绑定停止声音按钮2");
+                stopSoundBtn2.addEventListener('click', stopAllSounds);
+            }
+            
+            if (testSoundBtn) {
+                console.log("✅ 绑定测试声音按钮");
+                testSoundBtn.addEventListener('click', testSound);
+            }
+            
+            if (volumeControl) {
+                console.log("✅ 绑定音量控制");
+                volumeControl.addEventListener('input', updateVolume);
+            }
+            
+            if (clearHistoryBtn) {
+                console.log("✅ 绑定清除历史按钮");
+                clearHistoryBtn.addEventListener('click', clearHistory);
+            }
+            
+            if (clickSoundToggle) {
+                console.log("✅ 绑定点击音效开关");
+                clickSoundToggle.addEventListener('change', updateClickSoundSetting);
+            }
+            
+            // 声音选项
+            soundOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    selectSound(option.dataset.sound);
+                });
+            });
+            
+            // 震动开关
+            const vibrationToggle = document.getElementById('vibrationToggle');
+            if (vibrationToggle) {
+                vibrationToggle.addEventListener('change', updateVibrationSetting);
+            }
+            
+            // 时间预设按钮
+            presetTimeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const minutes = parseInt(button.dataset.minutes);
+                    setPresetTime(minutes);
+                });
+            });
+            
+            // 自定义时间设置
+            if (setCustomTimeBtn) {
+                setCustomTimeBtn.addEventListener('click', setCustomTime);
+            }
+            
+            // 快速测试按钮
+            quickTestButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const seconds = parseInt(button.dataset.seconds);
+                    quickInterruptTest(seconds);
+                });
+            });
+            
+            // 页面可见性变化
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    updateDebugInfo('页面隐藏');
+                } else {
+                    updateDebugInfo('页面恢复');
+                }
+            });
+            
+            // 防止页面滚动
+            document.addEventListener('touchmove', (e) => {
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // 用户交互激活音频
+            document.addEventListener('click', async () => {
+                if (!window.userInteracted) {
+                    window.userInteracted = true;
+                    console.log("👆 用户交互，解锁音频系统");
+                    
+                    try {
+                        await audioGenerator.ensureRunning();
+                        soundEnabled = true;
+                        updateDeviceStatus();
+                        showStatus('音频系统已激活', 2000);
+                    } catch (error) {
+                        console.error("音频解锁失败:", error);
+                    }
+                }
+            }, { once: true });
+            
+            // 诊断信息
+            document.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                updateDebugInfo('右键菜单被阻止');
+            });
+            
+            // 双击显示诊断信息
+            document.addEventListener('dblclick', (e) => {
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                    const diagnosticPanel = document.getElementById('diagnosticPanel');
+                    if (diagnosticPanel) {
+                        const isVisible = diagnosticPanel.style.display !== 'none';
+                        diagnosticPanel.style.display = isVisible ? 'none' : 'block';
+                        diagnosticPanel.innerHTML = `
+                            <div><strong>番茄钟诊断信息</strong></div>
+                            <div>番茄钟运行: ${isPomodoroRunning ? '✅' : '❌'}</div>
+                            <div>中断运行: ${isInterruptRunning ? '✅' : '❌'}</div>
+                            <div>剩余时间: ${pomodoroSeconds}秒</div>
+                            <div>音频状态: ${soundEnabled ? '✅' : '❌'}</div>
+                            <div>用户交互: ${window.userInteracted ? '✅' : '❌'}</div>
+                            <div>点击音效: ${clickSoundEnabled ? '✅' : '❌'}</div>
+                        `;
+                    }
+                }
+            });
+            
+            // 修复2：添加键盘快捷键
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    return;
                 }
                 
-            } catch (error) {
-                console.error('❌ 测试声音失败:', error);
-                updateDebugInfo(`测试失败: ${error.message}`);
-                handleSoundTestFailure();
-            }
+                switch(e.key.toLowerCase()) {
+                    case ' ':
+                    case 'enter':
+                        e.preventDefault();
+                        if (!isPomodoroRunning) {
+                            startPomodoro();
+                        } else {
+                            pausePomodoro();
+                        }
+                        break;
+                    case 'r':
+                    case 'r':
+                        e.preventDefault();
+                        resetPomodoro();
+                        break;
+                    case 'i':
+                    case 'i':
+                        e.preventDefault();
+                        startInterrupt();
+                        break;
+                    case 'escape':
+                        e.preventDefault();
+                        if (isInterruptRunning) {
+                            cancelInterrupt();
+                        }
+                        break;
+                }
+            });
+            
+            console.log("✅ 所有事件监听器已绑定");
         }
-
-        // 处理声音测试失败
-        function handleSoundTestFailure() {
-            soundTestResult.textContent = '❌ 声音测试失败，将使用振动提示';
-            soundTestResult.className = 'compatibility-warning error';
-            soundEnabled = false;
-            vibrationEnabled = true;
-            isTestingSound = false;
+        
+        // 初始化应用
+        function initApp() {
+            console.log("🚀 开始初始化番茄钟应用...");
+            
+            // 初始化显示
+            updateTimerDisplay(pomodoroSeconds);
+            pauseBtn.disabled = true;
+            cancelInterruptBtn.style.display = 'none';
+            
+            // 初始化设备状态
             updateDeviceStatus();
-            updateStatus('❌ 声音测试失败，将使用振动提示', 3000);
-            updateDebugInfo('声音测试失败');
             
-            document.getElementById('vibrationToggle').checked = true;
-            saveSettings();
+            // 初始化音频系统
+            initAudioSystem();
             
+            // 初始化事件监听器
+            initEventListeners();
+            
+            // 初始化声音控制
+            updateVolume();
+            
+            // 初始化震动设置
+            vibrationEnabled = document.getElementById('vibrationToggle')?.checked || true;
+            clickSoundEnabled = clickSoundToggle?.checked || true;
+            
+            // 页面加载完成后的用户交互检测
             setTimeout(() => {
-                soundTestResult.classList.add('hidden');
-            }, 3000);
-        }
-
-        // 添加到历史记录
-        function addToHistory(record) {
-            const emptyHistory = historyList.querySelector('.empty-history');
-            if (emptyHistory) {
-                emptyHistory.remove();
+                if (!window.userInteracted) {
+                    showStatus('请点击屏幕任意位置激活声音', 5000);
+                }
+            }, 1000);
+            
+            // 显示初始化完成消息
+            setTimeout(() => {
+                if (window.userInteracted && soundEnabled) {
+                    showStatus('番茄钟已就绪，点击开始按钮开始专注', 3000);
+                }
+            }, 2000);
+            
+            // 兼容性检查
+            if (!window.AudioContext && !window.webkitAudioContext) {
+                soundTestResult.textContent = '❌ 浏览器不支持Web Audio API，声音功能受限';
+                soundTestResult.className = 'compatibility-warning error';
+                soundTestResult.classList.remove('hidden');
+                soundEnabled = false;
             }
             
-            const historyItem = document.createElement('div');
-            historyItem.className = 'history-item';
-            
-            const timeElement = document.createElement('div');
-            timeElement.className = 'history-time';
-            timeElement.textContent = record.time;
-            
-            const detailsElement = document.createElement('div');
-            detailsElement.className = 'history-details';
-            
-            if (record.type === 'interrupt_start') {
-                const minutes = record.minutes || Math.floor(record.duration / 60);
-                const seconds = record.seconds || (record.duration % 60);
-                detailsElement.innerHTML = `
-                    <span>中断开始</span>
-                    <span>${minutes}分${seconds}秒</span>
-                    <span>${record.reason}</span>
-                `;
-            } else if (record.type === 'interrupt_end') {
-                const minutes = record.minutes || Math.floor(record.duration / 60);
-                const seconds = record.seconds || (record.duration % 60);
-                detailsElement.innerHTML = `
-                    <span>中断结束</span>
-                    <span>${minutes}分${seconds}秒</span>
-                `;
-            } else if (record.type === 'pomodoro_completed') {
-                detailsElement.innerHTML = `
-                    <span>完成番茄钟</span>
-                    <span>${record.duration}分钟</span>
-                `;
-            }
-            
-            historyItem.appendChild(timeElement);
-            historyItem.appendChild(detailsElement);
-            historyList.prepend(historyItem);
-            
-            const maxHistory = 10;
-            const items = historyList.querySelectorAll('.history-item');
-            if (items.length > maxHistory) {
-                items[items.length - 1].remove();
-            }
-        }
-
-        // 加载历史记录
-        function loadHistory() {
-            const savedHistory = localStorage.getItem('pomodoroHistory');
-            if (savedHistory) {
-                try {
-                    const history = JSON.parse(savedHistory);
-                    history.forEach(record => {
-                        addToHistory(record);
-                    });
-                } catch (e) {
-                    console.error('❌ 加载历史记录失败:', e);
+            if (!navigator.vibrate) {
+                document.getElementById('vibrationToggle').disabled = true;
+                const vibrationLabel = document.querySelector('label[for="vibrationToggle"]');
+                if (vibrationLabel) {
+                    vibrationLabel.textContent += ' (不支持)';
                 }
             }
-        }
-
-        // 保存历史记录
-        function saveHistory() {
+            
+            // 保存设备状态
             try {
-                localStorage.setItem('pomodoroHistory', JSON.stringify(currentSessionHistory));
-            } catch (e) {
-                console.error('❌ 保存历史记录失败:', e);
+                if (window.localStorage) {
+                    const savedFocusTime = localStorage.getItem('pomodoro_focus_time');
+                    const savedBreakTime = localStorage.getItem('pomodoro_break_time');
+                    
+                    if (savedFocusTime) {
+                        focusTimeInput.value = savedFocusTime;
+                        pomodoroSeconds = parseInt(savedFocusTime) * 60;
+                        updateTimerDisplay(pomodoroSeconds);
+                    }
+                    
+                    if (savedBreakTime) {
+                        breakTimeInput.value = savedBreakTime;
+                    }
+                    
+                    const savedVolume = localStorage.getItem('pomodoro_volume');
+                    if (savedVolume) {
+                        volumeControl.value = savedVolume;
+                        updateVolume();
+                    }
+                    
+                    const savedSoundType = localStorage.getItem('pomodoro_sound_type');
+                    if (savedSoundType && ['beep', 'bell', 'chord'].includes(savedSoundType)) {
+                        selectSound(savedSoundType);
+                    }
+                    
+                    const savedVibration = localStorage.getItem('pomodoro_vibration');
+                    if (savedVibration !== null) {
+                        vibrationEnabled = savedVibration === 'true';
+                        document.getElementById('vibrationToggle').checked = vibrationEnabled;
+                    }
+                    
+                    const savedClickSound = localStorage.getItem('pomodoro_click_sound');
+                    if (savedClickSound !== null) {
+                        clickSoundEnabled = savedClickSound === 'true';
+                        clickSoundToggle.checked = clickSoundEnabled;
+                    }
+                }
+            } catch (error) {
+                console.warn('本地存储不可用:', error);
             }
-        }
-
-        // 清空历史记录
-        function clearHistory() {
-            if (confirm('确定要清空所有历史记录吗？')) {
-                historyList.innerHTML = '<div class="history-item empty-history">暂无中断记录</div>';
-                currentSessionHistory = [];
-                localStorage.removeItem('pomodoroHistory');
-                updateStatus('🗑️ 历史记录已清空');
-            }
-        }
-
-        // 加载设置
-        function loadSettings() {
-            const savedSettings = localStorage.getItem('pomodoroSettings');
-            if (savedSettings) {
+            
+            // 添加自动保存功能
+            function saveSettings() {
                 try {
-                    const settings = JSON.parse(savedSettings);
-                    
-                    if (settings.focusTime) focusTimeInput.value = settings.focusTime;
-                    if (settings.breakTime) breakTimeInput.value = settings.breakTime;
-                    if (settings.volume) {
-                        volumeControl.value = settings.volume * 100;
-                        volume = settings.volume;
-                        volumeValue.textContent = `${settings.volume * 100}%`;
+                    if (window.localStorage) {
+                        localStorage.setItem('pomodoro_focus_time', focusTimeInput.value);
+                        localStorage.setItem('pomodoro_break_time', breakTimeInput.value);
+                        localStorage.setItem('pomodoro_volume', volumeControl.value);
+                        localStorage.setItem('pomodoro_sound_type', currentSoundType);
+                        localStorage.setItem('pomodoro_vibration', vibrationEnabled);
+                        localStorage.setItem('pomodoro_click_sound', clickSoundEnabled);
                     }
-                    if (settings.soundType) {
-                        currentSoundType = settings.soundType;
-                        soundOptions.forEach(opt => opt.classList.remove('active'));
-                        const activeOption = document.querySelector(`[data-sound="${settings.soundType}"]`);
-                        if (activeOption) {
-                            activeOption.classList.add('active');
-                        }
-                    }
-                    if (settings.soundEnabled !== undefined) {
-                        soundEnabled = settings.soundEnabled;
-                    }
-                    if (settings.vibrationEnabled !== undefined) {
-                        vibrationEnabled = settings.vibrationEnabled;
-                        const vibrationToggle = document.getElementById('vibrationToggle');
-                        if (vibrationToggle) {
-                            vibrationToggle.checked = vibrationEnabled;
-                        }
-                    }
-                    if (settings.clickSoundEnabled !== undefined) {
-                        clickSoundEnabled = settings.clickSoundEnabled;
-                        if (clickSoundToggle) {
-                            clickSoundToggle.checked = clickSoundEnabled;
-                        }
-                    }
-                    
-                    updatePomodoroTime();
-                } catch (e) {
-                    console.error('❌ 加载设置失败:', e);
+                } catch (error) {
+                    // 忽略存储错误
                 }
             }
+            
+            // 添加设置变化监听
+            focusTimeInput.addEventListener('change', saveSettings);
+            breakTimeInput.addEventListener('change', saveSettings);
+            volumeControl.addEventListener('change', saveSettings);
+            document.getElementById('vibrationToggle')?.addEventListener('change', saveSettings);
+            clickSoundToggle?.addEventListener('change', saveSettings);
+            
+            // 声音类型变化保存
+            soundOptions.forEach(option => {
+                option.addEventListener('click', saveSettings);
+            });
+            
+            // 页面关闭前保存状态
+            window.addEventListener('beforeunload', () => {
+                if (isPomodoroRunning) {
+                    const confirmClose = confirm('番茄钟还在运行，确定要离开吗？');
+                    if (!confirmClose) {
+                        return;
+                    }
+                }
+                saveSettings();
+            });
+            
+            console.log("🎉 番茄钟应用初始化完成！");
+            showStatus('番茄钟已就绪', 2000);
+            
+            // 启动调试信息更新
+            setInterval(() => {
+                if (window.debugMode) {
+                    const status = [
+                        `番茄钟: ${isPomodoroRunning ? '运行中' : '停止'}`,
+                        `中断: ${isInterruptRunning ? '运行中' : '停止'}`,
+                        `声音: ${soundEnabled ? '开启' : '关闭'}`,
+                        `交互: ${window.userInteracted ? '是' : '否'}`
+                    ];
+                    updateDebugInfo(status.join(' | '));
+                }
+            }, 1000);
         }
-
-        // 保存设置
-        function saveSettings() {
-            const settings = {
-                focusTime: parseInt(focusTimeInput.value),
-                breakTime: parseInt(breakTimeInput.value),
-                volume: volume,
-                soundType: currentSoundType,
-                soundEnabled: soundEnabled,
-                vibrationEnabled: vibrationEnabled,
-                clickSoundEnabled: clickSoundEnabled
+        
+        // 修复3：添加手动重新绑定功能
+        function rebindAllEvents() {
+            console.log("🔄 手动重新绑定所有事件...");
+            
+            // 解除所有现有事件
+            const cloneAndReplace = (element) => {
+                if (!element) return null;
+                const clone = element.cloneNode(true);
+                element.parentNode.replaceChild(clone, element);
+                return clone;
             };
             
-            try {
-                localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
-            } catch (e) {
-                console.error('❌ 保存设置失败:', e);
-            }
+            // 重新创建按钮
+            const newStartBtn = cloneAndReplace(startBtn);
+            const newPauseBtn = cloneAndReplace(pauseBtn);
+            const newResetBtn = cloneAndReplace(resetBtn);
+            const newStartInterruptBtn = cloneAndReplace(startInterruptBtn);
+            const newCancelInterruptBtn = cloneAndReplace(cancelInterruptBtn);
+            
+            // 重新绑定
+            if (newStartBtn) newStartBtn.addEventListener('click', startPomodoro);
+            if (newPauseBtn) newPauseBtn.addEventListener('click', pausePomodoro);
+            if (newResetBtn) newResetBtn.addEventListener('click', resetPomodoro);
+            if (newStartInterruptBtn) newStartInterruptBtn.addEventListener('click', startInterrupt);
+            if (newCancelInterruptBtn) newCancelInterruptBtn.addEventListener('click', cancelInterrupt);
+            
+            console.log("✅ 事件重新绑定完成");
+            showStatus('按钮功能已重置', 2000);
         }
-
-        // 页面关闭前保存状态
-        window.addEventListener('beforeunload', () => {
-            if (isPomodoroRunning || isInterruptRunning) {
-                localStorage.setItem('pomodoroRunningState', JSON.stringify({
-                    pomodoroSeconds: pomodoroSeconds,
-                    interruptDuration: interruptDuration,
-                    remainingSeconds: remainingSeconds,
-                    isPomodoroRunning: isPomodoroRunning,
-                    isInterruptRunning: isInterruptRunning,
-                    isFocusTime: isFocusTime,
-                    timestamp: Date.now()
-                }));
-            }
-        });
-
-        // 页面加载时恢复状态
+        
+        // 修复4：添加紧急恢复按钮
+        function addEmergencyButtons() {
+            const emergencyContainer = document.createElement('div');
+            emergencyContainer.style.cssText = `
+                position: fixed;
+                bottom: 10px;
+                left: 10px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                z-index: 9999;
+            `;
+            
+            const rebootBtn = document.createElement('button');
+            rebootBtn.textContent = '🔄 重启系统';
+            rebootBtn.style.cssText = `
+                background: #2196F3;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                cursor: pointer;
+                box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+            `;
+            rebootBtn.onclick = () => {
+                console.log("🔄 重启系统...");
+                location.reload();
+            };
+            
+            const rebindBtn = document.createElement('button');
+            rebindBtn.textContent = '🔗 重新绑定';
+            rebindBtn.style.cssText = `
+                background: #4CAF50;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                cursor: pointer;
+                box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+            `;
+            rebindBtn.onclick = rebindAllEvents;
+            
+            const testBtn = document.createElement('button');
+            testBtn.textContent = '🧪 测试功能';
+            testBtn.style.cssText = `
+                background: #FF9800;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                cursor: pointer;
+                box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+            `;
+            testBtn.onclick = async () => {
+                console.log("🧪 开始功能测试...");
+                await playClickSound('test');
+                await playSound('beep');
+                showStatus('功能测试完成', 2000);
+            };
+            
+            emergencyContainer.appendChild(rebootBtn);
+            emergencyContainer.appendChild(rebindBtn);
+            emergencyContainer.appendChild(testBtn);
+            document.body.appendChild(emergencyContainer);
+            
+            console.log("✅ 紧急按钮已添加");
+        }
+        
+        // 页面加载完成
         window.addEventListener('load', () => {
-            const savedState = localStorage.getItem('pomodoroRunningState');
-            if (savedState) {
-                try {
-                    const state = JSON.parse(savedState);
-                    const timePassed = Math.floor((Date.now() - state.timestamp) / 1000);
-                    
-                    if (state.isPomodoroRunning) {
-                        pomodoroSeconds = Math.max(0, state.pomodoroSeconds - timePassed);
-                        isFocusTime = state.isFocusTime;
-                        
-                        if (pomodoroSeconds > 0) {
-                            updateTimerDisplay();
-                            startPomodoro();
-                            updateStatus('✅ 已恢复上次的计时状态');
-                        }
-                    }
-                    
-                    if (state.isInterruptRunning) {
-                        interruptDuration = state.interruptDuration;
-                        remainingSeconds = Math.max(0, state.remainingSeconds - timePassed);
-                        if (remainingSeconds > 0) {
-                            isInterruptRunning = true;
-                            startInterruptBtn.style.display = 'none';
-                            cancelInterruptBtn.style.display = 'block';
-                            interruptTimerDisplay.classList.add('show');
-                            interruptStartTime = Date.now() - (state.interruptDuration - remainingSeconds) * 1000;
-                            
-                            function updateInterruptTimer() {
-                                if (!isInterruptRunning) return;
-                                
-                                const now = Date.now();
-                                const elapsed = Math.floor((now - interruptStartTime) / 1000);
-                                remainingSeconds = Math.max(0, interruptDuration - elapsed);
-                                
-                                updateInterruptTimerDisplay();
-                                
-                                if (remainingSeconds <= 0) {
-                                    isInterruptRunning = false;
-                                    startInterruptBtn.style.display = 'block';
-                                    cancelInterruptBtn.style.display = 'none';
-                                    interruptTimerDisplay.classList.remove('show');
-                                    
-                                    playSound('end');
-                                    updateStatus('中断时间结束！', 5000);
-                                } else {
-                                    interruptAnimationFrame = requestAnimationFrame(updateInterruptTimer);
-                                }
-                            }
-                            
-                            interruptAnimationFrame = requestAnimationFrame(updateInterruptTimer);
-                            updateStatus('✅ 已恢复中断计时');
-                        }
-                    }
-                    
-                    localStorage.removeItem('pomodoroRunningState');
-                } catch (e) {
-                    console.error('❌ 恢复状态失败:', e);
-                }
-            }
-        });
-
-        // 事件监听器
-        startBtn.addEventListener('click', startPomodoro);
-        pauseBtn.addEventListener('click', pausePomodoro);
-        resetBtn.addEventListener('click', resetPomodoro);
-        stopSoundBtn.addEventListener('click', stopAllSounds);
-        stopSoundBtn2.addEventListener('click', stopAllSounds);
-        testSoundBtn.addEventListener('click', testSoundCompatibility);
-        
-        focusTimeInput.addEventListener('change', updatePomodoroTime);
-        breakTimeInput.addEventListener('change', saveSettings);
-        
-        startInterruptBtn.addEventListener('click', startInterrupt);
-        cancelInterruptBtn.addEventListener('click', cancelInterrupt);
-        clearHistoryBtn.addEventListener('click', clearHistory);
-        
-        volumeControl.addEventListener('input', updateVolume);
-        
-        soundOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                soundOptions.forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-                currentSoundType = option.dataset.sound;
-                saveSettings();
-                
-                if (soundEnabled && !isTestingSound) {
-                    playSound('test');
-                }
-            });
-        });
-
-        // 快速测试按钮事件
-        quickTestButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const seconds = parseInt(this.getAttribute('data-seconds'));
-                interruptMinutesInput.value = 0;
-                interruptSecondsInput.value = seconds;
-                startInterrupt();
-            });
-        });
-
-        // 预设时间按钮事件
-        presetTimeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const minutes = parseInt(this.getAttribute('data-minutes'));
-                setCustomTime(minutes);
-            });
-        });
-
-        // 自定义时间设置按钮事件
-        setCustomTimeBtn.addEventListener('click', function() {
-            const minutes = parseInt(customMinutesInput.value);
-            setCustomTime(minutes);
-        });
-
-        // 回车键设置自定义时间
-        customMinutesInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const minutes = parseInt(customMinutesInput.value);
-                setCustomTime(minutes);
-            }
-        });
-
-        // 震动控制事件
-        document.getElementById('vibrationToggle').addEventListener('change', function(e) {
-            vibrationEnabled = e.target.checked;
-            saveSettings();
+            console.log("📱 页面加载完成");
             
-            if (vibrationEnabled && navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-        });
-
-        // 点击音效控制事件
-        clickSoundToggle.addEventListener('change', function(e) {
-            clickSoundEnabled = e.target.checked;
-            saveSettings();
+            // 初始化应用
+            initApp();
             
-            if (clickSoundEnabled && soundEnabled) {
-                playClickSound('test');
-            }
-        });
-
-        // 初始化
-        loadSettings();
-        loadHistory();
-        updateTimerDisplay();
-        updateDeviceStatus();
-        updateStatus('准备开始，请点击"测试声音"按钮授权声音权限');
-        pauseBtn.disabled = true;
-        
-        updateDebugInfo('v6.0.0修复版初始化完成');
-        
-        setTimeout(() => {
-            initAudioSystem();
-        }, 1000);
-
-        // 添加用户交互监听
-        document.addEventListener('touchstart', handleUserInteraction, { once: true });
-        document.addEventListener('click', handleUserInteraction, { once: true });
-        
-        // 为所有按钮添加音频解锁
-        document.querySelectorAll('button').forEach(button => {
-            button.addEventListener('touchstart', handleUserInteraction);
-            button.addEventListener('click', handleUserInteraction);
-        });
-
-        // 键盘快捷键
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
-                e.preventDefault();
-                if (isPomodoroRunning) {
-                    pausePomodoro();
-                } else {
-                    startPomodoro();
-                }
-            }
-            if (e.code === 'KeyR' && (e.ctrlKey || e.metaKey)) {
-                e.preventDefault();
-                resetPomodoro();
-            }
-            if (e.code === 'KeyS' && (e.ctrlKey || e.metaKey)) {
-                e.preventDefault();
-                stopAllSounds();
-            }
-            if (e.code === 'KeyI' && (e.ctrlKey || e.metaKey)) {
-                e.preventDefault();
-                startInterrupt();
-            }
-            if (e.code === 'KeyV' && (e.ctrlKey || e.metaKey)) {
-                e.preventDefault();
-                const vibrationToggle = document.getElementById('vibrationToggle');
-                if (vibrationToggle) {
-                    vibrationToggle.checked = !vibrationToggle.checked;
-                    vibrationToggle.dispatchEvent(new Event('change'));
-                }
-            }
-            if (e.code === 'KeyT' && (e.ctrlKey || e.metaKey)) {
-                e.preventDefault();
-                testSoundCompatibility();
-            }
-            if (e.code === 'KeyC' && (e.ctrlKey || e.metaKey)) {
-                e.preventDefault();
-                if (clickSoundToggle) {
-                    clickSoundToggle.checked = !clickSoundToggle.checked;
-                    clickSoundToggle.dispatchEvent(new Event('change'));
-                }
-            }
-        });
-
-        console.log('✅ 番茄钟 v6.0.0 修复版初始化完成');
-        console.log('📊 系统信息 - iOS:', window.isIOS, '用户已交互:', window.userInteracted, '声音启用:', soundEnabled, '震动:', vibrationEnabled, '点击音效:', clickSoundEnabled);
-        
-        if ('Notification' in window && Notification.permission === 'default') {
+            // 添加紧急恢复按钮
+            setTimeout(addEmergencyButtons, 1000);
+            
+            // 检查按钮绑定状态
             setTimeout(() => {
-                Notification.requestPermission().then(permission => {
-                    console.log('📧 通知权限:', permission);
+                console.log("🔍 检查按钮绑定状态...");
+                const buttons = [
+                    { id: 'startBtn', name: '开始按钮', element: startBtn },
+                    { id: 'pauseBtn', name: '暂停按钮', element: pauseBtn },
+                    { id: 'resetBtn', name: '重置按钮', element: resetBtn },
+                    { id: 'startInterruptBtn', name: '中断按钮', element: startInterruptBtn }
+                ];
+                
+                buttons.forEach(btn => {
+                        if (btn.element) {
+                            console.log(`✅ ${btn.name}存在`);
+                        } else {
+                            console.error(`❌ ${btn.name}不存在`);
+                        }
                 });
             }, 2000);
-        }
-        
-        console.log('📊 番茄钟系统状态检查:');
-        console.log('  Web Audio API 支持:', !!(window.AudioContext || window.webkitAudioContext));
-        console.log('  震动功能支持:', !!navigator.vibrate);
-        console.log('  声音启用状态:', soundEnabled);
-        console.log('  震动启用状态:', vibrationEnabled);
-        console.log('  点击音效启用状态:', clickSoundEnabled);
-        console.log('  当前声音类型:', currentSoundType);
-        console.log('  音量设置:', volume);
-        console.log('  iOS设备:', window.isIOS);
-        console.log('  AudioGenerator状态:', audioGenerator.isInitialized ? '已初始化' : '未初始化');
-        
-        // 为所有按钮添加点击音效
-        addClickSoundToButtons();
-        
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
             
-            setTimeout(() => {
-                if (confirm('是否将番茄钟安装到桌面以获得更好的体验？')) {
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then((choiceResult) => {
-                        console.log('📱 安装选择:', choiceResult.outcome);
-                        deferredPrompt = null;
-                    });
+            // 尝试自动解锁音频
+            setTimeout(async () => {
+                if (!window.userInteracted) {
+                    console.log("🔊 尝试自动解锁音频...");
+                    try {
+                        await audioGenerator.ensureRunning();
+                        window.userInteracted = true;
+                        soundEnabled = true;
+                        updateDeviceStatus();
+                        showStatus('音频已自动解锁', 2000);
+                    } catch (error) {
+                        console.error("音频自动解锁失败:", error);
+                    }
                 }
-            }, 10000);
-        });
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js').then(registration => {
-                    console.log('✅ ServiceWorker 注册成功: ', registration.scope);
-                }).catch(err => {
-                    console.log('❌ ServiceWorker 注册失败: ', err);
-                });
+            }, 3000);
+            
+            // 添加全局错误处理
+            window.addEventListener('error', (event) => {
+                console.error("🚨 全局JavaScript错误:", event.error);
+                showStatus(`发生错误: ${event.message}`, 5000);
             });
-        }
-
-        window.addEventListener('online', () => {
-            updateStatus('🌐 网络连接已恢复', 2000);
-        });
-
-        window.addEventListener('offline', () => {
-            updateStatus('🌐 网络连接已断开，应用可离线使用', 3000);
-        });
-        
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                console.log('📱 页面恢复可见状态');
-                
-                if (audioGenerator.audioContext && audioGenerator.audioContext.state === 'suspended') {
-                    console.log('🔄 尝试恢复AudioContext');
-                    audioGenerator.ensureRunning();
-                }
-            }
-        });
-
-        setInterval(() => {
-            if (audioGenerator.audioContext && audioGenerator.audioContext.state === 'suspended') {
-                console.log('🔍 定期检查：AudioContext被挂起，尝试恢复');
-                audioGenerator.ensureRunning();
-            }
-        }, 30000);
-        
-        window.addEventListener('load', () => {
+            
+            // 未处理的Promise拒绝
+            window.addEventListener('unhandledrejection', (event) => {
+                console.error("🚨 未处理的Promise拒绝:", event.reason);
+            });
+            
+            console.log("🎯 番茄钟v6.1.0 完全加载完成！");
+            
+            // 最终状态检查
             setTimeout(() => {
-                addClickSoundToButtons();
-                console.log('✅ 点击音效系统已初始化');
+                console.log("📊 最终状态检查:");
+                console.log("- 音频状态:", soundEnabled ? "✅ 正常" : "❌ 异常");
+                console.log("- 番茄钟状态:", isPomodoroRunning ? "运行中" : "停止");
+                console.log("- 用户交互:", window.userInteracted ? "✅ 是" : "❌ 否");
+                console.log("- 点击音效:", clickSoundEnabled ? "✅ 开启" : "❌ 关闭");
+                
+                if (!window.userInteracted) {
+                    showStatus('请点击任意位置激活声音功能', 0);
+                }
             }, 1000);
+        });
+        
+        // 防止页面滚动
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'SELECT') {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // 双击诊断
+        document.addEventListener('dblclick', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            const diagnosticInfo = {
+                时间: new Date().toLocaleTimeString(),
+                番茄钟状态: isPomodoroRunning ? "运行中" : "停止",
+                剩余时间: `${Math.floor(pomodoroSeconds / 60)}:${(pomodoroSeconds % 60).toString().padStart(2, '0')}`,
+                中断状态: isInterruptRunning ? "运行中" : "停止",
+                音频状态: soundEnabled ? "正常" : "异常",
+                用户交互: window.userInteracted ? "是" : "否",
+                点击音效: clickSoundEnabled ? "开启" : "关闭"
+            };
+            
+            alert("诊断信息:\n" + Object.entries(diagnosticInfo).map(([key, value]) => `${key}: ${value}`).join('\n'));
         });
     </script>
 </body>
