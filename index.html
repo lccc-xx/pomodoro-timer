@@ -1191,19 +1191,83 @@
                 }
             }
             
-            stopAll() {
+stopAll() {
                 try {
                     if (this.audioContext) {
                         this.audioContext.close();
                         this.audioContext = null;
                     }
                     this.activeSounds.clear();
+                    this.continuousSoundInterval && clearInterval(this.continuousSoundInterval);
+                    this.continuousSoundInterval = null;
+                    this.isContinuousPlaying = false;
                     this.initialized = false;
                     addLogEntry('停止所有声音', 'info', '音频');
                 } catch (error) {
                     addLogEntry(`停止声音失败: ${error.message}`, 'error', '音频');
                 }
             }
+
+            // === 新增：循环播放和停止方法 ===
+            playContinuousSound(type = 'beep', interval = 800) {
+                if (!this.audioContext || !window.userInteracted) {
+                    addLogEntry('音频未初始化或未激活，无法开始连续播放', 'warning', '音频');
+                    return false;
+                }
+                
+                if (this.isContinuousPlaying) {
+                    addLogEntry('连续播放已在运行中', 'info', '音频');
+                    return false;
+                }
+                
+                this.isContinuousPlaying = true;
+                addLogEntry(`开始连续声音播放: ${type} (间隔${interval}ms)`, 'info', '音频');
+                
+                // 立即播放一次
+                this._playSoundOnce(type);
+                
+                // 设置循环间隔
+                this.continuousSoundInterval = setInterval(() => {
+                    if (this.isContinuousPlaying) {
+                        this._playSoundOnce(type);
+                    }
+                }, interval);
+                
+                return true;
+            }
+
+            stopContinuousSound() {
+                if (this.continuousSoundInterval) {
+                    clearInterval(this.continuousSoundInterval);
+                    this.continuousSoundInterval = null;
+                }
+                this.isContinuousPlaying = false;
+                addLogEntry('连续声音播放已停止', 'info', '音频');
+            }
+
+            _playSoundOnce(type = 'beep') {
+                // 内部方法：单次播放声音
+                if (!this.audioContext || !window.userInteracted) {
+                    return false;
+                }
+                try {
+                    const currentVolume = volume; // 使用全局音量变量
+                    switch(type) {
+                        case 'beep':
+                            return this.playBeep(800, 0.5, currentVolume);
+                        case 'bell':
+                            return this.playBell(440, 1, currentVolume);
+                        case 'chord':
+                            return this.playChord(1, currentVolume);
+                        default:
+                            return this.playBeep(800, 0.5, currentVolume);
+                    }
+                } catch (error) {
+                    addLogEntry(`单次播放失败: ${error.message}`, 'error', '音频');
+                    return false;
+                }
+            }
+            // === 新增结束 ===
         }
         
         // 主应用变量
@@ -1725,7 +1789,7 @@
             }
         }
         
-        // 完成中断计时
+// 完成中断计时
         async function finishInterrupt(reason = '') {
             try {
                 clearInterval(interruptInterval);
@@ -1735,8 +1799,22 @@
                 if (interruptTimerDisplay) {
                     interruptTimerDisplay.classList.remove('show');
                 }
-                if (startInterruptBtn) startInterruptBtn.style.display = 'inline-block';
-                if (cancelInterruptBtn) cancelInterruptBtn.style.display = 'none';
+                
+                // 修改：不再隐藏开始按钮，而是改变其状态
+                if (startInterruptBtn) {
+                    startInterruptBtn.disabled = true;
+                    startInterruptBtn.textContent = '⏱️ 中断已结束';
+                }
+                
+                // 修改：显示取消按钮并改变其功能为“停止警报”
+                if (cancelInterruptBtn) {
+                    cancelInterruptBtn.style.display = 'inline-block';
+                    cancelInterruptBtn.textContent = '🛑 停止警报';
+                    // 移除原有的事件监听器，添加新的停止警报监听器
+                    cancelInterruptBtn.replaceWith(cancelInterruptBtn.cloneNode(true));
+                    const newCancelBtn = document.getElementById('cancelInterruptBtn');
+                    newCancelBtn.addEventListener('click', stopInterruptAlarm);
+                }
                 
                 const duration = `${Math.floor((interruptSecondsInput ? parseInt(interruptSecondsInput.value) : 0) + (interruptMinutesInput ? parseInt(interruptMinutesInput.value) : 0) * 60)}秒`;
                 
@@ -1754,11 +1832,15 @@
                 updateHistoryDisplay();
                 saveHistory();
                 
-                await playSound('chord');
+                // 修改：将单次播放改为连续播放
+                if (audioGenerator && soundEnabled) {
+                    audioGenerator.playContinuousSound(currentSoundType, 800); // 每800ms播放一次
+                }
+                
                 vibrate([100, 50, 100, 50, 100, 50, 100]);
                 
-                addLogEntry('中断时间到！', 'success', '中断');
-                showStatus('🔔 中断时间到！', 5000);
+                addLogEntry('中断时间到！警报持续响铃中...', 'success', '中断');
+                showStatus('🔔 中断时间到！警报持续响铃，点击“停止警报”按钮关闭', 5000);
                 
             } catch (error) {
                 addLogEntry(`完成中断失败: ${error.message}`, 'error', '中断');
@@ -1789,7 +1871,40 @@
                 addLogEntry(`取消中断失败: ${error.message}`, 'error', '中断');
             }
         }
-        
+        // 停止中断警报
+        async function stopInterruptAlarm() {
+            try {
+                if (clickSoundEnabled) {
+                    await playClickSound('normal');
+                }
+                
+                // 停止连续播放的声音
+                if (audioGenerator) {
+                    audioGenerator.stopContinuousSound();
+                }
+                
+                // 恢复按钮状态
+                if (startInterruptBtn) {
+                    startInterruptBtn.disabled = false;
+                    startInterruptBtn.textContent = '▶ 开始中断';
+                }
+                
+                if (cancelInterruptBtn) {
+                    cancelInterruptBtn.style.display = 'none';
+                    cancelInterruptBtn.textContent = '❌ 取消中断';
+                    // 恢复原有的事件监听器
+                    cancelInterruptBtn.replaceWith(cancelInterruptBtn.cloneNode(true));
+                    const newCancelBtn = document.getElementById('cancelInterruptBtn');
+                    newCancelBtn.addEventListener('click', cancelInterrupt);
+                }
+                
+                addLogEntry('手动停止中断警报', 'info', '中断');
+                showStatus('🛑 警报已手动停止', 2000);
+                
+            } catch (error) {
+                addLogEntry(`停止警报失败: ${error.message}`, 'error', '中断');
+            }
+        }
         // 应用预设时间
         function applyPresetTime(minutes) {
             try {
