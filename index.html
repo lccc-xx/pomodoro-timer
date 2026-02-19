@@ -2,198 +2,244 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>番茄钟时间管理工具 v6.2.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>番茄钟专注计时器 v6.3.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* 基础重置和全局样式 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --primary-color: #4a6fa5;
+            --primary-dark: #385d8a;
+            --primary-light: #6b8cbc;
+            --secondary-color: #ff9a76;
+            --secondary-dark: #e68966;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #3498db;
+            --light-color: #f8f9fa;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+            --light-gray: #ecf0f1;
+            --border-radius: 12px;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
         }
         
         body {
-            font-family: 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
             min-height: 100vh;
-            padding: 20px;
-            color: #333;
+            padding: 15px;
+            overflow-x: hidden;
         }
         
+        /* 容器和布局 */
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
+            padding: 0 10px;
         }
         
-        .header {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            padding: 30px 40px;
+        .app-header {
             text-align: center;
+            margin-bottom: 25px;
+            padding: 20px 0;
         }
         
-        .header h1 {
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        .app-title {
+            font-size: 2.2rem;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            font-weight: 700;
         }
         
-        .header .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
+        .app-subtitle {
+            font-size: 1rem;
+            color: var(--gray-color);
+            max-width: 600px;
+            margin: 0 auto 20px;
         }
         
-        .status-bar {
-            background: rgba(0, 0, 0, 0.1);
-            padding: 10px 20px;
-            font-size: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
+        /* 主内容网格布局 */
         .main-content {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            padding: 40px;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
         }
         
-        @media (max-width: 1024px) {
+        @media (min-width: 768px) {
             .main-content {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
             }
         }
         
-        .section {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        @media (min-width: 992px) {
+            .main-content {
+                grid-template-columns: 2fr 1fr;
+            }
         }
         
-        .section h2 {
-            color: #2c3e50;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
+        /* 卡片通用样式 */
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            color: var(--dark-color);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--light-gray);
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
-        .section h2 i {
-            color: #3498db;
+        .card-title i {
+            color: var(--primary-color);
         }
         
-        /* 番茄钟控制区域 */
-        .timer-container {
+        /* 番茄钟计时器卡片 */
+        .timer-card {
+            grid-column: 1;
+        }
+        
+        .timer-display-container {
             text-align: center;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            border-radius: 20px;
-            padding: 40px 20px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
         
         .timer-display {
-            font-size: 5.5rem;
-            font-weight: 300;
-            color: white;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            font-family: 'Courier New', monospace;
+            font-size: 4.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
             margin: 20px 0;
-            font-variant-numeric: tabular-nums;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
         }
         
-        .timer-controls {
+        .timer-status {
+            font-size: 1.3rem;
+            color: var(--gray-color);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        /* 控制按钮组 */
+        .control-buttons {
             display: flex;
-            gap: 15px;
             justify-content: center;
-            margin-top: 30px;
+            gap: 15px;
+            margin: 25px 0;
+            flex-wrap: wrap;
         }
         
         .btn {
-            padding: 15px 30px;
+            padding: 14px 28px;
             border: none;
             border-radius: 50px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            min-width: 150px;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-primary:hover:not(:disabled) {
+        .btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
         
-        .btn-secondary {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-        }
-        
-        .btn-secondary:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
-        }
-        
-        .btn-warning {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-        
-        .btn-warning:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            color: white;
-        }
-        
-        .btn-success:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(67, 233, 123, 0.3);
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            color: white;
-        }
-        
-        .btn-danger:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(250, 112, 154, 0.3);
+        .btn:active {
+            transform: translateY(-1px);
         }
         
         .btn:disabled {
-            opacity: 0.5;
+            opacity: 0.6;
             cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
+            transform: none;
+            box-shadow: none;
         }
         
-        /* 时间设置 */
-        .time-settings {
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary-color), var(--primary-light));
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(to right, var(--secondary-color), var(--secondary-dark));
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(to right, var(--warning-color), #f1c40f);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(to right, var(--danger-color), #c0392b);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(to right, var(--success-color), #27ae60);
+            color: white;
+        }
+        
+        .btn-info {
+            background: linear-gradient(to right, var(--info-color), #2980b9);
+            color: white;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        /* 设置区域 */
+        .settings-group {
+            margin-bottom: 25px;
+        }
+        
+        .settings-row {
             display: flex;
-            gap: 20px;
-            align-items: center;
-            justify-content: center;
             flex-wrap: wrap;
-            margin: 20px 0;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .settings-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
         }
         
         .time-input-group {
@@ -202,320 +248,687 @@
             gap: 10px;
         }
         
-        .time-input-group label {
-            font-weight: 600;
-            color: #2c3e50;
-        }
-        
-        .time-input-group input {
+        .time-input {
             width: 80px;
-            padding: 10px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            padding: 12px 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
             font-size: 1.1rem;
             text-align: center;
-            transition: border-color 0.3s;
+            transition: var(--transition);
         }
         
-        .time-input-group input:focus {
+        .time-input:focus {
+            border-color: var(--primary-color);
             outline: none;
-            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
         }
         
-        .preset-times {
+        .time-label {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .preset-buttons {
             display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 20px;
             flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
         }
         
         .preset-time {
-            padding: 8px 20px;
-            background: #f0f0f0;
-            border: 2px solid #ddd;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s;
+            padding: 10px 18px;
+            background: var(--light-gray);
+            border: none;
+            border-radius: 8px;
+            color: var(--dark-color);
             font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
         }
         
         .preset-time:hover {
-            background: #667eea;
+            background: var(--primary-color);
             color: white;
-            border-color: #667eea;
-            transform: translateY(-2px);
         }
         
-        /* 中断控制 */
-        .interrupt-controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        
-        .interrupt-controls input {
+        .session-name-input {
+            width: 100%;
             padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            width: 100px;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
             font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .session-name-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
+        }
+        
+        /* 中断计时器卡片 */
+        .interrupt-card {
+            grid-column: 1;
         }
         
         .interrupt-timer {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #e74c3c;
-            margin: 10px 0;
-            min-height: 40px;
+            text-align: center;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--danger-color);
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
             display: none;
         }
         
         .interrupt-timer.show {
             display: block;
-            animation: pulse 1s infinite;
+            animation: pulse 1.5s infinite;
         }
         
-        /* 声音控制 */
-        .sound-controls {
+        .interrupt-controls {
             display: flex;
-            flex-direction: column;
-            gap: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        /* 声音设置卡片 */
+        .sound-card {
+            grid-column: 1;
         }
         
         .volume-control {
             display: flex;
             align-items: center;
             gap: 15px;
+            margin-bottom: 20px;
         }
         
-        .volume-control input[type="range"] {
-            flex: 1;
-            height: 6px;
-            border-radius: 3px;
-            background: #e0e0e0;
+        .volume-slider {
+            flex-grow: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--light-gray);
             outline: none;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .volume-value {
+            font-weight: 600;
+            min-width: 50px;
+            text-align: right;
         }
         
         .sound-options {
             display: flex;
-            gap: 10px;
             flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
         }
         
         .sound-option {
-            padding: 8px 20px;
-            background: #f0f0f0;
-            border: 2px solid #ddd;
-            border-radius: 20px;
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 15px;
+            background: var(--light-gray);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: var(--transition);
         }
         
         .sound-option:hover {
-            background: #e0e0e0;
+            background: #e0e6f0;
         }
         
         .sound-option.active {
-            background: #667eea;
+            background: var(--primary-color);
             color: white;
-            border-color: #667eea;
+            border-color: var(--primary-dark);
         }
         
-        /* 记录和历史 */
-        .record-list, .history-list {
+        .sound-test-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        /* 切换开关 */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+        
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        /* 记录和统计卡片 */
+        .stats-card {
+            grid-column: 1;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            background: var(--light-gray);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+        
+        .record-list {
             max-height: 300px;
             overflow-y: auto;
-            padding-right: 10px;
+            padding-right: 5px;
         }
         
-        .record-item, .history-item {
+        .record-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .record-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .record-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        
+        .record-list::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        .record-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px;
-            margin: 10px 0;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-left: 4px solid;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            transition: var(--transition);
         }
         
-        .record-item.focus {
-            border-left-color: #3498db;
+        .record-item:hover {
+            background-color: #f9f9f9;
         }
         
-        .record-item.break {
-            border-left-color: #2ecc71;
+        .record-info {
+            display: flex;
+            flex-direction: column;
         }
         
-        .no-records, .empty-history {
+        .record-time {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .record-name {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+            margin-top: 3px;
+        }
+        
+        .record-duration {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+        
+        .record-type {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .record-type.focus {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+        }
+        
+        .record-type.break {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #2980b9;
+        }
+        
+        .no-records {
             text-align: center;
             padding: 40px 20px;
-            color: #7f8c8d;
+            color: var(--gray-color);
             font-style: italic;
         }
         
-        /* 系统日志 */
+        /* 历史记录卡片 */
+        .history-card {
+            grid-column: 1;
+        }
+        
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            transition: var(--transition);
+        }
+        
+        .history-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .history-time {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 5px;
+        }
+        
+        .history-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+        
+        .empty-history {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-color);
+            font-style: italic;
+        }
+        
+        /* 日志卡片 */
+        .log-card {
+            grid-column: 1;
+        }
+        
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .log-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
         .log-content {
             max-height: 300px;
             overflow-y: auto;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 0.9rem;
-            padding: 15px;
-            background: #1a1a1a;
-            color: #e0e0e0;
+            background: #f8f9fa;
             border-radius: 8px;
-            white-space: pre-wrap;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
         }
         
         .log-entry {
-            padding: 8px 12px;
-            margin: 5px 0;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--gray-color);
+            background: white;
             border-radius: 4px;
-            border-left: 3px solid;
-        }
-        
-        .log-entry.info {
-            border-left-color: #3498db;
-            background: rgba(52, 152, 219, 0.1);
         }
         
         .log-entry.success {
-            border-left-color: #2ecc71;
-            background: rgba(46, 204, 113, 0.1);
+            border-left-color: var(--success-color);
         }
         
         .log-entry.warning {
-            border-left-color: #f39c12;
-            background: rgba(243, 156, 18, 0.1);
+            border-left-color: var(--warning-color);
         }
         
         .log-entry.error {
-            border-left-color: #e74c3c;
-            background: rgba(231, 76, 60, 0.1);
+            border-left-color: var(--danger-color);
+        }
+        
+        .log-entry.info {
+            border-left-color: var(--info-color);
+        }
+        
+        .log-timestamp {
+            color: var(--gray-color);
+            margin-right: 10px;
+        }
+        
+        .log-module {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--light-gray);
+            border-radius: 10px;
+            font-size: 0.75rem;
+            margin-right: 10px;
+        }
+        
+        /* 状态栏 */
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--dark-color);
+            color: white;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .status-bar.show {
+            transform: translateY(0);
+        }
+        
+        /* 兼容性警告 */
+        .compatibility-warning {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+        }
+        
+        .compatibility-warning.warning {
+            background-color: rgba(231, 76, 60, 0.1);
+            border-left: 5px solid var(--danger-color);
+        }
+        
+        .compatibility-warning.success {
+            background-color: rgba(46, 204, 113, 0.1);
+            border-left: 5px solid var(--success-color);
+        }
+        
+        .compatibility-warning.hidden {
+            display: none;
         }
         
         /* 动画 */
         @keyframes pulse {
             0% { opacity: 1; }
-            50% { opacity: 0.6; }
+            50% { opacity: 0.7; }
             100% { opacity: 1; }
         }
         
         .pulse {
-            animation: pulse 1s infinite;
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .timer-display {
-                font-size: 4rem;
-            }
-            
-            .timer-controls {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .btn {
-                width: 100%;
-                max-width: 300px;
-            }
-            
-            .time-settings {
-                flex-direction: column;
-            }
-            
-            .main-content {
-                padding: 20px;
-            }
-            
-            .section {
-                padding: 20px;
-            }
-        }
-        
-        /* 兼容性警告 */
-        .compatibility-warning {
-            padding: 15px 20px;
-            margin: 0 20px 20px 20px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-        }
-        
-        .compatibility-warning.warning {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-        
-        .compatibility-warning.success {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            color: white;
-        }
-        
-        .compatibility-warning ul {
-            margin: 10px 0 0 20px;
+            animation: pulse 1.5s infinite;
         }
         
         /* 触摸反馈 */
         .touch-feedback {
             transform: scale(0.95);
-            transition: transform 0.1s;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 767px) {
+            .container {
+                padding: 0 8px;
+            }
+            
+            .app-title {
+                font-size: 1.8rem;
+            }
+            
+            .timer-display {
+                font-size: 3.5rem;
+            }
+            
+            .control-buttons {
+                gap: 10px;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .card-title {
+                font-size: 1.1rem;
+            }
+            
+            .settings-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .time-input-group {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .interrupt-controls {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .timer-display {
+                font-size: 2.8rem;
+            }
+            
+            .control-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* 小屏幕设备优化 */
+        @media (max-width: 320px) {
+            .app-title {
+                font-size: 1.5rem;
+            }
+            
+            .timer-display {
+                font-size: 2.2rem;
+            }
+            
+            .time-input {
+                width: 70px;
+                padding: 10px;
+            }
+        }
+        
+        /* iOS Safari 特定优化 */
+        @supports (-webkit-touch-callout: none) {
+            .btn, .preset-time, .sound-option {
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .time-input, .session-name-input, select, textarea {
+                font-size: 16px; /* 防止iOS缩放 */
+            }
+        }
+        
+        /* 暗色模式支持 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --light-color: #1a1a2e;
+                --dark-color: #e0e0e0;
+                --light-gray: #2d3047;
+            }
+            
+            body {
+                background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+                color: var(--dark-color);
+            }
+            
+            .card {
+                background: #16213e;
+                color: var(--dark-color);
+            }
+            
+            .card-title {
+                color: var(--dark-color);
+                border-bottom-color: #2d3047;
+            }
+            
+            .time-input, .session-name-input {
+                background: #2d3047;
+                border-color: #3a3d5e;
+                color: var(--dark-color);
+            }
+            
+            .record-item:hover, .history-item:hover {
+                background-color: #2d3047;
+            }
+            
+            .no-records, .empty-history {
+                color: #8a8a8a;
+            }
+            
+            .log-content {
+                background: #2d3047;
+            }
+            
+            .log-entry {
+                background: #1a1a2e;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🍅 番茄钟时间管理工具</h1>
-            <div class="subtitle">v6.2.0 - 高效专注，智能提醒，专业级时间管理系统</div>
+        <!-- 兼容性警告区域 -->
+        <div id="compatibilityStatus" class="compatibility-warning hidden"></div>
+        
+        <!-- 应用标题 -->
+        <div class="app-header">
+            <h1 class="app-title">🍅 番茄钟专注计时器</h1>
+            <p class="app-subtitle">专注工作，定时休息，提高效率 | 版本 6.3.0</p>
         </div>
-
+        
+        <!-- 主内容区域 -->
         <div class="main-content">
-            <!-- 左侧列：主要控制 -->
-            <div class="left-column">
-                <!-- 番茄钟计时器 -->
-                <div class="section">
-                    <h2>⏱️ 番茄钟计时器</h2>
-                    <div class="timer-container">
-                        <div id="timerDisplay" class="timer-display">25:00</div>
-                        <div id="pomodoroStatus" style="color: white; font-size: 1.2rem; margin-bottom: 20px;">🎯 准备开始专注</div>
-                        <div id="deviceStatus" style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 10px;">🔧 正在检查音频系统...</div>
-                        
-                        <div class="timer-controls">
-                            <button id="startBtn" class="btn btn-primary">▶️ 开始专注</button>
-                            <button id="pauseBtn" class="btn btn-secondary" disabled>⏸️ 暂停</button>
-                            <button id="resetBtn" class="btn btn-warning">🔄 重置</button>
-                        </div>
-                    </div>
+            <!-- 番茄钟计时器 -->
+            <div class="card timer-card">
+                <h2 class="card-title"><i class="fas fa-clock"></i> 番茄钟计时器</h2>
+                
+                <div class="timer-display-container">
+                    <div id="pomodoroStatus" class="timer-status">🎯 准备开始专注</div>
+                    <div id="timerDisplay" class="timer-display">25:00</div>
                 </div>
-
-                <!-- 时间设置 -->
-                <div class="section">
-                    <h2>⚙️ 时间设置</h2>
-                    <div class="time-settings">
-                        <div class="time-input-group">
-                            <label>专注时长:</label>
-                            <input type="number" id="focusTime" min="1" max="120" value="25">
-                            <span>分钟</span>
+                
+                <!-- 新增：番茄钟命名输入 -->
+                <div class="settings-group">
+                    <label for="sessionName" class="settings-label">🍅 番茄钟名称 (可选)</label>
+                    <input type="text" id="sessionName" class="session-name-input" placeholder="例如：项目A开发、学习英语、阅读论文..." maxlength="50">
+                </div>
+                
+                <div class="control-buttons">
+                    <button id="startBtn" class="btn btn-primary">
+                        <i class="fas fa-play"></i> 开始专注
+                    </button>
+                    <button id="pauseBtn" class="btn btn-warning" disabled>
+                        <i class="fas fa-pause"></i> 暂停
+                    </button>
+                    <button id="resetBtn" class="btn btn-outline">
+                        <i class="fas fa-redo"></i> 重置
+                    </button>
+                </div>
+                
+                <!-- 番茄钟时间设置 -->
+                <div class="settings-group">
+                    <div class="settings-row">
+                        <div>
+                            <label for="focusTime" class="settings-label">专注时间 (分钟)</label>
+                            <input type="number" id="focusTime" class="time-input" min="1" max="120" value="25">
                         </div>
-                        <div class="time-input-group">
-                            <label>休息时长:</label>
-                            <input type="number" id="breakTime" min="1" max="60" value="5">
-                            <span>分钟</span>
+                        <div>
+                            <label for="breakTime" class="settings-label">休息时间 (分钟)</label>
+                            <input type="number" id="breakTime" class="time-input" min="1" max="60" value="5">
                         </div>
                     </div>
                     
-                    <div style="text-align: center; margin: 20px 0;">
-                        <h3 style="color: #666; margin-bottom: 10px;">快速预设</h3>
-                        <div class="preset-times">
+                    <div class="settings-group">
+                        <label class="settings-label">快速设置</label>
+                        <div class="preset-buttons">
                             <button class="preset-time" data-minutes="15">15分钟</button>
                             <button class="preset-time" data-minutes="25">25分钟</button>
                             <button class="preset-time" data-minutes="30">30分钟</button>
@@ -524,134 +937,193 @@
                         </div>
                     </div>
                     
-                    <div style="display: flex; gap: 10px; align-items: center; margin-top: 20px;">
-                        <input type="number" id="customMinutes" min="1" max="120" placeholder="自定义分钟" style="flex: 1;">
-                        <button id="setCustomTimeBtn" class="btn btn-primary" style="padding: 10px 20px;">应用自定义时间</button>
-                    </div>
-                </div>
-
-                <!-- 中断控制 -->
-                <div class="section">
-                    <h2>⏰ 智能中断</h2>
-                    <p style="color: #666; margin-bottom: 20px; font-size: 0.95rem;">设置中断时间，避免过度专注</p>
-                    
-                    <div class="interrupt-controls">
-                        <input type="number" id="interruptMinutes" min="0" max="60" placeholder="分钟" value="0">
-                        <input type="number" id="interruptSeconds" min="0" max="59" placeholder="秒" value="30">
-                        <input type="text" id="interruptReason" placeholder="中断原因 (可选)" style="flex: 1;">
-                        <button id="startInterruptBtn" class="btn btn-success">⏱️ 开始中断</button>
-                        <button id="cancelInterruptBtn" class="btn btn-danger" style="display: none;">❌ 取消中断</button>
-                    </div>
-                    
-                    <div id="interruptTimerDisplay" class="interrupt-timer"></div>
-                    
-                    <div style="margin-top: 20px; text-align: center;">
-                        <h4 style="color: #666; margin-bottom: 10px;">快速测试</h4>
-                        <div style="display: flex; gap: 10px; justify-content: center;">
-                            <button class="quick-test-btn btn" data-seconds="5" style="padding: 8px 15px;">5秒</button>
-                            <button class="quick-test-btn btn" data-seconds="10" style="padding: 8px 15px;">10秒</button>
-                            <button class="quick-test-btn btn" data-seconds="30" style="padding: 8px 15px;">30秒</button>
-                            <button class="quick-test-btn btn" data-seconds="60" style="padding: 8px 15px;">1分钟</button>
+                    <div class="settings-group">
+                        <div class="settings-row">
+                            <input type="number" id="customMinutes" class="time-input" min="1" max="120" placeholder="自定义" value="25">
+                            <button id="setCustomTimeBtn" class="btn btn-outline">
+                                <i class="fas fa-check"></i> 应用
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- 右侧列：设置和记录 -->
-            <div class="right-column">
-                <!-- 声音和震动控制 -->
-                <div class="section">
-                    <h2>🔊 声音与震动</h2>
-                    <div class="sound-controls">
-                        <div class="volume-control">
-                            <span>🔈 音量:</span>
-                            <input type="range" id="volumeControl" min="0" max="100" value="50">
-                            <span id="volumeValue">50%</span>
+            
+            <!-- 中断计时器 -->
+            <div class="card interrupt-card">
+                <h2 class="card-title"><i class="fas fa-stopwatch"></i> 中断计时器</h2>
+                
+                <div id="interruptTimerDisplay" class="interrupt-timer">00:00</div>
+                
+                <div class="settings-group">
+                    <div class="settings-row">
+                        <div class="time-input-group">
+                            <input type="number" id="interruptMinutes" class="time-input" min="0" max="120" value="0">
+                            <span class="time-label">分钟</span>
                         </div>
-                        
-                        <div style="display: flex; align-items: center; gap: 15px;">
-                            <label style="display: flex; align-items: center; gap: 5px;">
-                                <input type="checkbox" id="vibrationToggle" checked>
-                                <span>📳 震动提醒</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 5px;">
-                                <input type="checkbox" id="clickSoundToggle" checked>
-                                <span>👆 点击音效</span>
-                            </label>
-                        </div>
-                        
-                        <div>
-                            <h4 style="color: #666; margin-bottom: 10px;">声音类型</h4>
-                            <div class="sound-options">
-                                <div class="sound-option active" data-sound="beep">蜂鸣声</div>
-                                <div class="sound-option" data-sound="bell">铃声</div>
-                                <div class="sound-option" data-sound="chord">和弦音</div>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; gap: 10px; margin-top: 10px;">
-                            <button id="testSoundBtn" class="btn btn-secondary" style="padding: 10px 20px; flex: 1;">🎵 测试声音</button>
-                            <button id="testSoundBtn2" class="btn btn-secondary" style="padding: 10px 20px; flex: 1;">🔊 测试声音2</button>
-                            <button id="stopSoundBtn" class="btn btn-warning" style="padding: 10px 20px; flex: 1;">🔇 停止所有声音</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 记录和统计 -->
-                <div class="section">
-                    <h2>📊 记录与统计</h2>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
-                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px;">
-                            <div style="font-size: 0.9rem; color: #666;">今日完成</div>
-                            <div id="todayCompleted" style="font-size: 2rem; font-weight: bold; color: #3498db;">0</div>
-                        </div>
-                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px;">
-                            <div style="font-size: 0.9rem; color: #666;">总完成数</div>
-                            <div id="totalCompleted" style="font-size: 2rem; font-weight: bold; color: #2ecc71;">0</div>
-                        </div>
-                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px;">
-                            <div style="font-size: 0.9rem; color: #666;">总专注(小时)</div>
-                            <div id="totalFocusTime" style="font-size: 2rem; font-weight: bold; color: #9b59b6;">0.0</div>
+                        <div class="time-input-group">
+                            <input type="number" id="interruptSeconds" class="time-input" min="0" max="59" value="30">
+                            <span class="time-label">秒</span>
                         </div>
                     </div>
                     
-                    <div style="margin-bottom: 20px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h3 style="font-size: 1.1rem;">📋 最近记录</h3>
-                            <div style="display: flex; gap: 10px;">
-                                <button id="exportRecordsBtn" class="btn" style="padding: 8px 15px; font-size: 0.9rem;">📤 导出记录</button>
-                                <button id="clearRecordsBtn" class="btn btn-danger" style="padding: 8px 15px; font-size: 0.9rem;">🗑️ 清空记录</button>
-                            </div>
-                        </div>
-                        <div id="recordList" class="record-list">
-                            <div class="no-records">暂无记录，开始您的第一个番茄钟吧！</div>
+                    <div class="settings-group">
+                        <label for="interruptReason" class="settings-label">中断原因 (可选)</label>
+                        <input type="text" id="interruptReason" class="session-name-input" placeholder="例如：接电话、喝水、回复消息...">
+                    </div>
+                    
+                    <div class="interrupt-controls">
+                        <button id="startInterruptBtn" class="btn btn-danger">
+                            <i class="fas fa-hourglass-start"></i> 开始中断
+                        </button>
+                        <button id="cancelInterruptBtn" class="btn btn-outline" style="display: none;">
+                            <i class="fas fa-times"></i> 取消中断
+                        </button>
+                    </div>
+                    
+                    <div class="settings-group">
+                        <label class="settings-label">快速测试</label>
+                        <div class="preset-buttons">
+                            <button class="btn btn-outline quick-test-btn" data-seconds="5">5秒</button>
+                            <button class="btn btn-outline quick-test-btn" data-seconds="10">10秒</button>
+                            <button class="btn btn-outline quick-test-btn" data-seconds="30">30秒</button>
                         </div>
                     </div>
                 </div>
-
-                <div class="section">
-                    <h2>📈 中断历史</h2>
-                    <div class="history-list" id="historyList">
-                        <div class="empty-history">暂无中断记录</div>
+            </div>
+            
+            <!-- 声音设置 -->
+            <div class="card sound-card">
+                <h2 class="card-title"><i class="fas fa-volume-up"></i> 声音设置</h2>
+                
+                <div class="settings-group">
+                    <label class="settings-label">音量控制</label>
+                    <div class="volume-control">
+                        <i class="fas fa-volume-down"></i>
+                        <input type="range" id="volumeControl" class="volume-slider" min="0" max="100" value="50">
+                        <i class="fas fa-volume-up"></i>
+                        <span id="volumeValue" class="volume-value">50%</span>
                     </div>
                 </div>
-
-                <div class="section">
-                    <h2>📋 系统日志</h2>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <div style="font-size: 0.9rem; color: #666;">实时监控系统状态</div>
-                        <div style="display: flex; gap: 10px;">
-                            <button id="clearLogBtn" class="btn btn-danger" style="padding: 8px 15px; font-size: 0.9rem;">清空日志</button>
-                            <button id="toggleLogBtn" class="btn" style="padding: 8px 15px; font-size: 0.9rem;">隐藏日志</button>
+                
+                <div class="settings-group">
+                    <label class="settings-label">提示音类型</label>
+                    <div class="sound-options">
+                        <div class="sound-option active" data-sound="beep">
+                            <i class="fas fa-bell"></i> 蜂鸣声
+                        </div>
+                        <div class="sound-option" data-sound="bell">
+                            <i class="fas fa-bell"></i> 钟声
+                        </div>
+                        <div class="sound-option" data-sound="chord">
+                            <i class="fas fa-music"></i> 和弦
                         </div>
                     </div>
-                    <div id="logContent" class="log-content">
-                        <!-- 日志内容将通过JavaScript动态添加 -->
+                </div>
+                
+                <div class="settings-group">
+                    <div class="toggle-label">
+                        <input type="checkbox" id="vibrationToggle" class="toggle-switch" checked>
+                        <label for="vibrationToggle">震动提醒</label>
                     </div>
+                    
+                    <div class="toggle-label">
+                        <input type="checkbox" id="clickSoundToggle" class="toggle-switch" checked>
+                        <label for="clickSoundToggle">点击音效</label>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <label class="settings-label">声音测试</label>
+                    <div class="sound-test-buttons">
+                        <button id="testSoundBtn" class="btn btn-info">
+                            <i class="fas fa-play"></i> 测试声音
+                        </button>
+                        <button id="testSoundBtn2" class="btn btn-outline">
+                            <i class="fas fa-play-circle"></i> 测试
+                        </button>
+                        <button id="stopSoundBtn" class="btn btn-outline">
+                            <i class="fas fa-stop"></i> 停止
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <div id="deviceStatus" class="stat-label">🔧 音频状态检测中...</div>
+                </div>
+            </div>
+            
+            <!-- 记录和统计 -->
+            <div class="card stats-card">
+                <h2 class="card-title"><i class="fas fa-chart-bar"></i> 记录和统计</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div id="todayCompleted" class="stat-value">0</div>
+                        <div class="stat-label">今日完成</div>
+                    </div>
+                    <div class="stat-item">
+                        <div id="totalCompleted" class="stat-value">0</div>
+                        <div class="stat-label">总计完成</div>
+                    </div>
+                    <div class="stat-item">
+                        <div id="totalFocusTime" class="stat-value">0.0</div>
+                        <div class="stat-label">总专注(小时)</div>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <h3 class="settings-label">最近记录</h3>
+                    <div id="recordList" class="record-list">
+                        <div class="no-records">暂无记录，开始您的第一个番茄钟吧！</div>
+                    </div>
+                </div>
+                
+                <div class="control-buttons">
+                    <button id="exportRecordsBtn" class="btn btn-outline">
+                        <i class="fas fa-download"></i> 导出记录
+                    </button>
+                    <button id="clearRecordsBtn" class="btn btn-outline">
+                        <i class="fas fa-trash"></i> 清空记录
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 中断历史 -->
+            <div class="card history-card">
+                <h2 class="card-title"><i class="fas fa-history"></i> 中断历史</h2>
+                
+                <div id="historyList" class="history-list">
+                    <div class="empty-history">暂无中断记录</div>
+                </div>
+                
+                <div class="control-buttons">
+                    <button id="clearHistoryBtn" class="btn btn-outline">
+                        <i class="fas fa-trash-alt"></i> 清除历史
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 系统日志 -->
+            <div class="card log-card">
+                <div class="log-header">
+                    <h2 class="card-title"><i class="fas fa-clipboard-list"></i> 系统日志</h2>
+                    <div class="log-controls">
+                        <button id="toggleLogBtn" class="btn btn-outline">
+                            <i class="fas fa-eye-slash"></i> 隐藏日志
+                        </button>
+                        <button id="clearLogBtn" class="btn btn-outline">
+                            <i class="fas fa-broom"></i> 清空日志
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="logContent" class="log-content">
+                    <!-- 日志将通过JavaScript动态添加 -->
                 </div>
             </div>
         </div>
-
+        
+        <!-- 状态栏 -->
         <div id="statusBar" class="status-bar"></div>
     </div>
 
@@ -672,12 +1144,12 @@
                     if (window.AudioContext || window.webkitAudioContext) {
                         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                         this.initialized = true;
-                        addLogEntry('音频系统初始化成功', 'success', '音频');
+                        this.addLogEntry('音频系统初始化成功', 'success', '音频');
                     } else {
-                        addLogEntry('浏览器不支持Web Audio API', 'warning', '音频');
+                        this.addLogEntry('浏览器不支持Web Audio API', 'warning', '音频');
                     }
                 } catch (error) {
-                    addLogEntry(`音频系统初始化失败: ${error.message}`, 'error', '音频');
+                    this.addLogEntry(`音频系统初始化失败: ${error.message}`, 'error', '音频');
                 }
             }
             
@@ -692,12 +1164,12 @@
                     
                     if (this.audioContext.state === 'suspended') {
                         await this.audioContext.resume();
-                        addLogEntry('AudioContext恢复成功', 'success', '音频');
+                        this.addLogEntry('AudioContext恢复成功', 'success', '音频');
                     }
                     
                     return this.audioContext.state === 'running';
                 } catch (error) {
-                    addLogEntry(`AudioContext启动失败: ${error.message}`, 'error', '音频');
+                    this.addLogEntry(`AudioContext启动失败: ${error.message}`, 'error', '音频');
                     return false;
                 }
             }
@@ -706,7 +1178,7 @@
                 try {
                     return this.audioContext || null;
                 } catch (error) {
-                    addLogEntry(`获取AudioContext失败: ${error.message}`, 'error', '音频');
+                    this.addLogEntry(`获取AudioContext失败: ${error.message}`, 'error', '音频');
                     return null;
                 }
             }
@@ -729,7 +1201,7 @@
             
             playTone(baseFrequency, duration, volume, type = 'sine', fadeOut = false, additionalFrequencies = []) {
                 if (!this.audioContext || !window.userInteracted) {
-                    addLogEntry('音频未初始化或未激活', 'warning', '音频');
+                    this.addLogEntry('音频未初始化或未激活', 'warning', '音频');
                     return false;
                 }
                 
@@ -782,10 +1254,10 @@
                         this.activeSounds.delete(soundId);
                     }, duration * 1000 + 100);
                     
-                    addLogEntry(`播放声音: ${baseFrequency}Hz, 类型: ${type}`, 'info', '音频');
+                    this.addLogEntry(`播放声音: ${baseFrequency}Hz, 类型: ${type}`, 'info', '音频');
                     return true;
                 } catch (error) {
-                    addLogEntry(`播放声音失败: ${error.message}`, 'error', '音频');
+                    this.addLogEntry(`播放声音失败: ${error.message}`, 'error', '音频');
                     return false;
                 }
             }
@@ -798,9 +1270,17 @@
                     }
                     this.activeSounds.clear();
                     this.initialized = false;
-                    addLogEntry('停止所有声音', 'info', '音频');
+                    this.addLogEntry('停止所有声音', 'info', '音频');
                 } catch (error) {
-                    addLogEntry(`停止声音失败: ${error.message}`, 'error', '音频');
+                    this.addLogEntry(`停止声音失败: ${error.message}`, 'error', '音频');
+                }
+            }
+            
+            addLogEntry(message, type = 'info', module = '音频') {
+                if (typeof window.addLogEntry === 'function') {
+                    window.addLogEntry(message, type, module);
+                } else {
+                    console.log(`[${module}] ${message}`);
                 }
             }
         }
@@ -825,12 +1305,14 @@
         let totalCompleted = 0;
         let totalFocusTime = 0;
         let isLogVisible = true;
+        let currentSessionName = ''; // 新增：当前番茄钟名称
         
         // DOM元素引用
         const timerDisplay = document.getElementById('timerDisplay');
         const startBtn = document.getElementById('startBtn');
         const pauseBtn = document.getElementById('pauseBtn');
         const resetBtn = document.getElementById('resetBtn');
+        const sessionNameInput = document.getElementById('sessionName'); // 新增
         const focusTimeInput = document.getElementById('focusTime');
         const breakTimeInput = document.getElementById('breakTime');
         const customMinutesInput = document.getElementById('customMinutes');
@@ -853,6 +1335,7 @@
         const quickTestButtons = document.querySelectorAll('.quick-test-btn');
         const exportRecordsBtn = document.getElementById('exportRecordsBtn');
         const clearRecordsBtn = document.getElementById('clearRecordsBtn');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
         const clearLogBtn = document.getElementById('clearLogBtn');
         const toggleLogBtn = document.getElementById('toggleLogBtn');
         const pomodoroStatus = document.getElementById('pomodoroStatus');
@@ -865,7 +1348,7 @@
         const totalCompletedEl = document.getElementById('totalCompleted');
         const totalFocusTimeEl = document.getElementById('totalFocusTime');
         
-        // 初始化音频系统
+        // 音频初始化
         async function initAudioSystem() {
             try {
                 if (!audioGenerator) {
@@ -1036,7 +1519,9 @@
                 isLogVisible = !isLogVisible;
                 logContent.style.display = isLogVisible ? 'block' : 'none';
                 if (toggleLogBtn) {
-                    toggleLogBtn.textContent = isLogVisible ? '隐藏日志' : '显示日志';
+                    toggleLogBtn.innerHTML = isLogVisible ? 
+                        '<i class="fas fa-eye-slash"></i> 隐藏日志' : 
+                        '<i class="fas fa-eye"></i> 显示日志';
                 }
                 addLogEntry(`日志已${isLogVisible ? '显示' : '隐藏'}`, 'info', '系统');
             }
@@ -1122,11 +1607,20 @@
                     await playClickSound('normal');
                 }
                 
+                // 获取番茄钟名称
+                currentSessionName = sessionNameInput ? sessionNameInput.value.trim() : '';
+                
                 isPomodoroRunning = true;
                 updatePomodoroStatus();
                 
                 if (startBtn) startBtn.disabled = true;
                 if (pauseBtn) pauseBtn.disabled = false;
+                
+                // 添加开始日志
+                const sessionType = isPomodoroBreak ? '休息' : '专注';
+                const sessionNameInfo = currentSessionName ? ` (${currentSessionName})` : '';
+                addLogEntry(`开始${sessionType}计时${sessionNameInfo}`, 'success', '番茄钟');
+                showStatus(`✅ ${sessionType}计时开始${sessionNameInfo ? ': ' + currentSessionName : ''}`, 2000);
                 
                 pomodoroInterval = setInterval(() => {
                     pomodoroSeconds--;
@@ -1136,9 +1630,6 @@
                         finishPomodoro();
                     }
                 }, 1000);
-                
-                addLogEntry(`开始${isPomodoroBreak ? '休息' : '专注'}计时`, 'success', '番茄钟');
-                showStatus(`✅ ${isPomodoroBreak ? '休息' : '专注'}计时开始`, 2000);
                 
             } catch (error) {
                 addLogEntry(`开始番茄钟失败: ${error.message}`, 'error', '番茄钟');
@@ -1183,6 +1674,7 @@
                 
                 const isFocusFinished = !isPomodoroBreak;
                 const currentTime = new Date().toLocaleTimeString('zh-CN');
+                const currentDate = new Date().toISOString().split('T')[0];
                 
                 if (isFocusFinished) {
                     addLogEntry('专注时间到！', 'success', '番茄钟');
@@ -1196,18 +1688,30 @@
                     const focusTimeMinutes = parseInt(focusTimeInput ? focusTimeInput.value : 25);
                     totalFocusTime += focusTimeMinutes / 60;
                     
+                    // 保存记录，包含番茄钟名称
+                    const sessionName = currentSessionName || '未命名';
                     pomodoroRecords.unshift({
                         time: currentTime,
+                        name: sessionName,
                         duration: `${focusTimeMinutes}分钟`,
                         type: 'focus',
-                        date: new Date().toISOString().split('T')[0]
+                        date: currentDate
                     });
+                    
+                    // 记录到日志
+                    addLogEntry(`完成专注: ${sessionName}, 时长: ${focusTimeMinutes}分钟`, 'success', '记录');
                     
                     saveRecords();
                     updateRecordsDisplay();
                     
                     isPomodoroBreak = true;
                     pomodoroSeconds = (breakTimeInput ? parseInt(breakTimeInput.value) : 5) * 60;
+                    
+                    // 重置番茄钟名称
+                    if (sessionNameInput) {
+                        sessionNameInput.value = '';
+                        currentSessionName = '';
+                    }
                 } else {
                     addLogEntry('休息时间到！', 'info', '番茄钟');
                     showStatus('🔔 休息时间到，请继续专注！', 3000);
@@ -1217,9 +1721,10 @@
                     
                     pomodoroRecords.unshift({
                         time: currentTime,
+                        name: '休息时段',
                         duration: `${breakTimeInput ? parseInt(breakTimeInput.value) : 5}分钟`,
                         type: 'break',
-                        date: new Date().toISOString().split('T')[0]
+                        date: currentDate
                     });
                     
                     saveRecords();
@@ -1300,6 +1805,9 @@
                 if (startInterruptBtn) startInterruptBtn.style.display = 'none';
                 if (cancelInterruptBtn) cancelInterruptBtn.style.display = 'inline-block';
                 
+                addLogEntry(`开始中断计时: ${minutes}分${seconds}秒${reason ? `, 原因: ${reason}` : ''}`, 'info', '中断');
+                showStatus('⏱️ 中断计时开始', 2000);
+                
                 interruptInterval = setInterval(() => {
                     interruptSeconds--;
                     if (interruptTimerDisplay) {
@@ -1310,9 +1818,6 @@
                         finishInterrupt(reason);
                     }
                 }, 1000);
-                
-                addLogEntry(`开始中断计时: ${minutes}分${seconds}秒${reason ? `, 原因: ${reason}` : ''}`, 'info', '中断');
-                showStatus('⏱️ 中断计时开始', 2000);
                 
             } catch (error) {
                 addLogEntry(`开始中断失败: ${error.message}`, 'error', '中断');
@@ -1387,6 +1892,60 @@
                 addLogEntry(`取消中断失败: ${error.message}`, 'error', '中断');
             }
         }
+        
+        // 应用预设时间
+        function applyPresetTime(minutes) {
+            try {
+                if (clickSoundEnabled) {
+                    playClickSound('normal');
+                }
+                
+                pomodoroSeconds = minutes * 60;
+                isPomodoroBreak = false;
+                isPomodoroRunning = false;
+                
+                clearInterval(pomodoroInterval);
+                pomodoroInterval = null;
+                
+                updateTimerDisplay(pomodoroSeconds);
+                updatePomodoroStatus();
+                
+                if (startBtn) startBtn.disabled = false;
+                if (pauseBtn) pauseBtn.disabled = true;
+                
+                if (focusTimeInput) {
+                    focusTimeInput.value = minutes;
+                }
+                
+                addLogEntry(`应用预设时间: ${minutes}分钟`, 'info', '设置');
+                showStatus(`✅ 已设置为${minutes}分钟专注`, 2000);
+                
+            } catch (error) {
+                addLogEntry(`应用预设时间失败: ${error.message}`, 'error', '设置');
+            }
+        }
+        
+        // 应用自定义时间
+        async function applyCustomTime() {
+            try {
+                if (clickSoundEnabled) {
+                    await playClickSound('normal');
+                }
+                
+                const minutes = customMinutesInput ? parseInt(customMinutesInput.value) : 25;
+                if (minutes < 1 || minutes > 120) {
+                    showStatus('❌ 时间范围: 1-120分钟', 2000);
+                    addLogEntry('自定义时间超出范围', 'warning', '设置');
+                    return;
+                }
+                
+                applyPresetTime(minutes);
+                
+            } catch (error) {
+                addLogEntry(`应用自定义时间失败: ${error.message}`, 'error', '设置');
+            }
+        }
+        
         // 快速测试中断
         async function quickTestInterrupt(seconds) {
             try {
@@ -1394,51 +1953,153 @@
                     await playClickSound('normal');
                 }
                 
-                interruptSeconds = seconds;
-                isInterruptRunning = true;
-                
-                if (interruptTimerDisplay) {
-                    interruptTimerDisplay.textContent = formatTime(interruptSeconds);
-                    interruptTimerDisplay.classList.add('show');
+                if (isPomodoroRunning) {
+                    showStatus('⚠️ 请先暂停番茄钟', 2000);
+                    addLogEntry('无法在番茄钟运行时测试中断', 'warning', '中断');
+                    return;
                 }
                 
-                if (startInterruptBtn) startInterruptBtn.style.display = 'none';
-                if (cancelInterruptBtn) cancelInterruptBtn.style.display = 'inline-block';
+                if (isInterruptRunning) {
+                    showStatus('⚠️ 已有中断在运行', 2000);
+                    addLogEntry('已有中断在运行', 'warning', '中断');
+                    return;
+                }
                 
-                interruptInterval = setInterval(() => {
-                    interruptSeconds--;
-                    if (interruptTimerDisplay) {
-                        interruptTimerDisplay.textContent = formatTime(interruptSeconds);
-                    }
-                    
-                    if (interruptSeconds <= 0) {
-                        clearInterval(interruptInterval);
-                        interruptInterval = null;
-                        isInterruptRunning = false;
-                        
-                        if (interruptTimerDisplay) {
-                            interruptTimerDisplay.classList.remove('show');
-                        }
-                        if (startInterruptBtn) startInterruptBtn.style.display = 'inline-block';
-                        if (cancelInterruptBtn) cancelInterruptBtn.style.display = 'none';
-                        
-                        playSound('chord');
-                        vibrate([100, 50, 100, 50, 100, 50, 100]);
-                        
-                        addLogEntry(`快速测试中断完成: ${seconds}秒`, 'info', '中断');
-                        showStatus(`✅ ${seconds}秒测试完成`, 2000);
-                    }
-                }, 1000);
+                if (interruptSecondsInput) {
+                    interruptSecondsInput.value = seconds;
+                }
+                if (interruptMinutesInput) {
+                    interruptMinutesInput.value = 0;
+                }
                 
-                addLogEntry(`快速测试中断开始: ${seconds}秒`, 'info', '中断');
-                showStatus(`⏱️ ${seconds}秒测试开始`, 2000);
+                addLogEntry(`快速测试中断: ${seconds}秒`, 'info', '中断');
+                showStatus(`⏱️ 测试${seconds}秒中断`, 2000);
+                
+                await startInterrupt();
                 
             } catch (error) {
                 addLogEntry(`快速测试中断失败: ${error.message}`, 'error', '中断');
             }
         }
         
-        // 更新历史记录显示
+        // 更新记录显示
+        function updateRecordsDisplay() {
+            if (!recordList) return;
+            
+            if (todayCompletedEl) todayCompletedEl.textContent = todayCompleted;
+            if (totalCompletedEl) totalCompletedEl.textContent = totalCompleted;
+            if (totalFocusTimeEl) {
+                totalFocusTimeEl.textContent = totalFocusTime.toFixed(1);
+            }
+            
+            if (pomodoroRecords.length === 0) {
+                recordList.innerHTML = '<div class="no-records">暂无记录，开始您的第一个番茄钟吧！</div>';
+                return;
+            }
+            
+            let html = '';
+            pomodoroRecords.slice(0, 20).forEach(record => {
+                html += `
+                    <div class="record-item">
+                        <div class="record-info">
+                            <div class="record-time">${record.time}</div>
+                            <div class="record-name">${record.name}</div>
+                            <div class="record-duration">${record.duration}</div>
+                        </div>
+                        <div class="record-type ${record.type}">${record.type === 'focus' ? '专注' : '休息'}</div>
+                    </div>
+                `;
+            });
+            
+            recordList.innerHTML = html;
+        }
+        
+        // 保存记录
+        function saveRecords() {
+            try {
+                const data = {
+                    records: pomodoroRecords,
+                    todayCompleted: todayCompleted,
+                    totalCompleted: totalCompleted,
+                    totalFocusTime: totalFocusTime,
+                    lastUpdated: new Date().toISOString()
+                };
+                localStorage.setItem('pomodoroRecords', JSON.stringify(data));
+                addLogEntry('记录已保存', 'info', '存储');
+            } catch (error) {
+                addLogEntry(`保存记录失败: ${error.message}`, 'error', '存储');
+            }
+        }
+        
+        // 加载记录
+        function loadRecords() {
+            try {
+                const savedData = localStorage.getItem('pomodoroRecords');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    pomodoroRecords = data.records || [];
+                    todayCompleted = data.todayCompleted || 0;
+                    totalCompleted = data.totalCompleted || 0;
+                    totalFocusTime = data.totalFocusTime || 0;
+                    
+                    updateRecordsDisplay();
+                    addLogEntry('记录已加载', 'success', '存储');
+                } else {
+                    addLogEntry('无历史记录', 'info', '存储');
+                }
+            } catch (error) {
+                addLogEntry(`加载记录失败: ${error.message}`, 'error', '存储');
+            }
+        }
+        
+        // 导出记录
+        function exportRecords() {
+            try {
+                if (pomodoroRecords.length === 0) {
+                    showStatus('📭 暂无记录可导出', 2000);
+                    addLogEntry('暂无记录可导出', 'warning', '记录');
+                    return;
+                }
+                
+                const dataStr = JSON.stringify(pomodoroRecords, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `pomodoro-records-${new Date().toISOString().split('T')[0]}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                addLogEntry('记录已导出', 'success', '记录');
+                showStatus('✅ 记录导出成功', 2000);
+                
+            } catch (error) {
+                addLogEntry(`导出记录失败: ${error.message}`, 'error', '记录');
+                showStatus('❌ 记录导出失败', 2000);
+            }
+        }
+        
+        // 清空所有记录
+        function clearAllRecords() {
+            try {
+                if (confirm('确定要清空所有记录吗？此操作不可恢复。')) {
+                    pomodoroRecords = [];
+                    todayCompleted = 0;
+                    totalCompleted = 0;
+                    totalFocusTime = 0;
+                    
+                    saveRecords();
+                    updateRecordsDisplay();
+                    
+                    addLogEntry('所有记录已清空', 'warning', '记录');
+                    showStatus('🗑️ 记录已清空', 2000);
+                }
+            } catch (error) {
+                addLogEntry(`清空记录失败: ${error.message}`, 'error', '记录');
+            }
+        }
+        // 更新历史显示
         function updateHistoryDisplay() {
             if (!historyList) return;
             
@@ -1451,11 +2112,11 @@
             currentSessionHistory.forEach(item => {
                 html += `
                     <div class="history-item">
-                        <div style="flex: 1;">
-                            <div style="font-weight: bold; color: #2c3e50;">${item.time}</div>
-                            <div style="font-size: 0.9rem; color: #666;">${item.reason}</div>
+                        <div class="history-time">${item.time}</div>
+                        <div class="history-details">
+                            <span>时长: ${item.duration}</span>
+                            <span>原因: ${item.reason}</span>
                         </div>
-                        <div style="font-weight: bold; color: #e74c3c;">${item.duration}</div>
                     </div>
                 `;
             });
@@ -1466,777 +2127,496 @@
         // 保存历史记录
         function saveHistory() {
             try {
-                const allHistory = JSON.parse(localStorage.getItem('pomodoroInterruptHistory') || '[]');
-                const newEntry = {
-                    timestamp: new Date().toISOString(),
-                    duration: `${Math.floor((interruptSecondsInput ? parseInt(interruptSecondsInput.value) : 0) + (interruptMinutesInput ? parseInt(interruptMinutesInput.value) : 0) * 60)}秒`,
-                    reason: interruptReasonInput ? interruptReasonInput.value.trim() || '无原因' : '无原因',
-                    seconds: interruptSeconds
+                const data = {
+                    history: currentSessionHistory,
+                    lastUpdated: new Date().toISOString()
                 };
-                
-                allHistory.unshift(newEntry);
-                if (allHistory.length > 50) {
-                    allHistory.length = 50;
-                }
-                
-                localStorage.setItem('pomodoroInterruptHistory', JSON.stringify(allHistory));
-                addLogEntry('中断历史已保存', 'success', '存储');
+                localStorage.setItem('pomodoroHistory', JSON.stringify(data));
+                addLogEntry('中断历史已保存', 'info', '存储');
             } catch (error) {
                 addLogEntry(`保存中断历史失败: ${error.message}`, 'error', '存储');
             }
         }
         
-        // 加载番茄钟记录
-        function loadRecords() {
-            try {
-                const savedRecords = localStorage.getItem('pomodoroRecords');
-                if (savedRecords) {
-                    pomodoroRecords = JSON.parse(savedRecords);
-                    
-                    const today = new Date().toISOString().split('T')[0];
-                    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-                    
-                    todayCompleted = pomodoroRecords.filter(record => 
-                        record.date === today && record.type === 'focus'
-                    ).length;
-                    
-                    totalCompleted = pomodoroRecords.filter(record => 
-                        record.type === 'focus'
-                    ).length;
-                    
-                    totalFocusTime = pomodoroRecords
-                        .filter(record => record.type === 'focus')
-                        .reduce((sum, record) => {
-                            const minutes = parseInt(record.duration) || 25;
-                            return sum + (minutes / 60);
-                        }, 0);
-                    
-                    updateRecordsDisplay();
-                    addLogEntry('加载番茄钟记录成功', 'success', '存储');
-                } else {
-                    addLogEntry('无番茄钟记录', 'info', '存储');
-                }
-            } catch (error) {
-                addLogEntry(`加载番茄钟记录失败: ${error.message}`, 'error', '存储');
-            }
-        }
-        
-        // 保存番茄钟记录
-        function saveRecords() {
-            try {
-                localStorage.setItem('pomodoroRecords', JSON.stringify(pomodoroRecords));
-                
-                if (todayCompletedEl) todayCompletedEl.textContent = todayCompleted;
-                if (totalCompletedEl) totalCompletedEl.textContent = totalCompleted;
-                if (totalFocusTimeEl) totalFocusTimeEl.textContent = totalFocusTime.toFixed(1);
-                
-                addLogEntry('番茄钟记录已保存', 'success', '存储');
-            } catch (error) {
-                addLogEntry(`保存番茄钟记录失败: ${error.message}`, 'error', '存储');
-            }
-        }
-        
-        // 更新记录显示
-        function updateRecordsDisplay() {
-            if (!recordList) return;
-            
-            if (pomodoroRecords.length === 0) {
-                recordList.innerHTML = '<div class="no-records">暂无记录，开始您的第一个番茄钟吧！</div>';
-                return;
-            }
-            
-            let html = '';
-            pomodoroRecords.slice(0, 10).forEach((record, index) => {
-                const isFocus = record.type === 'focus';
-                html += `
-                    <div class="record-item ${record.type}">
-                        <div style="flex: 1;">
-                            <div style="font-weight: bold; color: ${isFocus ? '#3498db' : '#2ecc71'};">${record.time} - ${record.duration}</div>
-                            <div style="font-size: 0.9rem; color: #666;">${record.date}</div>
-                        </div>
-                        <div style="font-weight: bold; color: ${isFocus ? '#3498db' : '#2ecc71'};">${isFocus ? '专注' : '休息'}</div>
-                    </div>
-                `;
-            });
-            
-            recordList.innerHTML = html;
-        }
-        
-        // 清空记录
-        function clearRecords() {
-            try {
-                if (confirm('确定要清空所有记录吗？此操作不可撤销。')) {
-                    pomodoroRecords = [];
-                    currentSessionHistory = [];
-                    todayCompleted = 0;
-                    totalCompleted = 0;
-                    totalFocusTime = 0;
-                    
-                    localStorage.removeItem('pomodoroRecords');
-                    localStorage.removeItem('pomodoroInterruptHistory');
-                    
-                    updateRecordsDisplay();
-                    updateHistoryDisplay();
-                    saveRecords();
-                    
-                    addLogEntry('所有记录已清空', 'warning', '存储');
-                    showStatus('🗑️ 所有记录已清空', 3000);
-                }
-            } catch (error) {
-                addLogEntry(`清空记录失败: ${error.message}`, 'error', '存储');
-            }
-        }
-        
-        // 导出记录
-        function exportRecords() {
-            try {
-                const dataStr = JSON.stringify({
-                    pomodoroRecords: pomodoroRecords,
-                    interruptHistory: currentSessionHistory,
-                    statistics: {
-                        todayCompleted,
-                        totalCompleted,
-                        totalFocusTime,
-                        exportDate: new Date().toISOString()
-                    }
-                }, null, 2);
-                
-                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-                const exportFileDefaultName = `pomodoro-export-${new Date().toISOString().split('T')[0]}.json`;
-                
-                const linkElement = document.createElement('a');
-                linkElement.setAttribute('href', dataUri);
-                linkElement.setAttribute('download', exportFileDefaultName);
-                linkElement.click();
-                
-                addLogEntry('记录已导出', 'success', '存储');
-                showStatus('📤 记录已导出为JSON文件', 3000);
-            } catch (error) {
-                addLogEntry(`导出记录失败: ${error.message}`, 'error', '存储');
-            }
-        }
-        
-        // 应用自定义时间
-        function applyCustomTime() {
-            try {
-                if (!customMinutesInput) return;
-                
-                const minutes = parseInt(customMinutesInput.value) || 25;
-                if (minutes < 1 || minutes > 120) {
-                    showStatus('⚠️ 请输入1-120分钟', 2000);
-                    return;
-                }
-                
-                if (!isPomodoroRunning) {
-                    pomodoroSeconds = minutes * 60;
-                    updateTimerDisplay(pomodoroSeconds);
-                    
-                    if (focusTimeInput) {
-                        focusTimeInput.value = minutes;
-                    }
-                    
-                    addLogEntry(`自定义时间设置: ${minutes}分钟`, 'success', '设置');
-                    showStatus(`✅ 已设置为${minutes}分钟`, 2000);
-                    
-                    if (clickSoundEnabled) {
-                        playClickSound('normal');
-                    }
-                } else {
-                    showStatus('⏸️ 请先暂停计时器再修改时间', 3000);
-                }
-            } catch (error) {
-                addLogEntry(`设置自定义时间失败: ${error.message}`, 'error', '设置');
-            }
-        }
-        
-        // 检查音频上下文状态
-        function checkAudioContextStatus() {
-            if (!audioGenerator) return;
-            
-            const ctx = audioGenerator.getAudioContext();
-            if (!ctx) {
-                addLogEntry('AudioContext未创建', 'warning', '音频');
-                return;
-            }
-            
-            addLogEntry(`AudioContext状态: ${ctx.state}`, ctx.state === 'running' ? 'success' : 'warning', '音频');
-            
-            if (ctx.state !== 'running') {
-                showStatus('🔧 音频未激活，请点击任意位置激活', 0);
-            }
-        }
-        
-        // 初始化事件监听器
-        function initEventListeners() {
-            addLogEntry('开始初始化事件监听器...', 'info', '系统');
-            
-            // 番茄钟控制按钮
-            if (startBtn) {
-                startBtn.addEventListener('click', startPomodoro);
-                addLogEntry('开始按钮监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('开始按钮元素不存在', 'error', '系统');
-            }
-            
-            if (pauseBtn) {
-                pauseBtn.addEventListener('click', pausePomodoro);
-                addLogEntry('暂停按钮监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('暂停按钮元素不存在', 'error', '系统');
-            }
-            
-            if (resetBtn) {
-                resetBtn.addEventListener('click', resetPomodoro);
-                addLogEntry('重置按钮监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('重置按钮元素不存在', 'error', '系统');
-            }
-            
-            // 预设时间按钮
-            if (presetTimeButtons && presetTimeButtons.length > 0) {
-                presetTimeButtons.forEach(button => {
-                    button.addEventListener('click', function() {
-                        const minutes = parseInt(this.dataset.minutes) || 25;
-                        if (!isPomodoroRunning && focusTimeInput) {
-                            focusTimeInput.value = minutes;
-                            pomodoroSeconds = minutes * 60;
-                            updateTimerDisplay(pomodoroSeconds);
-                            addLogEntry(`预设时间: ${minutes}分钟`, 'info', '设置');
-                        }
-                    });
-                });
-                addLogEntry('预设时间按钮监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('预设时间按钮元素不存在', 'error', '系统');
-            }
-            
-            // 中断控制按钮
-            if (startInterruptBtn) {
-                startInterruptBtn.addEventListener('click', startInterrupt);
-                addLogEntry('开始中断按钮监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('开始中断按钮元素不存在', 'error', '系统');
-            }
-            
-            if (cancelInterruptBtn) {
-                cancelInterruptBtn.addEventListener('click', cancelInterrupt);
-                addLogEntry('取消中断按钮监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('取消中断按钮元素不存在', 'error', '系统');
-            }
-            
-            // 声音控制
-            if (volumeControl) {
-                volumeControl.addEventListener('input', function() {
-                    volume = parseInt(this.value) / 100;
-                    if (volumeValue) {
-                        volumeValue.textContent = this.value + '%';
-                    }
-                    addLogEntry(`音量设置: ${this.value}%`, 'info', '音频');
-                });
-                addLogEntry('音量控制监听器已绑定', 'success', '事件');
-            }
-            
-            if (vibrationToggle) {
-                vibrationToggle.addEventListener('change', function() {
-                    vibrationEnabled = this.checked;
-                    addLogEntry(`震动${vibrationEnabled ? '开启' : '关闭'}`, 'info', '设备');
-                });
-                addLogEntry('震动开关监听器已绑定', 'success', '事件');
-            }
-            
-            if (clickSoundToggle) {
-                clickSoundToggle.addEventListener('change', function() {
-                    clickSoundEnabled = this.checked;
-                    addLogEntry(`点击音效${clickSoundEnabled ? '开启' : '关闭'}`, 'info', '音频');
-                });
-                addLogEntry('点击音效开关监听器已绑定', 'success', '事件');
-            }
-            
-            // 声音类型选择
-            if (soundOptions && soundOptions.length > 0) {
-                soundOptions.forEach(option => {
-                    option.addEventListener('click', function() {
-                        soundOptions.forEach(opt => opt.classList.remove('active'));
-                        this.classList.add('active');
-                        currentSoundType = this.dataset.sound;
-                        addLogEntry(`声音类型切换: ${currentSoundType}`, 'info', '音频');
-                    });
-                });
-                addLogEntry('声音类型选择监听器已绑定', 'success', '事件');
-            }
-            
-            // 测试声音按钮
-            if (testSoundBtn) {
-                testSoundBtn.addEventListener('click', testSound);
-                addLogEntry('测试声音按钮1监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('测试声音按钮1元素不存在', 'error', '系统');
-            }
-            
-            if (testSoundBtn2) {
-                testSoundBtn2.addEventListener('click', async function() {
-                    addLogEntry('测试声音2播放', 'info', '音频');
-                    if (clickSoundEnabled) {
-                        await playClickSound('test');
-                    }
-                    const success = await playSound(currentSoundType);
-                    if (success) {
-                        showStatus('✅ 声音测试成功', 2000);
-                    } else {
-                        showStatus('❌ 声音测试失败', 2000);
-                    }
-                });
-                addLogEntry('测试声音按钮2监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('测试声音按钮2元素不存在', 'error', '系统');
-            }
-            
-            if (stopSoundBtn) {
-                stopSoundBtn.addEventListener('click', stopAllSounds);
-                addLogEntry('停止声音按钮监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('停止声音按钮元素不存在', 'error', '系统');
-            }
-            
-            // 记录控制
-            if (exportRecordsBtn) {
-                exportRecordsBtn.addEventListener('click', exportRecords);
-                addLogEntry('导出记录按钮监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('导出记录按钮元素不存在', 'error', '系统');
-            }
-            
-            if (clearRecordsBtn) {
-                clearRecordsBtn.addEventListener('click', clearRecords);
-                addLogEntry('清空记录按钮监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('清空记录按钮元素不存在', 'error', '系统');
-            }
-            
-            // 时间输入变更
-            if (focusTimeInput) {
-                focusTimeInput.addEventListener('change', function() {
-                    const minutes = parseInt(this.value) || 25;
-                    if (minutes < 1) this.value = 1;
-                    if (minutes > 120) this.value = 120;
-                    if (!isPomodoroRunning) {
-                        pomodoroSeconds = minutes * 60;
-                        updateTimerDisplay(pomodoroSeconds);
-                    }
-                    addLogEntry(`专注时间设置: ${minutes}分钟`, 'info', '设置');
-                });
-                addLogEntry('专注时间输入监听器已绑定', 'success', '事件');
-            }
-            
-            if (breakTimeInput) {
-                breakTimeInput.addEventListener('change', function() {
-                    const minutes = parseInt(this.value) || 5;
-                    if (minutes < 1) this.value = 1;
-                    if (minutes > 60) this.value = 60;
-                    addLogEntry(`休息时间设置: ${minutes}分钟`, 'info', '设置');
-                });
-                addLogEntry('休息时间输入监听器已绑定', 'success', '事件');
-            }
-            
-            // 自定义时间设置
-            if (setCustomTimeBtn) {
-                setCustomTimeBtn.addEventListener('click', applyCustomTime);
-                addLogEntry('自定义时间按钮监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('自定义时间按钮元素不存在', 'error', '系统');
-            }
-            
-            // 快速测试中断按钮
-            if (quickTestButtons && quickTestButtons.length > 0) {
-                quickTestButtons.forEach(button => {
-                    button.addEventListener('click', function() {
-                        const seconds = parseInt(this.dataset.seconds) || 5;
-                        quickTestInterrupt(seconds);
-                    });
-                });
-                addLogEntry('快速测试按钮监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('快速测试按钮元素不存在', 'error', '系统');
-            }
-            
-            // 日志控制按钮
-            if (clearLogBtn) {
-                clearLogBtn.addEventListener('click', clearLogs);
-                addLogEntry('清空日志按钮监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('清空日志按钮元素不存在', 'error', '系统');
-            }
-            
-            if (toggleLogBtn) {
-                toggleLogBtn.addEventListener('click', toggleLogVisibility);
-                addLogEntry('切换日志按钮监听器已绑定', 'success', '事件');
-            } else {
-                addLogEntry('切换日志按钮元素不存在', 'error', '系统');
-            }
-            
-            // 输入验证
-            const timeInputs = [focusTimeInput, breakTimeInput, interruptMinutesInput, interruptSecondsInput];
-            timeInputs.forEach(input => {
-                if (input) {
-                    input.addEventListener('input', function() {
-                        let value = parseInt(this.value) || 0;
-                        
-                        if (this === focusTimeInput || this === breakTimeInput) {
-                            if (value < 1) this.value = 1;
-                            if (value > 120) this.value = 120;
-                        } else if (this === interruptMinutesInput) {
-                            if (value < 0) this.value = 0;
-                            if (value > 120) this.value = 120;
-                        } else if (this === interruptSecondsInput) {
-                            if (value < 0) this.value = 0;
-                            if (value > 59) this.value = 59;
-                        }
-                    });
-                    addLogEntry(`输入验证监听器已绑定: ${input.id}`, 'success', '事件');
-                }
-            });
-            
-            // 自定义时间输入
-            if (customMinutesInput) {
-                customMinutesInput.addEventListener('input', function() {
-                    let value = parseInt(this.value) || 1;
-                    if (value < 1) this.value = 1;
-                    if (value > 120) this.value = 120;
-                    addLogEntry(`自定义时间输入: ${value}分钟`, 'info', '输入');
-                });
-                addLogEntry('自定义时间输入监听器已绑定', 'success', '事件');
-            }
-            
-            // 中断原因输入
-            if (interruptReasonInput) {
-                interruptReasonInput.addEventListener('input', function() {
-                    if (this.value.length > 0) {
-                        addLogEntry(`中断原因输入: ${this.value}`, 'info', '输入');
-                    }
-                });
-                addLogEntry('中断原因输入监听器已绑定', 'success', '事件');
-            }
-            
-            addLogEntry('事件监听器初始化完成', 'success', '系统');
-        }
-        
         // 加载历史记录
         function loadHistory() {
             try {
-                const savedHistory = localStorage.getItem('pomodoroInterruptHistory');
-                if (savedHistory) {
-                    const allHistory = JSON.parse(savedHistory);
-                    currentSessionHistory = allHistory.slice(0, 10).map(item => ({
-                        time: new Date(item.timestamp).toLocaleTimeString('zh-CN', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit'
-                        }),
-                        duration: item.duration,
-                        reason: item.reason,
-                        seconds: item.seconds
-                    }));
+                const savedData = localStorage.getItem('pomodoroHistory');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    currentSessionHistory = data.history || [];
                     updateHistoryDisplay();
-                    addLogEntry('加载中断历史成功', 'success', '存储');
+                    addLogEntry('中断历史已加载', 'success', '存储');
                 } else {
-                    addLogEntry('无中断历史记录', 'info', '存储');
+                    addLogEntry('无中断历史', 'info', '存储');
                 }
             } catch (error) {
-                addLogEntry(`加载中断历史记录失败: ${error.message}`, 'error', '存储');
+                addLogEntry(`加载中断历史失败: ${error.message}`, 'error', '存储');
+            }
+        }
+        
+        // 清空历史记录
+        function clearHistory() {
+            try {
+                if (confirm('确定要清空中断历史吗？此操作不可恢复。')) {
+                    currentSessionHistory = [];
+                    saveHistory();
+                    updateHistoryDisplay();
+                    addLogEntry('中断历史已清空', 'warning', '历史');
+                    showStatus('🗑️ 中断历史已清空', 2000);
+                }
+            } catch (error) {
+                addLogEntry(`清空历史失败: ${error.message}`, 'error', '历史');
+            }
+        }
+        
+        // 加载设置
+        function loadSettings() {
+            try {
+                const savedSettings = localStorage.getItem('pomodoroSettings');
+                if (savedSettings) {
+                    const settings = JSON.parse(savedSettings);
+                    
+                    if (focusTimeInput) focusTimeInput.value = settings.focusTime || 25;
+                    if (breakTimeInput) breakTimeInput.value = settings.breakTime || 5;
+                    
+                    volume = settings.volume !== undefined ? settings.volume : 0.5;
+                    if (volumeControl) volumeControl.value = volume * 100;
+                    if (volumeValue) volumeValue.textContent = `${Math.round(volume * 100)}%`;
+                    
+                    currentSoundType = settings.soundType || 'beep';
+                    if (soundOptions) {
+                        soundOptions.forEach(option => {
+                            if (option.dataset.sound === currentSoundType) {
+                                option.classList.add('active');
+                            } else {
+                                option.classList.remove('active');
+                            }
+                        });
+                    }
+                    
+                    vibrationEnabled = settings.vibration !== undefined ? settings.vibration : true;
+                    if (vibrationToggle) vibrationToggle.checked = vibrationEnabled;
+                    
+                    clickSoundEnabled = settings.clickSound !== undefined ? settings.clickSound : true;
+                    if (clickSoundToggle) clickSoundToggle.checked = clickSoundEnabled;
+                    
+                    isLogVisible = settings.logVisible !== undefined ? settings.logVisible : true;
+                    if (logContent) {
+                        logContent.style.display = isLogVisible ? 'block' : 'none';
+                    }
+                    if (toggleLogBtn) {
+                        toggleLogBtn.innerHTML = isLogVisible ? 
+                            '<i class="fas fa-eye-slash"></i> 隐藏日志' : 
+                            '<i class="fas fa-eye"></i> 显示日志';
+                    }
+                    
+                    pomodoroSeconds = (settings.focusTime || 25) * 60;
+                    updateTimerDisplay(pomodoroSeconds);
+                    
+                    addLogEntry('设置已加载', 'success', '设置');
+                } else {
+                    addLogEntry('使用默认设置', 'info', '设置');
+                }
+            } catch (error) {
+                addLogEntry(`加载设置失败: ${error.message}`, 'error', '设置');
+            }
+        }
+        
+        // 保存设置
+        function saveSettings() {
+            try {
+                const settings = {
+                    focusTime: focusTimeInput ? parseInt(focusTimeInput.value) : 25,
+                    breakTime: breakTimeInput ? parseInt(breakTimeInput.value) : 5,
+                    volume: volume,
+                    soundType: currentSoundType,
+                    vibration: vibrationEnabled,
+                    clickSound: clickSoundEnabled,
+                    logVisible: isLogVisible,
+                    lastUpdated: new Date().toISOString()
+                };
+                localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
+                addLogEntry('设置已保存', 'info', '设置');
+            } catch (error) {
+                addLogEntry(`保存设置失败: ${error.message}`, 'error', '设置');
             }
         }
         
         // 检查设备兼容性
-        function checkDeviceCompatibility() {
-            const compatibilityDiv = document.createElement('div');
-            compatibilityDiv.id = 'compatibilityStatus';
-            compatibilityDiv.className = 'compatibility-warning hidden';
+        function checkCompatibility() {
+            const compatibilityStatus = document.getElementById('compatibilityStatus');
+            if (!compatibilityStatus) return;
             
-            let warnings = [];
+            const issues = [];
+            let isCompatible = true;
             
             // 检查Web Audio API
             if (!window.AudioContext && !window.webkitAudioContext) {
-                warnings.push('您的浏览器不支持Web Audio API，声音功能将不可用');
+                issues.push('不支持Web Audio API，声音功能不可用');
+                isCompatible = false;
             }
             
-            // 检查Vibration API
-            if (!navigator.vibrate) {
-                warnings.push('您的设备不支持震动API，震动功能将不可用');
-            }
-            
-            // 检查LocalStorage
+            // 检查localStorage
             try {
                 localStorage.setItem('test', 'test');
                 localStorage.removeItem('test');
-            } catch (e) {
-                warnings.push('LocalStorage不可用，记录将无法保存');
+            } catch (error) {
+                issues.push('localStorage不可用，无法保存设置和记录');
+                isCompatible = false;
             }
             
-            if (warnings.length > 0) {
-                compatibilityDiv.classList.remove('hidden');
-                compatibilityDiv.classList.add('warning');
-                
-                let warningHTML = '<strong>⚠️ 兼容性警告：</strong><ul>';
-                warnings.forEach(warning => {
-                    warningHTML += `<li>${warning}</li>`;
-                });
-                warningHTML += '</ul>';
-                
-                compatibilityDiv.innerHTML = warningHTML;
-                document.querySelector('.container').insertBefore(compatibilityDiv, document.querySelector('.container').firstChild);
-                
-                warnings.forEach(warning => {
-                    addLogEntry(`兼容性警告: ${warning}`, 'warning', '系统');
-                });
+            // 检查震动API
+            if (!navigator.vibrate) {
+                issues.push('不支持震动API，震动提醒不可用');
+            }
+            
+            if (issues.length > 0) {
+                compatibilityStatus.textContent = issues.join('; ');
+                compatibilityStatus.className = isCompatible ? 
+                    'compatibility-warning success' : 
+                    'compatibility-warning warning';
+                compatibilityStatus.classList.remove('hidden');
             } else {
-                compatibilityDiv.classList.remove('hidden');
-                compatibilityDiv.classList.add('success');
-                compatibilityDiv.textContent = '✅ 设备兼容性检测通过';
-                document.querySelector('.container').insertBefore(compatibilityDiv, document.querySelector('.container').firstChild);
-                addLogEntry('设备兼容性检测通过', 'success', '系统');
+                compatibilityStatus.textContent = '✅ 所有功能都可用';
+                compatibilityStatus.className = 'compatibility-warning success';
+                compatibilityStatus.classList.remove('hidden');
+            }
+            
+            setTimeout(() => {
+                compatibilityStatus.classList.add('hidden');
+            }, 10000);
+            
+            addLogEntry(`设备兼容性检查: ${isCompatible ? '通过' : '部分功能不可用'}`, 
+                       isCompatible ? 'success' : 'warning', 
+                       '系统');
+        }
+        
+        // 添加触摸反馈
+        function addTouchFeedback(element) {
+            element.addEventListener('touchstart', function(e) {
+                this.classList.add('touch-feedback');
+            }, { passive: true });
+            
+            element.addEventListener('touchend', function(e) {
+                this.classList.remove('touch-feedback');
+            }, { passive: true });
+            
+            element.addEventListener('touchcancel', function(e) {
+                this.classList.remove('touch-feedback');
+            }, { passive: true });
+        }
+        
+        // 初始化事件监听器
+        function initializeEventListeners() {
+            try {
+                // 番茄钟控制按钮
+                if (startBtn) {
+                    startBtn.addEventListener('click', startPomodoro);
+                    addTouchFeedback(startBtn);
+                }
+                
+                if (pauseBtn) {
+                    pauseBtn.addEventListener('click', pausePomodoro);
+                    addTouchFeedback(pauseBtn);
+                }
+                
+                if (resetBtn) {
+                    resetBtn.addEventListener('click', resetPomodoro);
+                    addTouchFeedback(resetBtn);
+                }
+                
+                // 番茄钟时间设置
+                if (focusTimeInput) {
+                    focusTimeInput.addEventListener('change', function() {
+                        const minutes = parseInt(this.value) || 25;
+                        if (minutes < 1) this.value = 1;
+                        if (minutes > 120) this.value = 120;
+                        pomodoroSeconds = minutes * 60;
+                        updateTimerDisplay(pomodoroSeconds);
+                        saveSettings();
+                    });
+                }
+                
+                if (breakTimeInput) {
+                    breakTimeInput.addEventListener('change', function() {
+                        const minutes = parseInt(this.value) || 5;
+                        if (minutes < 1) this.value = 1;
+                        if (minutes > 60) this.value = 60;
+                        saveSettings();
+                    });
+                }
+                
+                // 预设时间按钮
+                if (presetTimeButtons) {
+                    presetTimeButtons.forEach(button => {
+                        button.addEventListener('click', function() {
+                            const minutes = parseInt(this.dataset.minutes) || 25;
+                            applyPresetTime(minutes);
+                        });
+                        addTouchFeedback(button);
+                    });
+                }
+                
+                // 自定义时间设置
+                if (setCustomTimeBtn) {
+                    setCustomTimeBtn.addEventListener('click', applyCustomTime);
+                    addTouchFeedback(setCustomTimeBtn);
+                }
+                
+                if (customMinutesInput) {
+                    customMinutesInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            applyCustomTime();
+                        }
+                    });
+                }
+                
+                // 中断计时器控制
+                if (startInterruptBtn) {
+                    startInterruptBtn.addEventListener('click', startInterrupt);
+                    addTouchFeedback(startInterruptBtn);
+                }
+                
+                if (cancelInterruptBtn) {
+                    cancelInterruptBtn.addEventListener('click', cancelInterrupt);
+                    addTouchFeedback(cancelInterruptBtn);
+                }
+                
+                // 中断时间输入
+                if (interruptMinutesInput) {
+                    interruptMinutesInput.addEventListener('change', function() {
+                        const minutes = parseInt(this.value) || 0;
+                        if (minutes < 0) this.value = 0;
+                        if (minutes > 120) this.value = 120;
+                    });
+                }
+                
+                if (interruptSecondsInput) {
+                    interruptSecondsInput.addEventListener('change', function() {
+                        const seconds = parseInt(this.value) || 0;
+                        if (seconds < 0) this.value = 0;
+                        if (seconds > 59) this.value = 59;
+                    });
+                }
+                
+                if (interruptReasonInput) {
+                    interruptReasonInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter' && !isInterruptRunning) {
+                            startInterrupt();
+                        }
+                    });
+                }
+                
+                // 快速测试按钮
+                if (quickTestButtons) {
+                    quickTestButtons.forEach(button => {
+                        button.addEventListener('click', function() {
+                            const seconds = parseInt(this.dataset.seconds) || 5;
+                            quickTestInterrupt(seconds);
+                        });
+                        addTouchFeedback(button);
+                    });
+                }
+                
+                // 声音控制
+                if (volumeControl) {
+                    volumeControl.addEventListener('input', function() {
+                        volume = parseInt(this.value) / 100;
+                        if (volumeValue) {
+                            volumeValue.textContent = `${this.value}%`;
+                        }
+                        saveSettings();
+                    });
+                }
+                
+                // 声音类型选择
+                if (soundOptions) {
+                    soundOptions.forEach(option => {
+                        option.addEventListener('click', function() {
+                            soundOptions.forEach(opt => opt.classList.remove('active'));
+                            this.classList.add('active');
+                            currentSoundType = this.dataset.sound;
+                            saveSettings();
+                            playClickSound('test');
+                        });
+                        addTouchFeedback(option);
+                    });
+                }
+                
+                // 震动开关
+                if (vibrationToggle) {
+                    vibrationToggle.addEventListener('change', function() {
+                        vibrationEnabled = this.checked;
+                        saveSettings();
+                        addLogEntry(`震动功能已${vibrationEnabled ? '开启' : '关闭'}`, 'info', '设置');
+                    });
+                }
+                
+                // 点击音效开关
+                if (clickSoundToggle) {
+                    clickSoundToggle.addEventListener('change', function() {
+                        clickSoundEnabled = this.checked;
+                        saveSettings();
+                        addLogEntry(`点击音效已${clickSoundEnabled ? '开启' : '关闭'}`, 'info', '设置');
+                    });
+                }
+                
+                // 声音测试按钮
+                if (testSoundBtn) {
+                    testSoundBtn.addEventListener('click', testSound);
+                    addTouchFeedback(testSoundBtn);
+                }
+                
+                if (testSoundBtn2) {
+                    testSoundBtn2.addEventListener('click', testSound);
+                    addTouchFeedback(testSoundBtn2);
+                }
+                
+                if (stopSoundBtn) {
+                    stopSoundBtn.addEventListener('click', stopAllSounds);
+                    addTouchFeedback(stopSoundBtn);
+                }
+                
+                // 记录和统计按钮
+                if (exportRecordsBtn) {
+                    exportRecordsBtn.addEventListener('click', exportRecords);
+                    addTouchFeedback(exportRecordsBtn);
+                }
+                
+                if (clearRecordsBtn) {
+                    clearRecordsBtn.addEventListener('click', clearAllRecords);
+                    addTouchFeedback(clearRecordsBtn);
+                }
+                
+                if (clearHistoryBtn) {
+                    clearHistoryBtn.addEventListener('click', clearHistory);
+                    addTouchFeedback(clearHistoryBtn);
+                }
+                
+                // 日志控制按钮
+                if (clearLogBtn) {
+                    clearLogBtn.addEventListener('click', clearLogs);
+                    addTouchFeedback(clearLogBtn);
+                }
+                
+                if (toggleLogBtn) {
+                    toggleLogBtn.addEventListener('click', toggleLogVisibility);
+                    addTouchFeedback(toggleLogBtn);
+                }
+                
+                // 全局用户交互监听（用于激活音频）
+                document.addEventListener('click', async function() {
+                    if (!window.userInteracted) {
+                        window.userInteracted = true;
+                        const audioInitialized = await initAudioSystem();
+                        if (audioInitialized) {
+                            addLogEntry('用户交互检测，音频系统已激活', 'success', '系统');
+                            showStatus('✅ 音频系统已激活', 2000);
+                        }
+                    }
+                }, { once: false, passive: true });
+                
+                // 键盘快捷键
+                document.addEventListener('keydown', function(e) {
+                    // 空格键：开始/暂停番茄钟
+                    if (e.code === 'Space' && !e.target.matches('input, textarea, button, select')) {
+                        e.preventDefault();
+                        if (isPomodoroRunning) {
+                            pausePomodoro();
+                        } else {
+                            startPomodoro();
+                        }
+                    }
+                    
+                    // Esc键：重置番茄钟
+                    if (e.code === 'Escape' && !e.target.matches('input, textarea, button, select')) {
+                        e.preventDefault();
+                        resetPomodoro();
+                    }
+                    
+                    // Enter键：当焦点在番茄钟名称输入框时开始计时
+                    if (e.code === 'Enter' && sessionNameInput && document.activeElement === sessionNameInput) {
+                        e.preventDefault();
+                        startPomodoro();
+                    }
+                    
+                    // 快捷键：Ctrl+1 测试声音
+                    if (e.ctrlKey && e.code === 'Digit1') {
+                        e.preventDefault();
+                        testSound();
+                    }
+                });
+                
+                // 窗口失去焦点处理
+                document.addEventListener('visibilitychange', function() {
+                    if (document.visibilityState === 'hidden') {
+                        addLogEntry('页面切换至后台', 'info', '系统');
+                    } else {
+                        addLogEntry('页面恢复前台', 'info', '系统');
+                    }
+                });
+                
+                addLogEntry('所有事件监听器已初始化', 'success', '系统');
+            } catch (error) {
+                addLogEntry(`事件监听器初始化失败: ${error.message}`, 'error', '系统');
             }
         }
         
-        // 添加全局点击事件处理音频激活
-        document.addEventListener('click', async function(event) {
-            if (window.userInteracted) return;
-            
-            if (event.target.tagName !== 'INPUT' && 
-                event.target.tagName !== 'TEXTAREA' &&
-                event.target.tagName !== 'SELECT') {
-                
-                addLogEntry('用户点击，尝试激活音频', 'info', '音频');
-                
-                try {
-                    const success = await audioGenerator?.ensureRunning();
-                    if (success) {
-                        window.userInteracted = true;
-                        soundEnabled = true;
-                        updateDeviceStatus();
-                        addLogEntry('音频已激活', 'success', '音频');
-                        showStatus('✅ 音频已激活！', 2000);
-                        await playSound('beep');
-                    }
-                } catch (error) {
-                    addLogEntry(`音频激活异常: ${error.message}`, 'error', '音频');
-                }
-            }
-            
-            // 播放点击音效
-            if (clickSoundEnabled && window.userInteracted && audioGenerator &&
-                event.target.tagName === 'BUTTON' && 
-                event.target.id !== 'testSoundBtn' &&
-                event.target.id !== 'testSoundBtn2' &&
-                event.target.id !== 'stopSoundBtn') {
-                
-                if (event.target._lastClick && (Date.now() - event.target._lastClick) < 300) {
-                    return;
-                }
-                event.target._lastClick = Date.now();
-                
-                try {
-                    await playClickSound('normal');
-                } catch (error) {
-                    console.error('点击音效失败:', error);
-                }
-            }
-        });
-        
-        // 全局键盘快捷键
-        document.addEventListener('keydown', async function(event) {
-            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-                return;
-            }
-            
-            switch(event.code) {
-                case 'Space':
-                case 'Enter':
-                    event.preventDefault();
-                    addLogEntry(`键盘快捷键: ${event.code}`, 'info', '键盘');
-                    if (isPomodoroRunning) {
-                        await pausePomodoro();
-                    } else {
-                        await startPomodoro();
-                    }
-                    break;
-                case 'KeyR':
-                    if (event.ctrlKey || event.metaKey) {
-                        event.preventDefault();
-                        addLogEntry('键盘快捷键: Ctrl+R', 'info', '键盘');
-                        await resetPomodoro();
-                    }
-                    break;
-                case 'KeyI':
-                    if (!isInterruptRunning) {
-                        event.preventDefault();
-                        addLogEntry('键盘快捷键: I', 'info', '键盘');
-                        await startInterrupt();
-                    }
-                    break;
-                case 'Escape':
-                    if (isInterruptRunning) {
-                        event.preventDefault();
-                        addLogEntry('键盘快捷键: Escape', 'info', '键盘');
-                        await cancelInterrupt();
-                    }
-                    break;
-                case 'KeyL':
-                    if (event.ctrlKey || event.metaKey) {
-                        event.preventDefault();
-                        addLogEntry('键盘快捷键: Ctrl+L', 'info', '键盘');
-                        toggleLogVisibility();
-                    }
-                    break;
-            }
-        });
-        
         // 初始化应用
-        async function initApp() {
+        async function initializeApp() {
             try {
-                addLogEntry('初始化番茄钟应用 v6.2.0', 'info', '系统');
-                addLogEntry(`用户代理: ${navigator.userAgent}`, 'info', '系统');
-                addLogEntry(`平台: ${navigator.platform}`, 'info', '系统');
+                addLogEntry('番茄钟计时器初始化中...', 'info', '系统');
+                addLogEntry('版本: 6.3.0 | 支持番茄钟命名功能', 'info', '系统');
                 
-                // 初始化音频
+                // 检查兼容性
+                checkCompatibility();
+                
+                // 初始化音频系统
                 await initAudioSystem();
                 
-                // 绑定事件监听器
-                initEventListeners();
-                
-                // 加载历史记录
+                // 加载保存的数据
+                loadSettings();
+                loadRecords();
                 loadHistory();
                 
-                // 加载番茄钟记录
-                loadRecords();
-                
-                // 检查音频上下文状态
-                checkAudioContextStatus();
-                
-                // 更新初始状态
-                const focusMinutes = focusTimeInput ? parseInt(focusTimeInput.value) || 25 : 25;
-                pomodoroSeconds = focusMinutes * 60;
+                // 设置初始状态
                 updateTimerDisplay(pomodoroSeconds);
                 updatePomodoroStatus();
+                updateDeviceStatus();
                 
-                // 检查设备兼容性
-                checkDeviceCompatibility();
+                // 初始化事件监听器
+                initializeEventListeners();
                 
-                // 初始化完成
-                addLogEntry('应用初始化完成', 'success', '系统');
-                showStatus('番茄钟v6.2.0已就绪，可以开始使用！', 3000);
+                // 添加初始日志
+                addLogEntry('番茄钟计时器初始化完成', 'success', '系统');
+                addLogEntry('功能已就绪，点击任意按钮开始', 'info', '系统');
+                
+                // 显示欢迎消息
+                setTimeout(() => {
+                    showStatus('🍅 番茄钟计时器已准备就绪，点击"开始专注"开始您的工作！', 5000);
+                }, 1000);
                 
             } catch (error) {
                 addLogEntry(`应用初始化失败: ${error.message}`, 'error', '系统');
-                showStatus('应用初始化失败，请刷新页面重试', 5000);
-                console.error('初始化错误:', error);
+                showStatus('❌ 应用初始化失败，请刷新页面重试', 5000);
             }
         }
         
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            addLogEntry('DOM已加载，开始初始化应用...', 'info', '系统');
-            
-            // 检查关键元素
-            const requiredElements = {
-                'startBtn': startBtn,
-                'pauseBtn': pauseBtn,
-                'resetBtn': resetBtn,
-                'timerDisplay': timerDisplay,
-                'statusBar': statusBar,
-                'focusTimeInput': focusTimeInput,
-                'breakTimeInput': breakTimeInput
-            };
-            
-            Object.entries(requiredElements).forEach(([name, element]) => {
-                if (element) {
-                    addLogEntry(`✅ ${name} 元素存在`, 'success', '系统');
-                } else {
-                    addLogEntry(`❌ ${name} 元素不存在`, 'error', '系统');
-                }
-            });
-            
-            // 初始化应用
-            initApp();
-            
-            // 设置用户激活检查
-            setTimeout(() => {
-                if (!window.userInteracted) {
-                    addLogEntry('等待用户交互激活音频', 'warning', '音频');
-                    showStatus('请点击任意位置激活声音功能', 0);
-                }
-            }, 2000);
-            
-            // 最终状态检查
-            setTimeout(() => {
-                addLogEntry('最终状态检查:', 'info', '系统');
-                
-                const ctx = audioGenerator ? audioGenerator.getAudioContext() : null;
-                if (ctx && ctx.state) {
-                    addLogEntry(`AudioContext状态: ${ctx.state}`, ctx.state === 'running' ? 'success' : 'warning', '音频');
-                } else {
-                    addLogEntry('AudioContext: 未创建或不可用', 'warning', '音频');
-                }
-                
-                addLogEntry(`音频状态: ${soundEnabled ? '正常' : '异常'}`, soundEnabled ? 'success' : 'warning', '音频');
-                addLogEntry(`番茄钟状态: ${isPomodoroRunning ? '运行中' : '停止'}`, 'info', '番茄钟');
-                addLogEntry(`用户交互: ${window.userInteracted ? '是' : '否'}`, window.userInteracted ? 'success' : 'warning', '系统');
-                addLogEntry(`点击音效: ${clickSoundEnabled ? '开启' : '关闭'}`, 'info', '音频');
-                addLogEntry(`记录条数: ${pomodoroRecords.length}`, 'info', '记录');
-                addLogEntry(`今日完成: ${todayCompleted}`, 'info', '统计');
-                addLogEntry(`总完成: ${totalCompleted}`, 'info', '统计');
-            }, 3000);
-            
-            // 全局错误处理
-            window.addEventListener('error', (event) => {
-                addLogEntry(`全局JavaScript错误: ${event.message}`, 'error', '系统');
-                console.error("🚨 全局JavaScript错误:", event.error);
-            });
-            
-            // 未处理的Promise拒绝
-            window.addEventListener('unhandledrejection', (event) => {
-                addLogEntry(`未处理的Promise拒绝: ${event.reason}`, 'error', '系统');
-                console.error("🚨 未处理的Promise拒绝:", event.reason);
-            });
-            
-            addLogEntry('🎯 番茄钟v6.2.0 完全加载完成！', 'success', '系统');
-        });
+        // 启动应用
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
         
-        // 页面可见性变化处理
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                addLogEntry('页面隐藏', 'info', '系统');
-            } else {
-                addLogEntry('页面可见', 'info', '系统');
-            }
-        });
-        
-        // 页面卸载前保存数据
-        window.addEventListener('beforeunload', () => {
+        // 窗口关闭前保存数据
+        window.addEventListener('beforeunload', function(e) {
+            saveSettings();
             saveRecords();
-            addLogEntry('页面卸载，保存数据', 'info', '系统');
+            saveHistory();
+            addLogEntry('页面关闭，数据已保存', 'info', '系统');
         });
-        
-        // 触摸反馈
-        document.addEventListener('touchstart', (e) => {
-            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || 
-                e.target.classList.contains('preset-time')) {
-                e.target.classList.add('touch-feedback');
-            }
-        }, { passive: true });
-        
-        document.addEventListener('touchend', (e) => {
-            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || 
-                e.target.classList.contains('preset-time')) {
-                setTimeout(() => {
-                    e.target.classList.remove('touch-feedback');
-                }, 150);
-            }
-        }, { passive: true });
-        
-        // 初始化全局变量
-        window.userInteracted = false;
-        window.audioGenerator = audioGenerator;
     </script>
 </body>
 </html>
