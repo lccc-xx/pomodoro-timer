@@ -2,360 +2,282 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="番茄钟">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>番茄钟 - v6.1.0 (稳定版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>番茄钟 v6.1.0</title>
     <style>
-        :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --info-color: #3b82f6;
-            --text-color: white;
-            --button-bg: rgba(255, 255, 255, 0.15);
-            --button-active: rgba(255, 255, 255, 0.25);
-            --card-bg: rgba(255, 255, 255, 0.08);
-            --border-radius: 16px;
-            --spacing-xs: 8px;
-            --spacing-sm: 12px;
-            --spacing-md: 16px;
-            --spacing-lg: 24px;
-            --spacing-xl: 32px;
-        }
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            -webkit-font-smoothing: antialiased;
         }
         
-        html, body {
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            font-size: 16px;
+        :root {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.8);
+            --text-color: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: rgba(148, 163, 184, 0.2);
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --border-radius: 20px;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg-color) 0%, #1e293b 100%);
             color: var(--text-color);
+            min-height: 100vh;
+            padding: var(--spacing-md);
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
             display: flex;
             flex-direction: column;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-            padding-top: max(20px, env(safe-area-inset-top));
-            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            gap: var(--spacing-md);
         }
         
-        /* 电脑端优化 */
-        @media (min-width: 768px) {
-            body {
-                max-width: 800px;
-                margin: 0 auto;
-                padding: 40px 20px;
-                border-radius: 24px;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-                min-height: 90vh;
-                max-height: 90vh;
-                overflow: auto;
-            }
-            
-            .container {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: var(--spacing-xl);
-                height: auto;
-            }
-            
-            .timer-display {
-                font-size: 5.5rem !important;
-            }
-            
-            .button-group {
-                flex-direction: row !important;
-            }
-            
-            .button-group button {
-                height: 60px;
-                font-size: 1.2rem;
-            }
-            
-            /* 鼠标悬停效果 */
-            button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-            }
-            
-            button:active {
-                transform: translateY(0);
-            }
+        /* 顶部控制区域 */
+        .top-controls {
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: center;
+            justify-content: space-between;
         }
         
-        /* 标题栏 */
-        .header {
-            text-align: center;
-            padding: var(--spacing-md) var(--spacing-lg);
-            margin-bottom: var(--spacing-md);
-        }
-        
-        .header h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin-bottom: var(--spacing-xs);
-        }
-        
-        .header p {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        .version-info {
-            margin-top: 8px;
-            font-size: 0.8rem;
-            opacity: 0.7;
+        .sound-status {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .version-badge {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-        }
-        
-        .device-status {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-        }
-        
-        /* 秒级计时器输入 */
-        .seconds-input-group {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
             gap: var(--spacing-sm);
-            margin-top: var(--spacing-md);
+            padding: 8px 12px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
         }
         
-        .seconds-input {
-            position: relative;
+        .sound-status-icon {
+            font-size: 20px;
         }
         
-        .seconds-label {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.9rem;
-            opacity: 0.6;
+        .sound-status-text {
+            font-size: 12px;
+            opacity: 0.9;
         }
         
-        /* 主容器 */
-        .container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            gap: var(--spacing-lg);
-            padding: 0 var(--spacing-md);
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        /* 卡片样式 */
-        .card {
+        /* 主卡片样式 */
+        .main-card {
             background: var(--card-bg);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             border-radius: var(--border-radius);
             padding: var(--spacing-lg);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
         }
         
-        /* 番茄钟卡片 */
-        .pomodoro-card {
-            flex: none;
-        }
-        
-        .timer-display {
-            font-size: 4.5rem;
-            font-weight: 700;
-            text-align: center;
-            margin: var(--spacing-xl) 0;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: -2px;
-            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-        
-        /* 中断计时器显示 */
-        .interrupt-timer-display {
-            font-size: 3rem;
-            font-weight: 700;
-            text-align: center;
-            margin: var(--spacing-md) 0;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: -1px;
-            color: var(--warning-color);
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            display: none;
-        }
-        
-        .interrupt-timer-display.show {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* 按钮组 */
-        .button-group {
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-lg);
             display: flex;
+            align-items: center;
             gap: var(--spacing-sm);
+        }
+        
+        /* 番茄钟显示区域 */
+        .pomodoro-display {
+            text-align: center;
             margin-bottom: var(--spacing-lg);
         }
         
-        .button-group button {
+        .pomodoro-timer {
+            font-size: 4.5rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: var(--spacing-md);
+            text-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        }
+        
+        .pomodoro-status {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        /* 控制按钮组 */
+        .control-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .button {
             flex: 1;
-            height: 52px;
+            padding: 16px 0;
             border: none;
-            border-radius: 14px;
-            font-size: 1.1rem;
+            border-radius: 16px;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
         }
         
-        .button-group button:active {
-            transform: scale(0.96);
-        }
-        
-        .button-group button.primary {
-            background: rgba(255, 255, 255, 0.25);
+        .button.primary {
+            background: var(--primary-color);
             color: white;
         }
         
-        .button-group button.primary:active {
-            background: rgba(255, 255, 255, 0.35);
+        .button.primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
         }
         
-        .button-group button.secondary {
+        .button.secondary {
             background: rgba(255, 255, 255, 0.1);
-            color: white;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
         }
         
-        .button-group button.secondary:active {
-            background: rgba(255, 255, 255, 0.2);
+        .button.secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
         }
         
-        .button-group button.warning {
-            background: rgba(255, 180, 0, 0.25);
-            color: white;
+        .button.success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
         
-        .button-group button.warning:active {
-            background: rgba(255, 180, 0, 0.35);
+        .button.success:hover {
+            background: rgba(16, 185, 129, 0.3);
         }
         
-        .button-group button.danger {
-            background: rgba(239, 68, 68, 0.25);
-            color: white;
+        .button.danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
         
-        .button-group button.danger:active {
-            background: rgba(239, 68, 68, 0.35);
+        .button.danger:hover {
+            background: rgba(239, 68, 68, 0.3);
         }
         
-        .button-group button.success {
-            background: rgba(16, 185, 129, 0.25);
-            color: white;
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
         }
         
-        .button-group button.success:active {
-            background: rgba(16, 185, 129, 0.35);
+        /* 中断计时器 */
+        .interrupt-timer {
+            text-align: center;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 16px;
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            display: none;
         }
         
-        .button-group button.info {
-            background: rgba(59, 130, 246, 0.25);
-            color: white;
+        .interrupt-timer.show {
+            display: block;
         }
         
-        .button-group button.info:active {
-            background: rgba(59, 130, 246, 0.35);
+        .interrupt-timer-label {
+            font-size: 0.9rem;
+            color: #f59e0b;
+            margin-bottom: var(--spacing-sm);
         }
         
-        /* 时间设置 - 自由调节功能 */
+        .interrupt-timer-time {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #f59e0b;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        /* 时间设置区域 */
         .time-settings {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: var(--spacing-md);
-            margin-top: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
         }
         
         .time-setting {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-xs);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: var(--spacing-md);
+            border: 1px solid var(--border-color);
         }
         
         .time-setting label {
+            display: block;
             font-size: 0.9rem;
-            opacity: 0.8;
-            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
         }
         
-        .time-setting input {
+        .time-input {
             width: 100%;
-            height: 48px;
-            padding: var(--spacing-md);
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .time-input input {
+            flex: 1;
+            background: transparent;
+            border: 1px solid var(--border-color);
             border-radius: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 1.1rem;
+            padding: 12px;
+            color: var(--text-color);
+            font-size: 1.2rem;
             text-align: center;
-            -webkit-appearance: none;
-            appearance: none;
         }
         
-        .time-setting input:focus {
+        .time-input input:focus {
             outline: none;
-            border-color: rgba(255, 255, 255, 0.4);
+            border-color: var(--primary-color);
         }
         
-        /* 新增：快速时间预设按钮 */
+        /* 预设时间按钮组 */
         .preset-times {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .button-group {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: var(--spacing-sm);
-            margin-top: var(--spacing-md);
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
         }
         
         .preset-time {
-            padding: var(--spacing-sm);
-            border-radius: 10px;
+            padding: 12px 8px;
             background: rgba(255, 255, 255, 0.05);
-            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-color);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             font-size: 0.9rem;
         }
         
@@ -363,138 +285,64 @@
             background: rgba(255, 255, 255, 0.1);
         }
         
-        .preset-time:active {
-            transform: scale(0.95);
-        }
-        
-        /* 声音控制区域 */
-        .sound-controls {
-            margin-top: var(--spacing-lg);
-            padding-top: var(--spacing-md);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .sound-options {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-md);
-        }
-        
-        .sound-option {
-            padding: var(--spacing-sm);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-        
-        .sound-option.active {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.4);
-        }
-        
-        .sound-option:active {
-            transform: scale(0.95);
-        }
-        
-        .volume-control {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
+        .custom-time {
             margin-top: var(--spacing-md);
         }
         
-        .volume-control input[type="range"] {
-            flex: 1;
-            height: 8px;
-            -webkit-appearance: none;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            outline: none;
-        }
-        
-        .volume-control input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: white;
-            cursor: pointer;
-        }
-        
-        /* 中断卡片 */
-        .interrupt-card {
-            flex: none;
-        }
-        
-        .card-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: var(--spacing-lg);
+        .custom-time-input {
             display: flex;
-            align-items: center;
-            gap: 10px;
+            gap: var(--spacing-sm);
         }
         
-        .card-title::before {
-            font-size: 1.2em;
+        .custom-time-input input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            color: var(--text-color);
         }
         
-        /* 中断控制 */
+        /* 中断卡 */
+        .interrupt-card {
+            margin-bottom: var(--spacing-md);
+        }
+        
         .interrupt-controls {
             display: flex;
             flex-direction: column;
             gap: var(--spacing-md);
-            margin-bottom: var(--spacing-lg);
         }
         
         .input-row {
             display: flex;
             gap: var(--spacing-sm);
-            width: 100%;
         }
         
         .input-row input {
             flex: 1;
-            height: 52px;
-            padding: var(--spacing-md);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 1rem;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-        
-        .input-row input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-        
-        .input-row input:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            color: var(--text-color);
         }
         
         .interrupt-button {
             width: 100%;
-            height: 52px;
-            border: none;
-            border-radius: 14px;
-            background: rgba(255, 180, 0, 0.25);
+            padding: 16px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
             color: white;
-            font-size: 1.1rem;
+            border: none;
+            border-radius: 16px;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
         }
         
-        .interrupt-button:active {
-            background: rgba(255, 180, 0, 0.35);
-            transform: scale(0.98);
+        .interrupt-button:hover {
+            transform: translateY(-2px);
         }
         
         /* 中断历史 */
@@ -503,267 +351,89 @@
         }
         
         .history-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: var(--spacing-md);
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
         }
         
         .history-list {
             max-height: 200px;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            padding-right: 4px;
         }
         
         .history-item {
             background: rgba(255, 255, 255, 0.05);
-            padding: var(--spacing-md);
             border-radius: 12px;
-            margin-bottom: var(--spacing-sm);
-            font-size: 0.9rem;
-            line-height: 1.4;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-color);
         }
         
-        .history-item:last-child {
-            margin-bottom: 0;
+        .history-item.empty-history {
+            text-align: center;
+            color: var(--text-secondary);
+            font-style: italic;
         }
         
         .history-time {
-            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
             margin-bottom: 4px;
-            color: rgba(255, 255, 255, 0.9);
         }
         
         .history-details {
             display: flex;
             justify-content: space-between;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.85rem;
         }
         
-        /* 状态提示 */
+        /* 状态条 */
         .status-bar {
             position: fixed;
-            bottom: max(20px, env(safe-area-inset-bottom));
+            bottom: 0;
             left: 0;
             right: 0;
-            padding: var(--spacing-md) var(--spacing-lg);
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: linear-gradient(90deg, var(--primary-color), #8b5cf6);
+            color: white;
+            padding: 12px var(--spacing-lg);
             text-align: center;
-            font-weight: 500;
-            z-index: 100;
-            display: none;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
         }
         
         .status-bar.show {
-            display: block;
-            animation: slideUp 0.3s ease;
+            transform: translateY(0);
         }
         
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-        
-        /* 声音状态指示器 */
-        .sound-status {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            display: none;
-            align-items: center;
-            gap: 8px;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-        
-        .sound-status.show {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        .sound-status .stop-sound {
-            background: var(--danger-color);
-            border: none;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            cursor: pointer;
-        }
-        
-        /* 声音测试区域 */
-        .sound-test {
-            margin-top: var(--spacing-md);
-            padding: var(--spacing-md);
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            text-align: center;
-        }
-        
-        .sound-test p {
-            font-size: 0.9rem;
-            margin-bottom: var(--spacing-sm);
-            opacity: 0.8;
-        }
-        
-        /* 兼容性提示 */
+        /* 兼容性警告 */
         .compatibility-warning {
-            background: rgba(255, 180, 0, 0.2);
-            border: 1px solid rgba(255, 180, 0, 0.4);
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid rgba(245, 158, 11, 0.3);
             border-radius: 12px;
             padding: var(--spacing-md);
-            margin-top: var(--spacing-md);
-            font-size: 0.9rem;
+            margin: var(--spacing-md) 0;
             text-align: center;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        }
+        
+        .compatibility-warning.success {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        
+        .compatibility-warning.error {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.3);
         }
         
         .compatibility-warning.hidden {
             display: none;
         }
         
-        .compatibility-warning.success {
-            background: rgba(16, 185, 129, 0.2);
-            border-color: rgba(16, 185, 129, 0.4);
-        }
-        
-        .compatibility-warning.error {
-            background: rgba(239, 68, 68, 0.2);
-            border-color: rgba(239, 68, 68, 0.4);
-        }
-        
-        /* 调试信息样式 */
-        .debug-info {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            display: none;
-        }
-        
-        .debug-info.show {
-            display: block;
-        }
-        
-        /* iPhone X及以后机型的适配 */
-        @supports (padding: max(0px)) {
-            body {
-                padding-top: max(20px, env(safe-area-inset-top));
-                padding-bottom: max(20px, env(safe-area-inset-bottom));
-                padding-left: max(20px, env(safe-area-inset-left));
-                padding-right: max(20px, env(safe-area-inset-right));
-            }
-        }
-        
-        /* 横屏优化 */
-        @media (orientation: landscape) and (max-height: 500px) {
-            .container {
-                flex-direction: row;
-                padding: var(--spacing-sm);
-            }
-            
-            .pomodoro-card,
-            .interrupt-card {
-                flex: 1;
-                height: 100%;
-                overflow-y: auto;
-            }
-            
-            .timer-display {
-                font-size: 3.5rem;
-                margin: var(--spacing-md) 0;
-            }
-            
-            .button-group {
-                flex-direction: column;
-            }
-        }
-        
-        /* 大屏手机优化 */
-        @media (min-width: 400px) and (min-height: 700px) {
-            .timer-display {
-                font-size: 5rem;
-            }
-            
-            .button-group button {
-                height: 56px;
-                font-size: 1.2rem;
-            }
-        }
-        
-        /* 清除历史按钮 */
-        .clear-history {
-            background: transparent;
-            border: none;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
-            padding: 4px 8px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        
-        .clear-history:active {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        /* 计时器动画 */
-        .timer-pulse {
-            animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-        
-        /* 禁用状态 */
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        /* 完成动画 */
-        .complete-animation {
-            animation: completePulse 0.5s ease-in-out 3;
-        }
-        
-        @keyframes completePulse {
-            0%, 100% { 
-                color: white;
-                text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            }
-            50% { 
-                color: var(--success-color);
-                text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
-            }
-        }
-        
         /* 加载动画 */
-        .loading-dots:after {
+        .loading-dots::after {
             content: '';
-            animation: dots 1.5s steps(4, end) infinite;
+            animation: dots 1.5s steps(5, end) infinite;
         }
         
         @keyframes dots {
@@ -773,121 +443,243 @@
             80%, 100% { content: '...'; }
         }
         
-        /* 震动控制样式 */
-        .vibration-control {
-            margin-top: var(--spacing-sm);
+        /* 响应式调整 */
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+            }
+            
+            .pomodoro-timer {
+                font-size: 3.5rem;
+            }
+            
+            .control-buttons {
+                flex-direction: column;
+            }
+            
+            .time-settings {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* 动画效果 */
+        .timer-pulse {
+            animation: pulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .complete-animation {
+            animation: complete 1s ease-out;
+        }
+        
+        @keyframes complete {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* 声音测试区域 */
+        .sound-test {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 16px;
+            padding: var(--spacing-md);
+            margin: var(--spacing-md) 0;
+            text-align: center;
+        }
+        
+        .sound-test p {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        /* 声音控制 */
+        .sound-controls {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .sound-options {
+            display: flex;
+            gap: 8px;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .sound-option {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .sound-option.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary-color);
+        }
+        
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .volume-control input[type="range"] {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .vibration-control, .click-sound-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .vibration-control input, .click-sound-control input {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .seconds-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-sm);
+        }
+        
+        .seconds-input {
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
-        .vibration-control input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+        .seconds-input input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            color: var(--text-color);
+            text-align: center;
         }
         
-        /* 点击音效控制 */
-        .click-sound-control {
-            margin-top: var(--spacing-md);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .seconds-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            min-width: 30px;
         }
         
-        .click-sound-control input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+        .clear-history {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        
+        .clear-history:hover {
+            background: rgba(239, 68, 68, 0.2);
         }
     </style>
 </head>
 <body>
-    <!-- 调试信息框 -->
-    <div class="debug-info" id="debugInfo"></div>
-    
-    <!-- 声音状态指示器 -->
-    <div class="sound-status" id="soundStatus">
-        <span>🔊 提示音播放中...</span>
-        <button class="stop-sound" id="stopSoundBtn">停止声音</button>
-    </div>
-    
-    <!-- 诊断面板 -->
-    <div id="diagnosticPanel" style="
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 10px;
-        border-radius: 8px;
-        font-size: 12px;
-        z-index: 9999;
-        display: none;
-    ">
-        <div>系统诊断</div>
-        <div id="diagnosticInfo">准备中...</div>
-    </div>
-    
-    <div class="header">
-        <h1>🍅 番茄钟 - v6.1.1 (稳定版)</h1>
-        <p>专注工作 · 自由调节时间 · 按键点击音效</p>
-        <div class="version-info">
-            <span class="version-badge">🔧 版本: v6.1.0</span>
-            <span class="device-status" id="deviceStatus">检测设备中...</span>
-        </div>
-    </div>
-    
     <div class="container">
-        <!-- 番茄钟主区域 -->
-        <div class="card pomodoro-card">
-            <div class="card-title">专注计时</div>
-            <div class="timer-display" id="timer">25:00</div>
-            
-            <!-- 中断计时器显示 -->
-            <div class="interrupt-timer-display" id="interruptTimer">
-                <div>中断剩余</div>
-                <div id="interruptTime">00:00</div>
+        <!-- 顶部控制区域 -->
+        <div class="top-controls">
+            <div class="sound-status" id="soundStatus">
+                <span class="sound-status-icon">🔈</span>
+                <span class="sound-status-text">音频已启用</span>
+            </div>
+        </div>
+        
+        <!-- 主计时器卡片 -->
+        <div class="main-card">
+            <div class="pomodoro-display">
+                <div class="pomodoro-timer" id="timer">25:00</div>
+                <div class="pomodoro-status" id="pomodoroStatus">准备开始专注</div>
             </div>
             
-            <div class="button-group">
-                <button id="startBtn" class="primary">▶️ 开始</button>
-                <button id="pauseBtn" class="secondary">⏸️ 暂停</button>
-                <button id="resetBtn" class="warning">🔄 重置</button>
-                <button id="stopSoundBtn2" class="danger">🔇 停音</button>
+            <!-- 中断计时器 -->
+            <div class="interrupt-timer" id="interruptTimer">
+                <div class="interrupt-timer-label">⏱️ 中断倒计时</div>
+                <div class="interrupt-timer-time" id="interruptTime">00:00</div>
             </div>
             
+            <!-- 主控制按钮 -->
+            <div class="control-buttons">
+                <button id="startBtn" class="button primary">▶️ 开始</button>
+                <button id="pauseBtn" class="button secondary" disabled>⏸️ 暂停</button>
+                <button id="resetBtn" class="button danger">🔄 重置</button>
+            </div>
+            
+            <!-- 声音控制按钮 -->
+            <div class="control-buttons">
+                <button id="stopSoundBtn" class="button danger">🔇 停止声音</button>
+                <button id="stopSoundBtn2" class="button danger">🔇 停止声音</button>
+            </div>
+            
+            <!-- 时间设置 -->
             <div class="time-settings">
                 <div class="time-setting">
-                    <label for="focusTime">专注时间 (分钟)</label>
-                    <input type="number" id="focusTime" value="25" min="1" max="120">
+                    <label>专注时间 (分钟)</label>
+                    <div class="time-input">
+                        <input type="number" id="focusTime" min="1" max="120" value="25">
+                        <div>分钟</div>
+                    </div>
                 </div>
+                
                 <div class="time-setting">
-                    <label for="breakTime">休息时间 (分钟)</label>
-                    <input type="number" id="breakTime" value="5" min="1" max="60">
+                    <label>休息时间 (分钟)</label>
+                    <div class="time-input">
+                        <input type="number" id="breakTime" min="1" max="30" value="5">
+                        <div>分钟</div>
+                    </div>
                 </div>
             </div>
             
-            <!-- 新增：快速时间预设 -->
+            <!-- 预设时间 -->
             <div class="preset-times">
-                <div class="preset-time" data-minutes="5">5分钟</div>
-                <div class="preset-time" data-minutes="15">15分钟</div>
-                <div class="preset-time" data-minutes="25">25分钟</div>
-                <div class="preset-time" data-minutes="30">30分钟</div>
-                <div class="preset-time" data-minutes="45">45分钟</div>
-                <div class="preset-time" data-minutes="60">60分钟</div>
-            </div>
-            
-            <!-- 新增：自定义快速时间输入 -->
-            <div class="custom-time" style="margin-top: var(--spacing-md);">
-                <div class="input-row">
-                    <input type="number" id="customMinutes" placeholder="自定义分钟数" min="1" max="120" value="10">
-                    <button id="setCustomTime" class="info">🚀 设置</button>
+                <div class="button-group">
+                    <button class="preset-time" data-minutes="15">15分钟</button>
+                    <button class="preset-time" data-minutes="25">25分钟</button>
+                    <button class="preset-time" data-minutes="30">30分钟</button>
+                    <button class="preset-time" data-minutes="45">45分钟</button>
+                </div>
+                
+                <div class="custom-time">
+                    <label>自定义时间 (1-120分钟)</label>
+                    <div class="custom-time-input">
+                        <input type="number" id="customMinutes" min="1" max="120" placeholder="输入分钟数">
+                        <button class="button info" id="setCustomTime">设置</button>
+                    </div>
                 </div>
             </div>
             
             <!-- 声音测试区域 -->
             <div class="sound-test">
                 <p>⚠️ 首次使用请先测试声音</p>
-                <button id="testSoundBtn" class="success">🔊 测试声音</button>
+                <button id="testSoundBtn" class="button success">🔊 测试声音</button>
                 <div id="soundTestResult" class="compatibility-warning hidden">
                     声音测试中<span class="loading-dots"></span>
                 </div>
@@ -920,7 +712,7 @@
         </div>
         
         <!-- 中断功能区域 -->
-        <div class="card interrupt-card">
+        <div class="main-card interrupt-card">
             <div class="card-title">⏸️ 临时中断</div>
             
             <div class="interrupt-controls">
@@ -940,13 +732,13 @@
                     <input type="text" id="interruptReason" placeholder="中断原因（可选）">
                 </div>
                 <button id="startInterruptBtn" class="interrupt-button">⏱️ 开始秒级中断</button>
-                <button id="cancelInterruptBtn" class="danger" style="display: none;">取消中断</button>
+                <button id="cancelInterruptBtn" class="button danger" style="display: none;">取消中断</button>
                 
                 <!-- 快速测试按钮 -->
                 <div class="button-group" style="margin-top: var(--spacing-sm);">
-                    <button class="success quick-test-btn" data-seconds="5">5秒测试</button>
-                    <button class="success quick-test-btn" data-seconds="10">10秒测试</button>
-                    <button class="success quick-test-btn" data-seconds="30">30秒测试</button>
+                    <button class="button success quick-test-btn" data-seconds="5">5秒测试</button>
+                    <button class="button success quick-test-btn" data-seconds="10">10秒测试</button>
+                    <button class="button success quick-test-btn" data-seconds="30">30秒测试</button>
                 </div>
             </div>
             
@@ -971,7 +763,9 @@
     <script>
         // ============================================
         // 番茄钟 v6.1.0 稳定版
-        // 修复了所有按钮功能失效的问题
+        // 已修复中断功能的问题
+        // 1. 中断声音不会自动结束
+        // 2. 移除提前3秒响铃
         // ============================================
         
         // 全局状态变量
@@ -1152,30 +946,183 @@
         const volumeControl = document.getElementById('volumeControl');
         const volumeValue = document.getElementById('volumeValue');
         const soundOptions = document.querySelectorAll('.sound-option');
-        const deviceStatusElement = document.getElementById('deviceStatus');
-        const debugInfoElement = document.getElementById('debugInfo');
         const quickTestButtons = document.querySelectorAll('.quick-test-btn');
         const presetTimeButtons = document.querySelectorAll('.preset-time');
         const customMinutesInput = document.getElementById('customMinutes');
         const setCustomTimeBtn = document.getElementById('setCustomTime');
         const clickSoundToggle = document.getElementById('clickSoundToggle');
-
+        
+        // 秒级中断计时函数 - 修复版本
+        function updateInterruptTimer() {
+            if (!isInterruptRunning) return;
+            
+            const now = Date.now();
+            const elapsedSeconds = Math.floor((now - interruptStartTime) / 1000);
+            const remainingSeconds = Math.max(0, interruptDuration - elapsedSeconds);
+            
+            updateInterruptTimerDisplay(remainingSeconds);
+            
+            if (remainingSeconds <= 0) {
+                // 只在倒计时完全结束时触发中断完成
+                interruptFinished();
+            } else {
+                // 取消倒计时提示，只在结束时触发
+                interruptAnimationFrame = requestAnimationFrame(updateInterruptTimer);
+            }
+        }
+        
+        // 中断完成 - 修复版本
+        function interruptFinished() {
+            isInterruptRunning = false;
+            
+            if (interruptAnimationFrame) {
+                cancelAnimationFrame(interruptAnimationFrame);
+                interruptAnimationFrame = null;
+            }
+            
+            // 1. 播放一次结束提示音
+            playSound('chord');
+            vibrate([200, 100, 200, 100, 200]);
+            
+            // 2. 开始持续播放声音，直到用户手动点击确认
+            let isPlaying = true;
+            function startContinuousPlayback() {
+                if (!isPlaying) return;
+                
+                // 播放提示音
+                playSound(currentSoundType);
+                
+                // 设置重复播放间隔
+                soundInterval = setInterval(() => {
+                    if (isPlaying) {
+                        playSound(currentSoundType);
+                    } else {
+                        clearInterval(soundInterval);
+                        soundInterval = null;
+                    }
+                }, 1500); // 每1.5秒播放一次
+            }
+            
+            // 3. 立即开始播放
+            startContinuousPlayback();
+            
+            // 4. 显示手动确认按钮
+            showStatus('中断时间结束！请点击"确认结束"按钮停止声音', 0);
+            
+            // 创建手动结束按钮
+            const manualEndBtn = document.createElement('button');
+            manualEndBtn.id = 'manualEndBtn';
+            manualEndBtn.textContent = '✅ 确认结束（停止声音）';
+            manualEndBtn.className = 'button success';
+            manualEndBtn.style.cssText = `
+                width: 100%;
+                height: 52px;
+                margin-top: 10px;
+                border: none;
+                border-radius: 14px;
+                font-size: 1.1rem;
+                font-weight: 600;
+                cursor: pointer;
+                background: rgba(16, 185, 129, 0.25);
+                color: white;
+            `;
+            
+            manualEndBtn.onclick = function() {
+                // 停止持续播放的声音
+                isPlaying = false;
+                if (soundInterval) {
+                    clearInterval(soundInterval);
+                    soundInterval = null;
+                }
+                
+                // 停止所有音频
+                if (audioGenerator) {
+                    audioGenerator.stopAll();
+                }
+                
+                // 恢复界面状态
+                manualEndBtn.remove();
+                interruptTimerDisplay.classList.remove('show');
+                startInterruptBtn.disabled = false;
+                cancelInterruptBtn.style.display = 'none';
+                
+                // 重置输入
+                interruptMinutesInput.value = 0;
+                interruptSecondsInput.value = 10;
+                interruptReasonInput.value = '';
+                
+                // 重置中断状态变量
+                isInterruptRunning = false;
+                remainingSeconds = 0;
+                
+                showStatus('中断已确认结束，声音已停止', 2000);
+            };
+            
+            // 添加到中断控制区域
+            const interruptControls = document.querySelector('.interrupt-controls');
+            if (interruptControls) {
+                interruptControls.appendChild(manualEndBtn);
+            }
+            
+            // 隐藏原取消按钮
+            if (cancelInterruptBtn) {
+                cancelInterruptBtn.style.display = 'none';
+            }
+        }
+        
+        // 取消中断 - 修复版本
+        async function cancelInterrupt() {
+            console.log("❌ 取消中断被调用");
+            await playClickSound('stop');
+            
+            // 停止计时器
+            isInterruptRunning = false;
+            if (interruptAnimationFrame) {
+                cancelAnimationFrame(interruptAnimationFrame);
+                interruptAnimationFrame = null;
+            }
+            
+            // 停止所有持续播放的声音
+            if (soundInterval) {
+                clearInterval(soundInterval);
+                soundInterval = null;
+            }
+            
+            // 停止音频生成器
+            if (audioGenerator) {
+                audioGenerator.stopAll();
+            }
+            
+            // 移除手动结束按钮（如果存在）
+            const manualEndBtn = document.getElementById('manualEndBtn');
+            if (manualEndBtn) {
+                manualEndBtn.remove();
+            }
+            
+            // 恢复界面
+            interruptTimerDisplay.classList.remove('show');
+            startInterruptBtn.disabled = false;
+            cancelInterruptBtn.style.display = 'none';
+            interruptMinutesInput.value = 0;
+            interruptSecondsInput.value = 10;
+            interruptReasonInput.value = '';
+            
+            // 重置中断状态
+            remainingSeconds = 0;
+            
+            showStatus('中断已取消，声音已停止', 2000);
+        }
+        
         // 显示调试信息
         function updateDebugInfo(message) {
-            if (debugInfoElement && window.debugMode) {
-                debugInfoElement.textContent = message;
-                debugInfoElement.classList.add('show');
+            if (window.debugMode) {
+                console.log(message);
             }
         }
         
         // 更新设备状态显示
         function updateDeviceStatus() {
-            if (deviceStatusElement) {
-                let status = `设备: ${window.isIOS ? 'iOS' : 'PC/Android'}`;
-                status += ` | 用户交互: ${window.userInteracted ? '✅' : '❌'}`;
-                status += ` | 声音: ${soundEnabled ? '✅' : '❌'}`;
-                deviceStatusElement.textContent = status;
-            }
+            // 简化设备状态显示
         }
         
         // 初始化音频系统
@@ -1184,12 +1131,12 @@
             
             if (ctx) {
                 soundEnabled = true;
-                updateDeviceStatus();
                 updateDebugInfo('JavaScript音频已就绪');
             } else {
                 updateDebugInfo('音频系统初始化失败');
             }
         }
+        
         // 状态条显示
         function showStatus(message, duration = 3000) {
             if (statusBar && statusText) {
@@ -1377,14 +1324,13 @@
             
             updateDeviceStatus();
         }
-        
         // 暂停番茄钟
         async function pausePomodoro() {
             console.log("⏸️ 暂停番茄钟被调用");
             await playClickSound('stop');
             
             if (!isPomodoroRunning) {
-                showStatus('番茄钟没有在运行');
+                showStatus('番茄钟未在运行');
                 return;
             }
             
@@ -1395,81 +1341,85 @@
             startBtn.disabled = false;
             pauseBtn.disabled = true;
             
-            showStatus('已暂停', 2000);
+            showStatus('番茄钟已暂停', 2000);
             updateDeviceStatus();
         }
         
         // 重置番茄钟
         async function resetPomodoro() {
             console.log("🔄 重置番茄钟被调用");
-            await playClickSound('normal');
+            await playClickSound('stop');
             
             isPomodoroRunning = false;
-            isFocusTime = true;
             clearInterval(pomodoroTimer);
             pomodoroTimer = null;
             
             const focusMinutes = parseInt(focusTimeInput.value) || 25;
             pomodoroSeconds = focusMinutes * 60;
-            updateTimerDisplay(pomodoroSeconds);
+            isFocusTime = true;
             
             startBtn.disabled = false;
             pauseBtn.disabled = true;
             
-            document.title = '番茄钟';
-            timerDisplay.classList.remove('timer-pulse');
+            if (isInterruptRunning) {
+                pauseInterrupt();
+            }
             
-            showStatus('已重置', 2000);
+            updateTimerDisplay(pomodoroSeconds);
+            showStatus('番茄钟已重置', 2000);
             updateDeviceStatus();
         }
         
-        // 秒级中断计时函数
-function updateInterruptTimer() {
-    if (!isInterruptRunning) return;
-    
-    const now = Date.now();
-    const elapsedSeconds = Math.floor((now - interruptStartTime) / 1000);
-    const remainingSeconds = Math.max(0, interruptDuration - elapsedSeconds);
-    
-    updateInterruptTimerDisplay(remainingSeconds);
-    
-    if (remainingSeconds <= 0) {
-        // 只在倒计时完全结束时触发
-        interruptFinished();
-    } else {
-        // 只在特定的秒数播放提示音，而不是每秒
-        if (remainingSeconds === 3 || remainingSeconds === 2 || remainingSeconds === 1) {
-            playSound('beep');
-            vibrate(100);
+        // 暂停中断
+        function pauseInterrupt() {
+            isInterruptRunning = false;
+            if (interruptAnimationFrame) {
+                cancelAnimationFrame(interruptAnimationFrame);
+                interruptAnimationFrame = null;
+            }
+            
+            // 停止所有持续播放的声音
+            if (soundInterval) {
+                clearInterval(soundInterval);
+                soundInterval = null;
+            }
+            
+            interruptTimerDisplay.classList.remove('show');
+            startInterruptBtn.disabled = false;
+            cancelInterruptBtn.style.display = 'none';
+            
+            // 移除手动结束按钮（如果存在）
+            const manualEndBtn = document.getElementById('manualEndBtn');
+            if (manualEndBtn) {
+                manualEndBtn.remove();
+            }
         }
-        interruptAnimationFrame = requestAnimationFrame(updateInterruptTimer);
-    }
-}
         
-        // 开始中断
+        // 开始秒级中断
         async function startInterrupt() {
             console.log("⏱️ 开始中断被调用");
             await playClickSound('start');
             
-            if (isPomodoroRunning) {
-                pausePomodoro();
-            }
-            
             if (isInterruptRunning) {
-                showStatus('中断已在运行');
+                showStatus('中断已在运行中');
                 return;
             }
             
             const minutes = parseInt(interruptMinutesInput.value) || 0;
             const seconds = parseInt(interruptSecondsInput.value) || 10;
-            const totalSeconds = minutes * 60 + seconds;
+            const reason = interruptReasonInput.value.trim();
             
-            if (totalSeconds <= 0) {
-                showStatus('请输入有效的时间', 2000);
+            if (minutes === 0 && seconds === 0) {
+                showStatus('请设置中断时间（至少1秒）');
                 return;
             }
             
-            interruptDuration = totalSeconds;
+            interruptDuration = minutes * 60 + seconds;
+            if (interruptDuration > 3600) {
+                showStatus('中断时间不能超过1小时');
+                return;
+            }
+            
             interruptStartTime = Date.now();
             isInterruptRunning = true;
             
@@ -1477,217 +1427,95 @@ function updateInterruptTimer() {
             startInterruptBtn.disabled = true;
             cancelInterruptBtn.style.display = 'block';
             
-            const reason = interruptReasonInput.value.trim() || '临时中断';
-            
             // 添加中断记录
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+            const timestamp = now.toLocaleTimeString('zh-CN', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            const durationText = `${minutes}分${seconds}秒`;
             const historyItem = {
-                time: timeStr,
-                duration: interruptDuration,
-                reason: reason
+                time: timestamp,
+                duration: durationText,
+                reason: reason || '无原因',
+                seconds: interruptDuration
             };
             
             currentSessionHistory.unshift(historyItem);
             updateHistoryDisplay();
             
-            showStatus(`开始${reason}，倒计时${minutes}分${seconds}秒`, 2000);
+            // 保存到localStorage
+            try {
+                const allHistory = JSON.parse(localStorage.getItem('pomodoroInterruptHistory') || '[]');
+                allHistory.unshift({
+                    timestamp: now.toISOString(),
+                    duration: durationText,
+                    reason: reason || '无原因',
+                    seconds: interruptDuration
+                });
+                
+                if (allHistory.length > 50) allHistory.length = 50;
+                localStorage.setItem('pomodoroInterruptHistory', JSON.stringify(allHistory));
+            } catch (e) {
+                console.error('保存中断记录失败:', e);
+            }
             
-            // 隐藏状态条
-            setTimeout(() => {
-                statusBar.classList.remove('show');
-            }, 2000);
+            showStatus(`开始${durationText}中断${reason ? `（${reason}）` : ''}`, 2000);
             
+            // 开始高精度计时
             updateInterruptTimerDisplay(interruptDuration);
-            
-            // 启动高精度中断计时器
             interruptAnimationFrame = requestAnimationFrame(updateInterruptTimer);
             
             updateDeviceStatus();
         }
         
-        // 暂停中断
-        function pauseInterrupt() {
-            if (!isInterruptRunning) return;
-            
-            isInterruptRunning = false;
-            if (interruptAnimationFrame) {
-                cancelAnimationFrame(interruptAnimationFrame);
-                interruptAnimationFrame = null;
-            }
-            
-            const elapsedSeconds = Math.floor((Date.now() - interruptStartTime) / 1000);
-            remainingSeconds = Math.max(0, interruptDuration - elapsedSeconds);
-            
-            interruptTimerDisplay.classList.remove('show');
-            startInterruptBtn.disabled = false;
-            cancelInterruptBtn.style.display = 'none';
-            
-            showStatus('中断已暂停', 2000);
-        }
-        
-        // 中断完成
-function interruptFinished() {
-    isInterruptRunning = false;
-    
-    if (interruptAnimationFrame) {
-        cancelAnimationFrame(interruptAnimationFrame);
-        interruptAnimationFrame = null;
-    }
-    
-    // 播放一次结束提示音
-    playSound('chord');
-    vibrate([200, 100, 200, 100, 200]);
-    
-    // 不自动重置，显示手动确认按钮
-    showStatus('中断时间结束！请点击"确认结束"按钮', 0);
-    
-    // 显示手动结束按钮
-    const manualEndBtn = document.createElement('button');
-    manualEndBtn.id = 'manualEndBtn';
-    manualEndBtn.textContent = '✅ 确认结束';
-    manualEndBtn.className = 'success';
-    manualEndBtn.style.cssText = `
-        width: 100%;
-        height: 52px;
-        margin-top: 10px;
-        border: none;
-        border-radius: 14px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        cursor: pointer;
-        background: rgba(16, 185, 129, 0.25);
-        color: white;
-    `;
-    
-    manualEndBtn.onclick = function() {
-        // 停止所有声音
-        if (soundInterval) {
-            clearInterval(soundInterval);
-            soundInterval = null;
-        }
-        if (audioGenerator) {
-            audioGenerator.stopAll();
-        }
-        
-        // 恢复界面状态
-        manualEndBtn.remove();
-        interruptTimerDisplay.classList.remove('show');
-        startInterruptBtn.disabled = false;
-        cancelInterruptBtn.style.display = 'none';
-        
-        // 重置输入
-        interruptMinutesInput.value = 0;
-        interruptSecondsInput.value = 10;
-        interruptReasonInput.value = '';
-        
-        showStatus('中断已确认结束', 2000);
-    };
-    
-    // 找到中断按钮组，添加确认按钮
-    const interruptControls = document.querySelector('.interrupt-controls');
-    if (interruptControls) {
-        interruptControls.appendChild(manualEndBtn);
-    }
-    
-    // 隐藏原取消按钮
-    if (cancelInterruptBtn) {
-        cancelInterruptBtn.style.display = 'none';
-    }
-}
-        
-        // 取消中断
-async function cancelInterrupt() {
-    console.log("❌ 取消中断被调用");
-    await playClickSound('stop');
-    
-    // 停止计时器
-    isInterruptRunning = false;
-    if (interruptAnimationFrame) {
-        cancelAnimationFrame(interruptAnimationFrame);
-        interruptAnimationFrame = null;
-    }
-    
-    // 停止所有声音
-    if (audioGenerator) {
-        audioGenerator.stopAll();
-    }
-    
-    // 移除手动结束按钮（如果存在）
-    const manualEndBtn = document.getElementById('manualEndBtn');
-    if (manualEndBtn) {
-        manualEndBtn.remove();
-    }
-    
-    // 恢复界面
-    interruptTimerDisplay.classList.remove('show');
-    startInterruptBtn.disabled = false;
-    cancelInterruptBtn.style.display = 'none';
-    interruptMinutesInput.value = 0;
-    interruptSecondsInput.value = 10;
-    interruptReasonInput.value = '';
-    
-    showStatus('中断已取消', 2000);
-}
-        
-        // 更新中断历史显示
+        // 更新历史记录显示
         function updateHistoryDisplay() {
             if (!historyList) return;
             
+            historyList.innerHTML = '';
+            
             if (currentSessionHistory.length === 0) {
-                historyList.innerHTML = '<div class="history-item empty-history">暂无中断记录</div>';
+                const emptyItem = document.createElement('div');
+                emptyItem.className = 'history-item empty-history';
+                emptyItem.textContent = '暂无中断记录';
+                historyList.appendChild(emptyItem);
                 return;
             }
             
-            let historyHTML = '';
-            currentSessionHistory.forEach((item, index) => {
-                const minutes = Math.floor(item.duration / 60);
-                const seconds = item.duration % 60;
-                const durationStr = minutes > 0 ? `${minutes}分${seconds}秒` : `${seconds}秒`;
+            currentSessionHistory.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
                 
-                historyHTML += `
-                    <div class="history-item">
-                        <div class="history-time">${item.time}</div>
-                        <div class="history-details">
-                            <span>${item.reason}</span>
-                            <span>${durationStr}</span>
-                        </div>
-                    </div>
+                const timeElement = document.createElement('div');
+                timeElement.className = 'history-time';
+                timeElement.textContent = item.time;
+                
+                const detailsElement = document.createElement('div');
+                detailsElement.className = 'history-details';
+                detailsElement.innerHTML = `
+                    <span>${item.duration}</span>
+                    <span>${item.reason}</span>
                 `;
+                
+                historyItem.appendChild(timeElement);
+                historyItem.appendChild(detailsElement);
+                historyList.appendChild(historyItem);
             });
-            
-            historyList.innerHTML = historyHTML;
         }
         
         // 清除历史记录
-        function clearHistory() {
-            currentSessionHistory = [];
-            updateHistoryDisplay();
-            showStatus('历史记录已清除', 2000);
-        }
-        
-        // 快速测试中断
-        function quickInterruptTest(seconds) {
-            interruptMinutesInput.value = 0;
-            interruptSecondsInput.value = seconds;
-            interruptReasonInput.value = '测试中断';
-            startInterrupt();
-        }
-        
-        // 设置预设时间
-        function setPresetTime(minutes) {
-            focusTimeInput.value = minutes;
-            resetPomodoro();
-            showStatus(`已设置专注时间为${minutes}分钟`, 2000);
-        }
-        
-        // 设置自定义时间
-        function setCustomTime() {
-            const minutes = parseInt(customMinutesInput.value);
-            if (minutes && minutes > 0 && minutes <= 120) {
-                setPresetTime(minutes);
-            } else {
-                showStatus('请输入1-120之间的分钟数', 2000);
+        async function clearHistory() {
+            console.log("🗑️ 清除历史被调用");
+            await playClickSound('stop');
+            
+            if (confirm('确定要清除所有中断记录吗？')) {
+                currentSessionHistory = [];
+                localStorage.removeItem('pomodoroInterruptHistory');
+                updateHistoryDisplay();
+                showStatus('历史记录已清除', 2000);
             }
         }
         
@@ -1696,554 +1524,476 @@ async function cancelInterrupt() {
             console.log("🔊 测试声音被调用");
             
             if (!soundEnabled) {
-                soundTestResult.textContent = '❌ 声音未启用，请点击屏幕任意位置激活';
-                soundTestResult.className = 'compatibility-warning error';
-                soundTestResult.classList.remove('hidden');
+                showStatus('音频未启用，请先点击页面激活声音', 3000);
                 return;
             }
             
-            soundTestResult.textContent = '测试中...';
-            soundTestResult.className = 'compatibility-warning';
-            soundTestResult.classList.remove('hidden');
+            isTestingSound = true;
             
-            try {
-                await playClickSound('test');
-                soundTestResult.textContent = '✅ 点击音效测试成功';
+            if (soundTestResult) {
+                soundTestResult.textContent = '正在播放测试音...';
                 soundTestResult.className = 'compatibility-warning success';
-            } catch (error) {
-                soundTestResult.textContent = '❌ 点击音效测试失败';
-                soundTestResult.className = 'compatibility-warning error';
+                soundTestResult.classList.remove('hidden');
             }
             
-            setTimeout(async () => {
-                try {
-                    await playSound('beep');
-                    soundTestResult.textContent = '✅ 蜂鸣音效测试成功';
-                    soundTestResult.className = 'compatibility-warning success';
-                } catch (error) {
-                    soundTestResult.textContent = '❌ 蜂鸣音效测试失败';
-                    soundTestResult.className = 'compatibility-warning error';
+            // 播放测试音序列
+            try {
+                // 播放蜂鸣声
+                await new Promise(resolve => setTimeout(resolve, 300));
+                await playSound('beep');
+                
+                await new Promise(resolve => setTimeout(resolve, 300));
+                await playSound('bell');
+                
+                await new Promise(resolve => setTimeout(resolve, 300));
+                await playSound('chord');
+                
+                if (soundTestResult) {
+                    soundTestResult.textContent = '✅ 音频测试成功！三种音效均已正常播放。';
                 }
                 
+                vibrate([100, 50, 100, 50, 100]);
+                showStatus('音频测试完成，所有音效正常', 3000);
+            } catch (error) {
+                if (soundTestResult) {
+                    soundTestResult.textContent = '❌ 音频测试失败：' + error.message;
+                    soundTestResult.className = 'compatibility-warning error';
+                }
+                showStatus('音频测试失败', 3000);
+            } finally {
+                isTestingSound = false;
                 setTimeout(() => {
-                    soundTestResult.classList.add('hidden');
-                }, 2000);
-            }, 1000);
+                    if (soundTestResult) {
+                        soundTestResult.classList.add('hidden');
+                    }
+                }, 3000);
+            }
         }
         
         // 停止所有声音
         async function stopAllSounds() {
-            console.log("🔇 停止所有声音被调用");
+            console.log("🔇 停止声音被调用");
             await playClickSound('stop');
             
+            // 停止持续播放的提示音
+            if (soundInterval) {
+                clearInterval(soundInterval);
+                soundInterval = null;
+            }
+            
+            // 停止音频生成器
             if (audioGenerator) {
                 audioGenerator.stopAll();
-                soundEnabled = false;
-                showStatus('已停止所有声音', 2000);
-                updateDeviceStatus();
-                
-                setTimeout(() => {
-                    initAudioSystem();
-                }, 1000);
             }
-        }
-        
-        // 更新音量
-        function updateVolume() {
-            volume = volumeControl.value / 100;
-            volumeValue.textContent = `${volumeControl.value}%`;
-        }
-        
-        // 选择声音类型
-        function selectSound(soundType) {
-            currentSoundType = soundType;
-            soundOptions.forEach(option => {
-                if (option.dataset.sound === soundType) {
-                    option.classList.add('active');
-                } else {
-                    option.classList.remove('active');
+            
+            // 如果中断正在运行，停止中断声音
+            if (isInterruptRunning) {
+                // 停止中断计时器
+                isInterruptRunning = false;
+                if (interruptAnimationFrame) {
+                    cancelAnimationFrame(interruptAnimationFrame);
+                    interruptAnimationFrame = null;
                 }
-            });
-            showStatus(`已选择${soundType === 'beep' ? '蜂鸣' : soundType === 'bell' ? '铃声' : '和弦'}音效`, 2000);
+                
+                // 恢复中断按钮状态
+                startInterruptBtn.disabled = false;
+                cancelInterruptBtn.style.display = 'none';
+                interruptTimerDisplay.classList.remove('show');
+                
+                // 移除手动结束按钮
+                const manualEndBtn = document.getElementById('manualEndBtn');
+                if (manualEndBtn) {
+                    manualEndBtn.remove();
+                }
+            }
+            
+            showStatus('所有声音已停止', 2000);
         }
         
-        // 更新点击音效设置
-        function updateClickSoundSetting() {
-            clickSoundEnabled = clickSoundToggle.checked;
-            showStatus(`按键点击音效已${clickSoundEnabled ? '启用' : '禁用'}`, 2000);
+        // 快速测试中断
+        async function quickTestInterrupt(seconds) {
+            console.log(`⏱️ 快速测试中断 ${seconds}秒被调用`);
+            await playClickSound('test');
+            
+            if (isInterruptRunning) {
+                showStatus('中断已在运行中');
+                return;
+            }
+            
+            interruptMinutesInput.value = 0;
+            interruptSecondsInput.value = seconds;
+            interruptReasonInput.value = '快速测试';
+            
+            startInterrupt();
         }
         
-        // 更新震动设置
-        function updateVibrationSetting() {
-            vibrationEnabled = document.getElementById('vibrationToggle').checked;
-            showStatus(`震动已${vibrationEnabled ? '启用' : '禁用'}`, 2000);
+        // 应用预设时间
+        function applyPresetTime(minutes) {
+            focusTimeInput.value = minutes;
+            resetPomodoro();
+            showStatus(`专注时间设置为${minutes}分钟`, 2000);
+        }
+        
+        // 应用自定义时间
+        async function applyCustomTime() {
+            const minutes = parseInt(customMinutesInput.value);
+            
+            if (isNaN(minutes) || minutes < 1 || minutes > 120) {
+                showStatus('请输入1-120之间的数字');
+                return;
+            }
+            
+            await playClickSound('test');
+            focusTimeInput.value = minutes;
+            resetPomodoro();
+            showStatus(`专注时间设置为${minutes}分钟`, 2000);
         }
         
         // 初始化事件监听器
         function initEventListeners() {
-            console.log("🔧 开始初始化事件监听器...");
+            console.log("🔧 初始化事件监听器...");
             
-            // 修复1：使用更可靠的事件绑定方式
+            // 番茄钟控制按钮
             if (startBtn) {
-                console.log("✅ 绑定开始按钮");
                 startBtn.addEventListener('click', startPomodoro);
+                console.log("✅ 开始按钮监听器已绑定");
             } else {
-                console.error("❌ 开始按钮不存在");
+                console.error("❌ 开始按钮元素不存在");
             }
             
             if (pauseBtn) {
-                console.log("✅ 绑定暂停按钮");
                 pauseBtn.addEventListener('click', pausePomodoro);
+                console.log("✅ 暂停按钮监听器已绑定");
             } else {
-                console.error("❌ 暂停按钮不存在");
+                console.error("❌ 暂停按钮元素不存在");
             }
             
             if (resetBtn) {
-                console.log("✅ 绑定重置按钮");
                 resetBtn.addEventListener('click', resetPomodoro);
+                console.log("✅ 重置按钮监听器已绑定");
             } else {
-                console.error("❌ 重置按钮不存在");
+                console.error("❌ 重置按钮元素不存在");
             }
             
-            if (startInterruptBtn) {
-                console.log("✅ 绑定开始中断按钮");
-                startInterruptBtn.addEventListener('click', startInterrupt);
-            } else {
-                console.error("❌ 开始中断按钮不存在");
-            }
-            
-            if (cancelInterruptBtn) {
-                console.log("✅ 绑定取消中断按钮");
-                cancelInterruptBtn.addEventListener('click', cancelInterrupt);
-            } else {
-                console.error("❌ 取消中断按钮不存在");
-            }
-            
+            // 声音控制按钮
             if (stopSoundBtn) {
-                console.log("✅ 绑定停止声音按钮1");
                 stopSoundBtn.addEventListener('click', stopAllSounds);
             }
             
             if (stopSoundBtn2) {
-                console.log("✅ 绑定停止声音按钮2");
                 stopSoundBtn2.addEventListener('click', stopAllSounds);
             }
             
             if (testSoundBtn) {
-                console.log("✅ 绑定测试声音按钮");
                 testSoundBtn.addEventListener('click', testSound);
             }
             
-            if (volumeControl) {
-                console.log("✅ 绑定音量控制");
-                volumeControl.addEventListener('input', updateVolume);
+            // 中断控制
+            if (startInterruptBtn) {
+                startInterruptBtn.addEventListener('click', startInterrupt);
+            }
+            
+            if (cancelInterruptBtn) {
+                cancelInterruptBtn.addEventListener('click', cancelInterrupt);
             }
             
             if (clearHistoryBtn) {
-                console.log("✅ 绑定清除历史按钮");
                 clearHistoryBtn.addEventListener('click', clearHistory);
             }
             
-            if (clickSoundToggle) {
-                console.log("✅ 绑定点击音效开关");
-                clickSoundToggle.addEventListener('change', updateClickSoundSetting);
+            // 声音设置
+            if (volumeControl) {
+                volumeControl.addEventListener('input', function() {
+                    volume = this.value / 100;
+                    volumeValue.textContent = this.value + '%';
+                    
+                    // 测试音量变化
+                    if (volume > 0) {
+                        playSound('click');
+                    }
+                });
             }
             
-            // 声音选项
+            // 声音类型选择
             soundOptions.forEach(option => {
-                option.addEventListener('click', () => {
-                    selectSound(option.dataset.sound);
+                option.addEventListener('click', function() {
+                    soundOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    currentSoundType = this.dataset.sound;
+                    
+                    // 测试选中声音
+                    if (soundEnabled) {
+                        playSound(currentSoundType);
+                    }
                 });
             });
             
-            // 震动开关
+            // 震动控制
             const vibrationToggle = document.getElementById('vibrationToggle');
             if (vibrationToggle) {
-                vibrationToggle.addEventListener('change', updateVibrationSetting);
+                vibrationToggle.addEventListener('change', function() {
+                    vibrationEnabled = this.checked;
+                    vibrate(50);
+                });
             }
             
-            // 时间预设按钮
+            // 点击音效控制
+            if (clickSoundToggle) {
+                clickSoundToggle.addEventListener('change', function() {
+                    clickSoundEnabled = this.checked;
+                    if (clickSoundEnabled) {
+                        playClickSound('test');
+                    }
+                });
+            }
+            
+            // 预设时间按钮
             presetTimeButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const minutes = parseInt(button.dataset.minutes);
-                    setPresetTime(minutes);
+                button.addEventListener('click', function() {
+                    const minutes = parseInt(this.dataset.minutes);
+                    applyPresetTime(minutes);
                 });
             });
             
             // 自定义时间设置
             if (setCustomTimeBtn) {
-                setCustomTimeBtn.addEventListener('click', setCustomTime);
+                setCustomTimeBtn.addEventListener('click', applyCustomTime);
             }
             
-            // 快速测试按钮
+            // 快速测试中断按钮
             quickTestButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const seconds = parseInt(button.dataset.seconds);
-                    quickInterruptTest(seconds);
+                button.addEventListener('click', function() {
+                    const seconds = parseInt(this.dataset.seconds);
+                    quickTestInterrupt(seconds);
                 });
             });
             
-            // 页面可见性变化
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) {
-                    updateDebugInfo('页面隐藏');
-                } else {
-                    updateDebugInfo('页面恢复');
-                }
-            });
-            
-            // 防止页面滚动
-            document.addEventListener('touchmove', (e) => {
-                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                    e.preventDefault();
-                }
-            }, { passive: false });
-            
-            // 用户交互激活音频
-            document.addEventListener('click', async () => {
-                if (!window.userInteracted) {
-                    window.userInteracted = true;
-                    console.log("👆 用户交互，解锁音频系统");
-                    
+            // 全局点击事件处理
+            document.addEventListener('click', async function(event) {
+                if (!window.userInteracted && event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
                     try {
                         await audioGenerator.ensureRunning();
+                        window.userInteracted = true;
                         soundEnabled = true;
+                        
                         updateDeviceStatus();
-                        showStatus('音频系统已激活', 2000);
+                        showStatus('音频已激活！', 2000);
+                        
+                        // 移除全局点击事件
+                        this.removeEventListener('click', arguments.callee);
                     } catch (error) {
-                        console.error("音频解锁失败:", error);
+                        console.error('音频激活失败:', error);
                     }
                 }
-            }, { once: true });
-            
-            // 诊断信息
-            document.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                updateDebugInfo('右键菜单被阻止');
-            });
-            
-            // 双击显示诊断信息
-            document.addEventListener('dblclick', (e) => {
-                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                    const diagnosticPanel = document.getElementById('diagnosticPanel');
-                    if (diagnosticPanel) {
-                        const isVisible = diagnosticPanel.style.display !== 'none';
-                        diagnosticPanel.style.display = isVisible ? 'none' : 'block';
-                        diagnosticPanel.innerHTML = `
-                            <div><strong>番茄钟诊断信息</strong></div>
-                            <div>番茄钟运行: ${isPomodoroRunning ? '✅' : '❌'}</div>
-                            <div>中断运行: ${isInterruptRunning ? '✅' : '❌'}</div>
-                            <div>剩余时间: ${pomodoroSeconds}秒</div>
-                            <div>音频状态: ${soundEnabled ? '✅' : '❌'}</div>
-                            <div>用户交互: ${window.userInteracted ? '✅' : '❌'}</div>
-                            <div>点击音效: ${clickSoundEnabled ? '✅' : '❌'}</div>
-                        `;
-                    }
+                
+                // 播放点击音效
+                if (clickSoundEnabled && 
+                    event.target.tagName === 'BUTTON' && 
+                    event.target.id !== 'testSoundBtn') {
+                    await playClickSound('normal');
                 }
             });
             
-            // 修复2：添加键盘快捷键
-            document.addEventListener('keydown', (e) => {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            // 全局键盘快捷键
+            document.addEventListener('keydown', async function(event) {
+                if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
                     return;
                 }
                 
-                switch(e.key.toLowerCase()) {
-                    case ' ':
-                    case 'enter':
-                        e.preventDefault();
-                        if (!isPomodoroRunning) {
-                            startPomodoro();
+                switch(event.code) {
+                    case 'Space':
+                    case 'Enter':
+                        event.preventDefault();
+                        if (isPomodoroRunning) {
+                            await pausePomodoro();
                         } else {
-                            pausePomodoro();
+                            await startPomodoro();
                         }
                         break;
-                    case 'r':
-                    case 'r':
-                        e.preventDefault();
-                        resetPomodoro();
+                    case 'KeyR':
+                        if (event.ctrlKey || event.metaKey) {
+                            event.preventDefault();
+                            await resetPomodoro();
+                        }
                         break;
-                    case 'i':
-                    case 'i':
-                        e.preventDefault();
-                        startInterrupt();
+                    case 'KeyI':
+                        if (!isInterruptRunning) {
+                            event.preventDefault();
+                            await startInterrupt();
+                        }
                         break;
-                    case 'escape':
-                        e.preventDefault();
+                    case 'Escape':
                         if (isInterruptRunning) {
-                            cancelInterrupt();
+                            event.preventDefault();
+                            await cancelInterrupt();
                         }
                         break;
                 }
             });
             
-            console.log("✅ 所有事件监听器已绑定");
+            // 输入验证
+            const timeInputs = [focusTimeInput, breakTimeInput, interruptMinutesInput, interruptSecondsInput];
+            timeInputs.forEach(input => {
+                if (input) {
+                    input.addEventListener('input', function() {
+                        let value = parseInt(this.value) || 0;
+                        
+                        if (this === focusTimeInput || this === breakTimeInput) {
+                            if (value < 1) this.value = 1;
+                            if (value > 120) this.value = 120;
+                        } else if (this === interruptMinutesInput) {
+                            if (value < 0) this.value = 0;
+                            if (value > 120) this.value = 120;
+                        } else if (this === interruptSecondsInput) {
+                            if (value < 0) this.value = 0;
+                            if (value > 59) this.value = 59;
+                        }
+                    });
+                }
+            });
+        }
+        
+        // 加载历史记录
+        function loadHistory() {
+            try {
+                const savedHistory = localStorage.getItem('pomodoroInterruptHistory');
+                if (savedHistory) {
+                    const allHistory = JSON.parse(savedHistory);
+                    currentSessionHistory = allHistory.slice(0, 10).map(item => ({
+                        time: new Date(item.timestamp).toLocaleTimeString('zh-CN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        }),
+                        duration: item.duration,
+                        reason: item.reason,
+                        seconds: item.seconds
+                    }));
+                    updateHistoryDisplay();
+                }
+            } catch (e) {
+                console.error('加载历史记录失败:', e);
+            }
+        }
+        
+        // 更新番茄钟状态显示
+        function updatePomodoroStatus() {
+            const pomodoroStatus = document.getElementById('pomodoroStatus');
+            if (!pomodoroStatus) return;
+            
+            if (isPomodoroRunning) {
+                pomodoroStatus.textContent = isFocusTime ? '⏳ 专注中...' : '☕️ 休息中...';
+            } else {
+                pomodoroStatus.textContent = '🎯 准备开始专注';
+            }
         }
         
         // 初始化应用
         function initApp() {
-            console.log("🚀 开始初始化番茄钟应用...");
+            console.log("🚀 初始化番茄钟应用 v6.1.0");
             
-            // 初始化显示
-            updateTimerDisplay(pomodoroSeconds);
-            pauseBtn.disabled = true;
-            cancelInterruptBtn.style.display = 'none';
-            
-            // 初始化设备状态
-            updateDeviceStatus();
-            
-            // 初始化音频系统
+            // 初始化音频
             initAudioSystem();
             
-            // 初始化事件监听器
+            // 绑定事件监听器
             initEventListeners();
             
-            // 初始化声音控制
-            updateVolume();
+            // 加载历史记录
+            loadHistory();
             
-            // 初始化震动设置
-            vibrationEnabled = document.getElementById('vibrationToggle')?.checked || true;
-            clickSoundEnabled = clickSoundToggle?.checked || true;
+            // 更新初始状态
+            updateTimerDisplay(pomodoroSeconds);
+            updatePomodoroStatus();
             
-            // 页面加载完成后的用户交互检测
+            // 检查音频系统状态
             setTimeout(() => {
                 if (!window.userInteracted) {
-                    showStatus('请点击屏幕任意位置激活声音', 5000);
+                    showStatus('请点击页面任意位置激活音频', 0);
+                } else {
+                    showStatus('番茄钟已就绪，可以开始使用！', 3000);
                 }
             }, 1000);
             
-            // 显示初始化完成消息
-            setTimeout(() => {
-                if (window.userInteracted && soundEnabled) {
-                    showStatus('番茄钟已就绪，点击开始按钮开始专注', 3000);
-                }
-            }, 2000);
-            
-            // 兼容性检查
-            if (!window.AudioContext && !window.webkitAudioContext) {
-                soundTestResult.textContent = '❌ 浏览器不支持Web Audio API，声音功能受限';
-                soundTestResult.className = 'compatibility-warning error';
-                soundTestResult.classList.remove('hidden');
-                soundEnabled = false;
+            // 检查iOS设备
+            if (window.isIOS) {
+                console.log("📱 检测到iOS设备，启用特殊处理");
+                showStatus('iOS设备检测到，建议点击屏幕激活音频', 5000);
             }
             
-            if (!navigator.vibrate) {
-                document.getElementById('vibrationToggle').disabled = true;
-                const vibrationLabel = document.querySelector('label[for="vibrationToggle"]');
-                if (vibrationLabel) {
-                    vibrationLabel.textContent += ' (不支持)';
-                }
-            }
-            
-            // 保存设备状态
-            try {
-                if (window.localStorage) {
-                    const savedFocusTime = localStorage.getItem('pomodoro_focus_time');
-                    const savedBreakTime = localStorage.getItem('pomodoro_break_time');
-                    
-                    if (savedFocusTime) {
-                        focusTimeInput.value = savedFocusTime;
-                        pomodoroSeconds = parseInt(savedFocusTime) * 60;
-                        updateTimerDisplay(pomodoroSeconds);
-                    }
-                    
-                    if (savedBreakTime) {
-                        breakTimeInput.value = savedBreakTime;
-                    }
-                    
-                    const savedVolume = localStorage.getItem('pomodoro_volume');
-                    if (savedVolume) {
-                        volumeControl.value = savedVolume;
-                        updateVolume();
-                    }
-                    
-                    const savedSoundType = localStorage.getItem('pomodoro_sound_type');
-                    if (savedSoundType && ['beep', 'bell', 'chord'].includes(savedSoundType)) {
-                        selectSound(savedSoundType);
-                    }
-                    
-                    const savedVibration = localStorage.getItem('pomodoro_vibration');
-                    if (savedVibration !== null) {
-                        vibrationEnabled = savedVibration === 'true';
-                        document.getElementById('vibrationToggle').checked = vibrationEnabled;
-                    }
-                    
-                    const savedClickSound = localStorage.getItem('pomodoro_click_sound');
-                    if (savedClickSound !== null) {
-                        clickSoundEnabled = savedClickSound === 'true';
-                        clickSoundToggle.checked = clickSoundEnabled;
-                    }
-                }
-            } catch (error) {
-                console.warn('本地存储不可用:', error);
-            }
-            
-            // 添加自动保存功能
-            function saveSettings() {
-                try {
-                    if (window.localStorage) {
-                        localStorage.setItem('pomodoro_focus_time', focusTimeInput.value);
-                        localStorage.setItem('pomodoro_break_time', breakTimeInput.value);
-                        localStorage.setItem('pomodoro_volume', volumeControl.value);
-                        localStorage.setItem('pomodoro_sound_type', currentSoundType);
-                        localStorage.setItem('pomodoro_vibration', vibrationEnabled);
-                        localStorage.setItem('pomodoro_click_sound', clickSoundEnabled);
-                    }
-                } catch (error) {
-                    // 忽略存储错误
-                }
-            }
-            
-            // 添加设置变化监听
-            focusTimeInput.addEventListener('change', saveSettings);
-            breakTimeInput.addEventListener('change', saveSettings);
-            volumeControl.addEventListener('change', saveSettings);
-            document.getElementById('vibrationToggle')?.addEventListener('change', saveSettings);
-            clickSoundToggle?.addEventListener('change', saveSettings);
-            
-            // 声音类型变化保存
-            soundOptions.forEach(option => {
-                option.addEventListener('click', saveSettings);
-            });
-            
-            // 页面关闭前保存状态
-            window.addEventListener('beforeunload', () => {
-                if (isPomodoroRunning) {
-                    const confirmClose = confirm('番茄钟还在运行，确定要离开吗？');
-                    if (!confirmClose) {
-                        return;
-                    }
-                }
-                saveSettings();
-            });
-            
-            console.log("🎉 番茄钟应用初始化完成！");
-            showStatus('番茄钟已就绪', 2000);
-            
-            // 启动调试信息更新
-            setInterval(() => {
-                if (window.debugMode) {
-                    const status = [
-                        `番茄钟: ${isPomodoroRunning ? '运行中' : '停止'}`,
-                        `中断: ${isInterruptRunning ? '运行中' : '停止'}`,
-                        `声音: ${soundEnabled ? '开启' : '关闭'}`,
-                        `交互: ${window.userInteracted ? '是' : '否'}`
-                    ];
-                    updateDebugInfo(status.join(' | '));
-                }
-            }, 1000);
+            // 调试信息
+            updateDebugInfo('应用初始化完成');
         }
         
-        // 修复3：添加手动重新绑定功能
-        function rebindAllEvents() {
-            console.log("🔄 手动重新绑定所有事件...");
+        // 紧急修复函数
+        function emergencyRepair() {
+            console.log("🚨 执行紧急修复...");
             
-            // 解除所有现有事件
-            const cloneAndReplace = (element) => {
-                if (!element) return null;
-                const clone = element.cloneNode(true);
-                element.parentNode.replaceChild(clone, element);
-                return clone;
-            };
+            // 重新绑定事件监听器
+            initEventListeners();
             
-            // 重新创建按钮
-            const newStartBtn = cloneAndReplace(startBtn);
-            const newPauseBtn = cloneAndReplace(pauseBtn);
-            const newResetBtn = cloneAndReplace(resetBtn);
-            const newStartInterruptBtn = cloneAndReplace(startInterruptBtn);
-            const newCancelInterruptBtn = cloneAndReplace(cancelInterruptBtn);
+            // 重新初始化音频
+            initAudioSystem();
             
-            // 重新绑定
-            if (newStartBtn) newStartBtn.addEventListener('click', startPomodoro);
-            if (newPauseBtn) newPauseBtn.addEventListener('click', pausePomodoro);
-            if (newResetBtn) newResetBtn.addEventListener('click', resetPomodoro);
-            if (newStartInterruptBtn) newStartInterruptBtn.addEventListener('click', startInterrupt);
-            if (newCancelInterruptBtn) newCancelInterruptBtn.addEventListener('click', cancelInterrupt);
+            // 更新状态
+            updateDeviceStatus();
             
-            console.log("✅ 事件重新绑定完成");
-            showStatus('按钮功能已重置', 2000);
+            showStatus('系统已修复，请重试！', 3000);
         }
         
-        // 修复4：添加紧急恢复按钮
+        // 添加紧急修复按钮
         function addEmergencyButtons() {
             const emergencyContainer = document.createElement('div');
             emergencyContainer.style.cssText = `
                 position: fixed;
-                bottom: 10px;
-                left: 10px;
+                bottom: 80px;
+                left: 20px;
                 display: flex;
                 flex-direction: column;
-                gap: 8px;
+                gap: 10px;
                 z-index: 9999;
             `;
             
-            const rebootBtn = document.createElement('button');
-            rebootBtn.textContent = '🔄 重启系统';
-            rebootBtn.style.cssText = `
-                background: #2196F3;
+            const repairBtn = document.createElement('button');
+            repairBtn.textContent = '🛠️ 修复系统';
+            repairBtn.style.cssText = `
+                padding: 8px 12px;
+                background: rgba(245, 158, 11, 0.9);
                 color: white;
                 border: none;
-                padding: 8px 16px;
-                border-radius: 20px;
+                border-radius: 8px;
                 font-size: 12px;
                 cursor: pointer;
-                box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
             `;
-            rebootBtn.onclick = () => {
-                console.log("🔄 重启系统...");
-                location.reload();
-            };
+            repairBtn.onclick = emergencyRepair;
             
-            const rebindBtn = document.createElement('button');
-            rebindBtn.textContent = '🔗 重新绑定';
-            rebindBtn.style.cssText = `
-                background: #4CAF50;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 20px;
-                font-size: 12px;
-                cursor: pointer;
-                box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
-            `;
-            rebindBtn.onclick = rebindAllEvents;
-            
-            const testBtn = document.createElement('button');
-            testBtn.textContent = '🧪 测试功能';
-            testBtn.style.cssText = `
-                background: #FF9800;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 20px;
-                font-size: 12px;
-                cursor: pointer;
-                box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
-            `;
-            testBtn.onclick = async () => {
-                console.log("🧪 开始功能测试...");
-                await playClickSound('test');
-                await playSound('beep');
-                showStatus('功能测试完成', 2000);
-            };
-            
-            emergencyContainer.appendChild(rebootBtn);
-            emergencyContainer.appendChild(rebindBtn);
-            emergencyContainer.appendChild(testBtn);
+            emergencyContainer.appendChild(repairBtn);
             document.body.appendChild(emergencyContainer);
-            
-            console.log("✅ 紧急按钮已添加");
         }
         
-        // 页面加载完成
-        window.addEventListener('load', () => {
-            console.log("📱 页面加载完成");
-            
-            // 初始化应用
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("📄 DOM已加载，开始初始化...");
             initApp();
+            addEmergencyButtons();
             
-            // 添加紧急恢复按钮
-            setTimeout(addEmergencyButtons, 1000);
+            // 检查设备兼容性
+            setTimeout(() => {
+                const compatibilityCheck = document.createElement('div');
+                compatibilityCheck.innerHTML = `
+                    <div class="compatibility-warning ${soundEnabled ? 'success' : 'error'}">
+                        <p><strong>设备兼容性检查：</strong></p>
+                        <p>🔊 音频API: ${window.AudioContext || window.webkitAudioContext ? '✅ 支持' : '❌ 不支持'}</p>
+                        <p>📳 震动API: ${'vibrate' in navigator ? '✅ 支持' : '❌ 不支持'}</p>
+                        <p>💾 本地存储: ${'localStorage' in window ? '✅ 支持' : '❌ 不支持'}</p>
+                        <p>📱 设备: ${window.isIOS ? 'iOS' : '非iOS'}</p>
+                    </div>
+                `;
+                
+                const firstCard = document.querySelector('.main-card');
+                if (firstCard && firstCard.parentNode) {
+                    firstCard.parentNode.insertBefore(compatibilityCheck.children[0], firstCard.nextSibling);
+                }
+            }, 2000);
             
             // 检查按钮绑定状态
             setTimeout(() => {
@@ -2256,11 +2006,11 @@ async function cancelInterrupt() {
                 ];
                 
                 buttons.forEach(btn => {
-                        if (btn.element) {
-                            console.log(`✅ ${btn.name}存在`);
-                        } else {
-                            console.error(`❌ ${btn.name}不存在`);
-                        }
+                    if (btn.element) {
+                        console.log(`✅ ${btn.name}存在`);
+                    } else {
+                        console.error(`❌ ${btn.name}不存在`);
+                    }
                 });
             }, 2000);
             
