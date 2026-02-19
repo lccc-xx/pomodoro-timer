@@ -828,7 +828,7 @@
     </div>
     
     <div class="header">
-        <h1>🍅 番茄钟 - v6.1.0 (稳定版)</h1>
+        <h1>🍅 番茄钟 - v6.1.1 (稳定版)</h1>
         <p>专注工作 · 自由调节时间 · 按键点击音效</p>
         <div class="version-info">
             <span class="version-badge">🔧 版本: v6.1.0</span>
@@ -1424,25 +1424,27 @@
         }
         
         // 秒级中断计时函数
-        function updateInterruptTimer() {
-            if (!isInterruptRunning) return;
-            
-            const now = Date.now();
-            const elapsedSeconds = Math.floor((now - interruptStartTime) / 1000);
-            const remainingSeconds = Math.max(0, interruptDuration - elapsedSeconds);
-            
-            updateInterruptTimerDisplay(remainingSeconds);
-            
-            if (remainingSeconds <= 0) {
-                interruptFinished();
-            } else {
-                if (remainingSeconds <= 3 && remainingSeconds > 0) {
-                    playSound('beep');
-                    vibrate(100);
-                }
-                interruptAnimationFrame = requestAnimationFrame(updateInterruptTimer);
-            }
+function updateInterruptTimer() {
+    if (!isInterruptRunning) return;
+    
+    const now = Date.now();
+    const elapsedSeconds = Math.floor((now - interruptStartTime) / 1000);
+    const remainingSeconds = Math.max(0, interruptDuration - elapsedSeconds);
+    
+    updateInterruptTimerDisplay(remainingSeconds);
+    
+    if (remainingSeconds <= 0) {
+        // 只在倒计时完全结束时触发
+        interruptFinished();
+    } else {
+        // 只在特定的秒数播放提示音，而不是每秒
+        if (remainingSeconds === 3 || remainingSeconds === 2 || remainingSeconds === 1) {
+            playSound('beep');
+            vibrate(100);
         }
+        interruptAnimationFrame = requestAnimationFrame(updateInterruptTimer);
+    }
+}
         
         // 开始中断
         async function startInterrupt() {
@@ -1525,39 +1527,108 @@
         }
         
         // 中断完成
-        function interruptFinished() {
-            isInterruptRunning = false;
-            
-            if (interruptAnimationFrame) {
-                cancelAnimationFrame(interruptAnimationFrame);
-                interruptAnimationFrame = null;
-            }
-            
-            interruptTimerDisplay.classList.remove('show');
-            startInterruptBtn.disabled = false;
-            cancelInterruptBtn.style.display = 'none';
-            
-            interruptMinutesInput.value = 0;
-            interruptSecondsInput.value = 10;
-            interruptReasonInput.value = '';
-            
-            playSound('chord');
-            vibrate([200, 100, 200, 100, 200]);
-            showStatus('中断时间结束！', 5000);
-            
-            updateDeviceStatus();
+function interruptFinished() {
+    isInterruptRunning = false;
+    
+    if (interruptAnimationFrame) {
+        cancelAnimationFrame(interruptAnimationFrame);
+        interruptAnimationFrame = null;
+    }
+    
+    // 播放一次结束提示音
+    playSound('chord');
+    vibrate([200, 100, 200, 100, 200]);
+    
+    // 不自动重置，显示手动确认按钮
+    showStatus('中断时间结束！请点击"确认结束"按钮', 0);
+    
+    // 显示手动结束按钮
+    const manualEndBtn = document.createElement('button');
+    manualEndBtn.id = 'manualEndBtn';
+    manualEndBtn.textContent = '✅ 确认结束';
+    manualEndBtn.className = 'success';
+    manualEndBtn.style.cssText = `
+        width: 100%;
+        height: 52px;
+        margin-top: 10px;
+        border: none;
+        border-radius: 14px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        background: rgba(16, 185, 129, 0.25);
+        color: white;
+    `;
+    
+    manualEndBtn.onclick = function() {
+        // 停止所有声音
+        if (soundInterval) {
+            clearInterval(soundInterval);
+            soundInterval = null;
+        }
+        if (audioGenerator) {
+            audioGenerator.stopAll();
         }
         
+        // 恢复界面状态
+        manualEndBtn.remove();
+        interruptTimerDisplay.classList.remove('show');
+        startInterruptBtn.disabled = false;
+        cancelInterruptBtn.style.display = 'none';
+        
+        // 重置输入
+        interruptMinutesInput.value = 0;
+        interruptSecondsInput.value = 10;
+        interruptReasonInput.value = '';
+        
+        showStatus('中断已确认结束', 2000);
+    };
+    
+    // 找到中断按钮组，添加确认按钮
+    const interruptControls = document.querySelector('.interrupt-controls');
+    if (interruptControls) {
+        interruptControls.appendChild(manualEndBtn);
+    }
+    
+    // 隐藏原取消按钮
+    if (cancelInterruptBtn) {
+        cancelInterruptBtn.style.display = 'none';
+    }
+}}
+        
         // 取消中断
-        async function cancelInterrupt() {
-            console.log("❌ 取消中断被调用");
-            await playClickSound('stop');
-            
-            pauseInterrupt();
-            remainingSeconds = 0;
-            
-            showStatus('中断已取消', 2000);
-        }
+async function cancelInterrupt() {
+    console.log("❌ 取消中断被调用");
+    await playClickSound('stop');
+    
+    // 停止计时器
+    isInterruptRunning = false;
+    if (interruptAnimationFrame) {
+        cancelAnimationFrame(interruptAnimationFrame);
+        interruptAnimationFrame = null;
+    }
+    
+    // 停止所有声音
+    if (audioGenerator) {
+        audioGenerator.stopAll();
+    }
+    
+    // 移除手动结束按钮（如果存在）
+    const manualEndBtn = document.getElementById('manualEndBtn');
+    if (manualEndBtn) {
+        manualEndBtn.remove();
+    }
+    
+    // 恢复界面
+    interruptTimerDisplay.classList.remove('show');
+    startInterruptBtn.disabled = false;
+    cancelInterruptBtn.style.display = 'none';
+    interruptMinutesInput.value = 0;
+    interruptSecondsInput.value = 10;
+    interruptReasonInput.value = '';
+    
+    showStatus('中断已取消', 2000);
+}
         
         // 更新中断历史显示
         function updateHistoryDisplay() {
