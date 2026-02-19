@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="番茄钟">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>番茄钟 - v5.0.0 (JavaScript音频方案)</title>
+    <title>番茄钟 - v6.0.0 (增强版)</title>
     <style>
         :root {
             --primary-color: #667eea;
@@ -15,6 +15,7 @@
             --success-color: #10b981;
             --warning-color: #f59e0b;
             --danger-color: #ef4444;
+            --info-color: #3b82f6;
             --text-color: white;
             --button-bg: rgba(255, 255, 255, 0.15);
             --button-active: rgba(255, 255, 255, 0.25);
@@ -292,7 +293,16 @@
             background: rgba(16, 185, 129, 0.35);
         }
         
-        /* 时间设置 */
+        .button-group button.info {
+            background: rgba(59, 130, 246, 0.25);
+            color: white;
+        }
+        
+        .button-group button.info:active {
+            background: rgba(59, 130, 246, 0.35);
+        }
+        
+        /* 时间设置 - 新增自由调节功能 */
         .time-settings {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -329,6 +339,32 @@
         .time-setting input:focus {
             outline: none;
             border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        /* 新增：快速时间预设按钮 */
+        .preset-times {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+        
+        .preset-time {
+            padding: var(--spacing-sm);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .preset-time:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .preset-time:active {
+            transform: scale(0.95);
         }
         
         /* 声音控制区域 */
@@ -749,6 +785,19 @@
             width: 18px;
             height: 18px;
         }
+        
+        /* 点击音效控制 */
+        .click-sound-control {
+            margin-top: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .click-sound-control input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
     </style>
 </head>
 <body>
@@ -762,10 +811,10 @@
     </div>
     
     <div class="header">
-        <h1>🍅 番茄钟 - v5.0.0 (JavaScript音频方案)</h1>
-        <p>专注工作 · 秒级测试 · 动态生成音效，无文件依赖</p>
+        <h1>🍅 番茄钟 - v6.0.0 (增强版)</h1>
+        <p>专注工作 · 自由调节时间 · 按键点击音效</p>
         <div class="version-info">
-            <span class="version-badge">🔧 版本: v5.0.0</span>
+            <span class="version-badge">🔧 版本: v6.0.0</span>
             <span class="device-status" id="deviceStatus">检测设备中...</span>
         </div>
     </div>
@@ -791,12 +840,30 @@
             
             <div class="time-settings">
                 <div class="time-setting">
-                    <label for="focusTime">专注时间</label>
-                    <input type="number" id="focusTime" value="25" min="5" max="60">
+                    <label for="focusTime">专注时间 (分钟)</label>
+                    <input type="number" id="focusTime" value="25" min="1" max="120">
                 </div>
                 <div class="time-setting">
-                    <label for="breakTime">休息时间</label>
-                    <input type="number" id="breakTime" value="5" min="1" max="30">
+                    <label for="breakTime">休息时间 (分钟)</label>
+                    <input type="number" id="breakTime" value="5" min="1" max="60">
+                </div>
+            </div>
+            
+            <!-- 新增：快速时间预设 -->
+            <div class="preset-times">
+                <div class="preset-time" data-minutes="5">5分钟</div>
+                <div class="preset-time" data-minutes="15">15分钟</div>
+                <div class="preset-time" data-minutes="25">25分钟</div>
+                <div class="preset-time" data-minutes="30">30分钟</div>
+                <div class="preset-time" data-minutes="45">45分钟</div>
+                <div class="preset-time" data-minutes="60">60分钟</div>
+            </div>
+            
+            <!-- 新增：自定义快速时间输入 -->
+            <div class="custom-time" style="margin-top: var(--spacing-md);">
+                <div class="input-row">
+                    <input type="number" id="customMinutes" placeholder="自定义分钟数" min="1" max="120" value="10">
+                    <button id="setCustomTime" class="info">🚀 设置</button>
                 </div>
             </div>
             
@@ -822,10 +889,15 @@
                     <input type="range" id="volumeControl" min="0" max="100" value="70">
                     <span id="volumeValue">70%</span>
                 </div>
-                <!-- 添加震动控制 -->
+                <!-- 震动控制 -->
                 <div class="vibration-control">
                     <input type="checkbox" id="vibrationToggle" checked>
                     <label for="vibrationToggle">📳 启用震动</label>
+                </div>
+                <!-- 新增：点击音效控制 -->
+                <div class="click-sound-control">
+                    <input type="checkbox" id="clickSoundToggle" checked>
+                    <label for="clickSoundToggle">🎵 按键点击音效</label>
                 </div>
             </div>
         </div>
@@ -903,6 +975,7 @@
         let isTestingSound = false;
         let vibrationEnabled = true;
         let globalAudioContext = null; // 全局AudioContext
+        let clickSoundEnabled = true; // 新增：点击音效开关
         
         // iOS兼容性变量
         window.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -916,7 +989,11 @@
                 this.sounds = {
                     beep: { frequency: 600, duration: 0.3, type: 'sine' },
                     bell: { frequency: 1200, duration: 0.8, type: 'sine' },
-                    chord: { frequency: 800, duration: 1.0, type: 'triangle' }
+                    chord: { frequency: 800, duration: 1.0, type: 'triangle' },
+                    // 新增：点击音效
+                    click: { frequency: 300, duration: 0.1, type: 'sine' },
+                    softClick: { frequency: 400, duration: 0.08, type: 'sine' },
+                    buttonClick: { frequency: 500, duration: 0.15, type: 'sine' }
                 };
                 this.isInitialized = false;
             }
@@ -972,13 +1049,14 @@
             }
             
             // 播放指定类型的声音
-            async play(soundType) {
+            async play(soundType, customVolume = null) {
                 if (!this.ensureRunning()) {
                     console.log('❌ AudioContext未就绪，无法播放声音');
                     return false;
                 }
                 
                 const sound = this.sounds[soundType] || this.sounds.beep;
+                const playVolume = customVolume !== null ? customVolume : volume;
                 
                 try {
                     const oscillator = this.audioContext.createOscillator();
@@ -992,8 +1070,8 @@
                     
                     const now = this.audioContext.currentTime;
                     gainNode.gain.setValueAtTime(0, now);
-                    gainNode.gain.linearRampToValueAtTime(volume, now + 0.1);
-                    gainNode.gain.linearRampToValueAtTime(volume, now + sound.duration - 0.1);
+                    gainNode.gain.linearRampToValueAtTime(playVolume, now + 0.1);
+                    gainNode.gain.linearRampToValueAtTime(playVolume, now + sound.duration - 0.1);
                     gainNode.gain.exponentialRampToValueAtTime(0.001, now + sound.duration);
                     
                     oscillator.start(now);
@@ -1005,6 +1083,31 @@
                     console.error('❌ 播放音效失败:', error);
                     return false;
                 }
+            }
+            
+            // 新增：播放点击音效
+            async playClickSound(buttonType = 'normal') {
+                if (!clickSoundEnabled) return false;
+                
+                let clickType = 'click';
+                let clickVolume = volume * 0.5; // 点击音效用一半音量
+                
+                switch(buttonType) {
+                    case 'start':
+                        clickType = 'buttonClick';
+                        clickVolume = volume * 0.6;
+                        break;
+                    case 'stop':
+                        clickType = 'softClick';
+                        clickVolume = volume * 0.3;
+                        break;
+                    case 'test':
+                        clickType = 'chord';
+                        clickVolume = volume * 0.4;
+                        break;
+                }
+                
+                return await this.play(clickType, clickVolume);
             }
             
             // 停止所有声音
@@ -1051,11 +1154,17 @@
         const deviceStatusElement = document.getElementById('deviceStatus');
         const debugInfoElement = document.getElementById('debugInfo');
         const quickTestButtons = document.querySelectorAll('.quick-test-btn');
+        
+        // 新增元素引用
+        const presetTimeButtons = document.querySelectorAll('.preset-time');
+        const customMinutesInput = document.getElementById('customMinutes');
+        const setCustomTimeBtn = document.getElementById('setCustomTime');
+        const clickSoundToggle = document.getElementById('clickSoundToggle');
 
         // 初始化
-        console.log('=== 番茄钟 v5.0.0 初始化 ===');
+        console.log('=== 番茄钟 v6.0.0 初始化 ===');
         console.log('设备检测 - iOS:', window.isIOS, '浏览器:', navigator.userAgent);
-        console.log('版本特性: JavaScript动态音频生成，无文件依赖');
+        console.log('版本特性: 自由调节时间 + 按键点击音效');
         
         // 显示设备信息
         if (deviceStatusElement) {
@@ -1112,7 +1221,7 @@
         pauseBtn.disabled = true;
         
         // 初始调试信息
-        updateDebugInfo('v5.0.0初始化完成');
+        updateDebugInfo('v6.0.0初始化完成');
         
         // 初始化音频系统
         setTimeout(() => {
@@ -1133,6 +1242,46 @@
                 updateDeviceStatus();
                 updateStatus('✅ 音频已解锁，可以正常使用');
             }
+        }
+        
+        // 新增：播放点击音效的通用函数
+        function playClickSound(buttonType = 'normal') {
+            if (!soundEnabled || !clickSoundEnabled) return;
+            
+            setTimeout(() => {
+                audioGenerator.playClickSound(buttonType);
+            }, 10);
+        }
+        
+        // 为所有按钮添加点击音效
+        function addClickSoundToButtons() {
+            const allButtons = document.querySelectorAll('button');
+            allButtons.forEach(button => {
+                // 移除已有的事件监听器
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+                
+                // 为不同按钮添加不同类型的点击音效
+                newButton.addEventListener('click', function(e) {
+                    let buttonType = 'normal';
+                    
+                    if (this.id === 'startBtn') buttonType = 'start';
+                    else if (this.id === 'stopSoundBtn2' || this.id === 'stopSoundBtn') buttonType = 'stop';
+                    else if (this.id === 'testSoundBtn') buttonType = 'test';
+                    else if (this.id === 'startInterruptBtn') buttonType = 'start';
+                    else if (this.id === 'cancelInterruptBtn') buttonType = 'stop';
+                    else if (this.id === 'setCustomTime') buttonType = 'test';
+                    
+                    playClickSound(buttonType);
+                });
+            });
+            
+            // 为预设时间按钮添加点击音效
+            presetTimeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    playClickSound('test');
+                });
+            });
         }
         
         // 添加用户交互监听
@@ -1275,6 +1424,19 @@
             
             updateStatus('🔇 声音已停止');
         }
+        
+        // 新增：设置自定义时间
+        function setCustomTime(minutes) {
+            if (isNaN(minutes) || minutes < 1 || minutes > 120) {
+                updateStatus('请输入1-120分钟之间的有效时间');
+                return;
+            }
+            
+            focusTimeInput.value = minutes;
+            updatePomodoroTime();
+            updateStatus(`已设置专注时间为 ${minutes} 分钟`);
+            playClickSound('test');
+        }
         // 事件监听器
         startBtn.addEventListener('click', startPomodoro);
         pauseBtn.addEventListener('click', pausePomodoro);
@@ -1316,6 +1478,28 @@
             });
         });
 
+        // 新增：预设时间按钮事件
+        presetTimeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const minutes = parseInt(this.getAttribute('data-minutes'));
+                setCustomTime(minutes);
+            });
+        });
+
+        // 新增：自定义时间设置按钮事件
+        setCustomTimeBtn.addEventListener('click', function() {
+            const minutes = parseInt(customMinutesInput.value);
+            setCustomTime(minutes);
+        });
+
+        // 新增：回车键设置自定义时间
+        customMinutesInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const minutes = parseInt(customMinutesInput.value);
+                setCustomTime(minutes);
+            }
+        });
+
         // 添加震动控制的事件监听
         document.getElementById('vibrationToggle').addEventListener('change', function(e) {
             vibrationEnabled = e.target.checked;
@@ -1324,6 +1508,17 @@
             // 测试震动
             if (vibrationEnabled && navigator.vibrate) {
                 navigator.vibrate(50);
+            }
+        });
+
+        // 新增：点击音效控制的事件监听
+        clickSoundToggle.addEventListener('change', function(e) {
+            clickSoundEnabled = e.target.checked;
+            saveSettings();
+            
+            // 测试点击音效
+            if (clickSoundEnabled && soundEnabled) {
+                playClickSound('test');
             }
         });
 
@@ -1442,11 +1637,11 @@
             const focusMinutes = parseInt(focusTimeInput.value);
             const breakMinutes = parseInt(breakTimeInput.value);
             
-            if (isNaN(focusMinutes) || focusMinutes < 5 || focusMinutes > 60) {
+            if (isNaN(focusMinutes) || focusMinutes < 1 || focusMinutes > 120) {
                 focusTimeInput.value = 25;
             }
             
-            if (isNaN(breakMinutes) || breakMinutes < 1 || breakMinutes > 30) {
+            if (isNaN(breakMinutes) || breakMinutes < 1 || breakMinutes > 60) {
                 breakTimeInput.value = 5;
             }
             
@@ -1466,7 +1661,7 @@
         function startInterrupt() {
             if (isInterruptRunning) return;
             
-            console.log('⏱️ 开始中断计时（v5.0.0 JavaScript音频方案）');
+            console.log('⏱️ 开始中断计时（v6.0.0 JavaScript音频方案）');
             updateDebugInfo('开始中断');
             
             const minutes = parseInt(interruptMinutesInput.value) || 0;
@@ -1863,6 +2058,13 @@
                             vibrationToggle.checked = vibrationEnabled;
                         }
                     }
+                    // 新增：加载点击音效设置
+                    if (settings.clickSoundEnabled !== undefined) {
+                        clickSoundEnabled = settings.clickSoundEnabled;
+                        if (clickSoundToggle) {
+                            clickSoundToggle.checked = clickSoundEnabled;
+                        }
+                    }
                     
                     updatePomodoroTime();
                 } catch (e) {
@@ -1879,7 +2081,8 @@
                 volume: volume,
                 soundType: currentSoundType,
                 soundEnabled: soundEnabled,
-                vibrationEnabled: vibrationEnabled
+                vibrationEnabled: vibrationEnabled,
+                clickSoundEnabled: clickSoundEnabled  // 新增：保存点击音效设置
             };
             
             try {
@@ -2037,12 +2240,20 @@
                 e.preventDefault();
                 testSoundCompatibility();
             }
+            // Ctrl + C：开关点击音效
+            if (e.code === 'KeyC' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                if (clickSoundToggle) {
+                    clickSoundToggle.checked = !clickSoundToggle.checked;
+                    clickSoundToggle.dispatchEvent(new Event('change'));
+                }
+            }
         });
 
         // 初始化完成
-        console.log('✅ 番茄钟 v5.0.0 初始化完成');
-        console.log('📊 系统信息 - iOS:', window.isIOS, '用户已交互:', window.userInteracted, '声音启用:', soundEnabled, '震动:', vibrationEnabled);
-        console.log('📊 版本特性: JavaScript动态音频生成，无文件依赖，100%兼容');
+        console.log('✅ 番茄钟 v6.0.0 初始化完成');
+        console.log('📊 系统信息 - iOS:', window.isIOS, '用户已交互:', window.userInteracted, '声音启用:', soundEnabled, '震动:', vibrationEnabled, '点击音效:', clickSoundEnabled);
+        console.log('📊 版本特性: 自由调节时间 + 按键点击音效，100%兼容');
         
         // 桌面通知权限请求
         if ('Notification' in window && Notification.permission === 'default') {
@@ -2059,10 +2270,14 @@
         console.log('  震动功能支持:', !!navigator.vibrate);
         console.log('  声音启用状态:', soundEnabled);
         console.log('  震动启用状态:', vibrationEnabled);
+        console.log('  点击音效启用状态:', clickSoundEnabled);
         console.log('  当前声音类型:', currentSoundType);
         console.log('  音量设置:', volume);
         console.log('  iOS设备:', window.isIOS);
         console.log('  AudioGenerator状态:', audioGenerator.isInitialized ? '已初始化' : '未初始化');
+        
+        // 为所有按钮添加点击音效
+        addClickSoundToButtons();
         
         // PWA 安装提示（如果支持）
         let deferredPrompt;
@@ -2122,6 +2337,15 @@
                 audioGenerator.ensureRunning();
             }
         }, 30000); // 每30秒检查一次
+        
+        // 新增：页面加载完成后添加点击音效
+        window.addEventListener('load', () => {
+            // 延迟添加点击音效，确保DOM完全加载
+            setTimeout(() => {
+                addClickSoundToButtons();
+                console.log('✅ 点击音效系统已初始化');
+            }, 1000);
+        });
     </script>
 </body>
 </html>
