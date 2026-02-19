@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="番茄钟">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>番茄钟 - v6.0.0 (增强版)</title>
+    <title>番茄钟 - v6.0.0 (修复版)</title>
     <style>
         :root {
             --primary-color: #667eea;
@@ -811,7 +811,7 @@
     </div>
     
     <div class="header">
-        <h1>🍅 番茄钟 - v6.0.0 (增强版)</h1>
+        <h1>🍅 番茄钟 - v6.0.0 (修复版)</h1>
         <p>专注工作 · 自由调节时间 · 按键点击音效</p>
         <div class="version-info">
             <span class="version-badge">🔧 版本: v6.0.0</span>
@@ -954,18 +954,17 @@
     <script>
         // 状态变量
         let pomodoroTimer = null;
-        let interruptTimer = null;
         let pomodoroSeconds = 25 * 60;
-        let interruptDuration = 0; // 以秒为单位的总时长
-        let remainingSeconds = 0; // 剩余秒数
+        let interruptDuration = 0;
+        let remainingSeconds = 0;
         let isPomodoroRunning = false;
         let isFocusTime = true;
         let isInterruptRunning = false;
         let currentSessionHistory = [];
         
         // 高精度计时变量
-        let interruptStartTime = 0; // 开始时间戳（毫秒）
-        let interruptAnimationFrame = null; // 动画帧ID
+        let interruptStartTime = 0;
+        let interruptAnimationFrame = null;
         
         // 声音控制变量
         let currentSoundType = 'beep';
@@ -974,13 +973,13 @@
         let soundEnabled = false;
         let isTestingSound = false;
         let vibrationEnabled = true;
-        let globalAudioContext = null; // 全局AudioContext
-        let clickSoundEnabled = true; // 新增：点击音效开关
+        let globalAudioContext = null;
+        let clickSoundEnabled = true;
         
         // iOS兼容性变量
         window.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         window.userInteracted = false;
-        window.debugMode = true; // 启用调试模式
+        window.debugMode = true;
         
         // JavaScript音频生成器
         class AudioGenerator {
@@ -990,7 +989,6 @@
                     beep: { frequency: 600, duration: 0.3, type: 'sine' },
                     bell: { frequency: 1200, duration: 0.8, type: 'sine' },
                     chord: { frequency: 800, duration: 1.0, type: 'triangle' },
-                    // 新增：点击音效
                     click: { frequency: 300, duration: 0.1, type: 'sine' },
                     softClick: { frequency: 400, duration: 0.08, type: 'sine' },
                     buttonClick: { frequency: 500, duration: 0.15, type: 'sine' }
@@ -998,7 +996,6 @@
                 this.isInitialized = false;
             }
             
-            // 初始化AudioContext
             init() {
                 if (this.isInitialized && this.audioContext && this.audioContext.state !== 'closed') {
                     return this.audioContext;
@@ -1007,16 +1004,11 @@
                 if (window.AudioContext || window.webkitAudioContext) {
                     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
                     this.audioContext = new AudioContextClass();
-                    globalAudioContext = this.audioContext; // 保存全局引用
+                    globalAudioContext = this.audioContext;
                     
-                    // 监听上下文状态变化
                     this.audioContext.onstatechange = () => {
                         console.log('AudioContext状态:', this.audioContext.state);
                         updateDebugInfo(`AudioContext: ${this.audioContext.state}`);
-                        
-                        if (this.audioContext.state === 'suspended') {
-                            console.log('⚠️ AudioContext被挂起，需要用户交互恢复');
-                        }
                     };
                     
                     this.isInitialized = true;
@@ -1028,7 +1020,6 @@
                 return null;
             }
             
-            // 确保AudioContext处于运行状态
             async ensureRunning() {
                 if (!this.audioContext) {
                     this.init();
@@ -1048,7 +1039,6 @@
                 return true;
             }
             
-            // 播放指定类型的声音
             async play(soundType, customVolume = null) {
                 if (!this.ensureRunning()) {
                     console.log('❌ AudioContext未就绪，无法播放声音');
@@ -1085,12 +1075,11 @@
                 }
             }
             
-            // 新增：播放点击音效
             async playClickSound(buttonType = 'normal') {
                 if (!clickSoundEnabled) return false;
                 
                 let clickType = 'click';
-                let clickVolume = volume * 0.5; // 点击音效用一半音量
+                let clickVolume = volume * 0.5;
                 
                 switch(buttonType) {
                     case 'start':
@@ -1110,7 +1099,6 @@
                 return await this.play(clickType, clickVolume);
             }
             
-            // 停止所有声音
             stopAll() {
                 if (this.audioContext) {
                     this.audioContext.close();
@@ -1154,17 +1142,13 @@
         const deviceStatusElement = document.getElementById('deviceStatus');
         const debugInfoElement = document.getElementById('debugInfo');
         const quickTestButtons = document.querySelectorAll('.quick-test-btn');
-        
-        // 新增元素引用
         const presetTimeButtons = document.querySelectorAll('.preset-time');
         const customMinutesInput = document.getElementById('customMinutes');
         const setCustomTimeBtn = document.getElementById('setCustomTime');
         const clickSoundToggle = document.getElementById('clickSoundToggle');
 
         // 初始化
-        console.log('=== 番茄钟 v6.0.0 初始化 ===');
-        console.log('设备检测 - iOS:', window.isIOS, '浏览器:', navigator.userAgent);
-        console.log('版本特性: 自由调节时间 + 按键点击音效');
+        console.log('=== 番茄钟 v6.0.0 修复版初始化 ===');
         
         // 显示设备信息
         if (deviceStatusElement) {
@@ -1193,7 +1177,6 @@
         function initAudioSystem() {
             console.log('🔊 初始化JavaScript音频系统');
             
-            // 立即初始化AudioContext
             const ctx = audioGenerator.init();
             
             if (ctx) {
@@ -1206,28 +1189,12 @@
                 updateDebugInfo('音频系统初始化失败');
             }
             
-            // iOS特殊处理
             if (window.isIOS) {
                 console.log('📱 iOS设备：等待用户交互解锁音频');
                 updateDebugInfo('iOS: 等待用户交互');
             }
         }
         
-        loadSettings();
-        loadHistory();
-        updateTimerDisplay();
-        updateDeviceStatus();
-        updateStatus('准备开始，请点击"测试声音"按钮授权声音权限');
-        pauseBtn.disabled = true;
-        
-        // 初始调试信息
-        updateDebugInfo('v6.0.0初始化完成');
-        
-        // 初始化音频系统
-        setTimeout(() => {
-            initAudioSystem();
-        }, 1000);
-
         // 用户交互处理
         function handleUserInteraction() {
             if (!window.userInteracted) {
@@ -1236,7 +1203,6 @@
                 updateDebugInfo('✅ 用户已交互');
                 updateDeviceStatus();
                 
-                // 初始化音频系统
                 audioGenerator.ensureRunning();
                 soundEnabled = true;
                 updateDeviceStatus();
@@ -1244,7 +1210,7 @@
             }
         }
         
-        // 新增：播放点击音效的通用函数
+        // 播放点击音效
         function playClickSound(buttonType = 'normal') {
             if (!soundEnabled || !clickSoundEnabled) return;
             
@@ -1257,11 +1223,9 @@
         function addClickSoundToButtons() {
             const allButtons = document.querySelectorAll('button');
             allButtons.forEach(button => {
-                // 移除已有的事件监听器
                 const newButton = button.cloneNode(true);
                 button.parentNode.replaceChild(newButton, button);
                 
-                // 为不同按钮添加不同类型的点击音效
                 newButton.addEventListener('click', function(e) {
                     let buttonType = 'normal';
                     
@@ -1276,7 +1240,6 @@
                 });
             });
             
-            // 为预设时间按钮添加点击音效
             presetTimeButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     playClickSound('test');
@@ -1284,31 +1247,18 @@
             });
         }
         
-        // 添加用户交互监听
-        document.addEventListener('touchstart', handleUserInteraction, { once: true });
-        document.addEventListener('click', handleUserInteraction, { once: true });
-        
-        // 为所有按钮添加音频解锁
-        document.querySelectorAll('button').forEach(button => {
-            button.addEventListener('touchstart', handleUserInteraction);
-            button.addEventListener('click', handleUserInteraction);
-        });
-
         // 播放JavaScript生成的音效
         function playSound(type = 'end') {
             console.log('🎵 播放音效，类型:', type, '设备:', window.isIOS ? 'iOS' : 'PC');
             updateDebugInfo(`播放音效: ${type}`);
             
-            // 清除之前可能存在的播放定时器
             clearInterval(soundInterval);
             soundInterval = null;
             
-            // 停止当前的持续播放
             if (window.currentPlayback && window.currentPlayback.isPlaying) {
                 window.currentPlayback.stop();
             }
             
-            // 震动提示
             if (vibrationEnabled && navigator.vibrate) {
                 if (type === 'test') {
                     navigator.vibrate(100);
@@ -1317,7 +1267,6 @@
                 }
             }
             
-            // 如果声音未启用，直接返回
             if (!soundEnabled) {
                 console.log('🔇 声音未启用，只使用震动');
                 updateDebugInfo('声音未启用');
@@ -1325,10 +1274,8 @@
             }
             
             if (type === 'test') {
-                // 测试声音：播放单个音效
                 audioGenerator.play(currentSoundType);
             } else if (type === 'end') {
-                // 结束声音：开始持续播放
                 startContinuousAudioPlayback();
             }
         }
@@ -1338,7 +1285,6 @@
             console.log('🎵 开始持续播放');
             updateDebugInfo('持续播放开始');
             
-            // 显示状态
             soundStatus.classList.add('show');
             updateStatus('🔊 提示音持续播放中，点击停音按钮停止', 5000);
             
@@ -1360,10 +1306,8 @@
                 audioGenerator.play(currentSoundType);
             }
             
-            // 第一次播放
             playLoop();
             
-            // 设置播放间隔
             let intervalDuration = 2000;
             switch(currentSoundType) {
                 case 'bell': intervalDuration = 2500; break;
@@ -1373,7 +1317,6 @@
             
             console.log(`⏱️ 播放间隔: ${intervalDuration}ms`);
             
-            // 设置定时器持续播放
             soundInterval = setInterval(() => {
                 if (isPlaying) {
                     playLoop();
@@ -1383,7 +1326,6 @@
                 }
             }, intervalDuration);
             
-            // 保存当前播放状态
             window.currentPlayback = {
                 isPlaying: true,
                 stop: function() {
@@ -1402,30 +1344,24 @@
             console.log('⏹️ 停止所有声音');
             updateDebugInfo('停止声音');
             
-            // 停止持续播放
             if (window.currentPlayback && window.currentPlayback.isPlaying) {
                 window.currentPlayback.stop();
             }
             
-            // 停止音频生成器
             audioGenerator.stopAll();
             
-            // 清除声音播放定时器
             clearInterval(soundInterval);
             soundInterval = null;
             
-            // 隐藏声音状态指示器
             soundStatus.classList.remove('show');
             
-            // 停止震动
             if (navigator.vibrate) {
                 navigator.vibrate(0);
             }
             
             updateStatus('🔇 声音已停止');
         }
-        
-        // 新增：设置自定义时间
+        // 设置自定义时间
         function setCustomTime(minutes) {
             if (isNaN(minutes) || minutes < 1 || minutes > 120) {
                 updateStatus('请输入1-120分钟之间的有效时间');
@@ -1437,93 +1373,10 @@
             updateStatus(`已设置专注时间为 ${minutes} 分钟`);
             playClickSound('test');
         }
-        // 事件监听器
-        startBtn.addEventListener('click', startPomodoro);
-        pauseBtn.addEventListener('click', pausePomodoro);
-        resetBtn.addEventListener('click', resetPomodoro);
-        stopSoundBtn.addEventListener('click', stopAllSounds);
-        stopSoundBtn2.addEventListener('click', stopAllSounds);
-        testSoundBtn.addEventListener('click', testSoundCompatibility);
-        
-        focusTimeInput.addEventListener('change', updatePomodoroTime);
-        breakTimeInput.addEventListener('change', saveSettings);
-        
-        startInterruptBtn.addEventListener('click', startInterrupt);
-        cancelInterruptBtn.addEventListener('click', cancelInterrupt);
-        clearHistoryBtn.addEventListener('click', clearHistory);
-        
-        volumeControl.addEventListener('input', updateVolume);
-        
-        soundOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                soundOptions.forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-                currentSoundType = option.dataset.sound;
-                saveSettings();
-                
-                // 测试新选择的声音
-                if (soundEnabled && !isTestingSound) {
-                    playSound('test');
-                }
-            });
-        });
-
-        // 添加快速测试按钮事件
-        quickTestButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const seconds = parseInt(this.getAttribute('data-seconds'));
-                interruptMinutesInput.value = 0;
-                interruptSecondsInput.value = seconds;
-                startInterrupt();
-            });
-        });
-
-        // 新增：预设时间按钮事件
-        presetTimeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const minutes = parseInt(this.getAttribute('data-minutes'));
-                setCustomTime(minutes);
-            });
-        });
-
-        // 新增：自定义时间设置按钮事件
-        setCustomTimeBtn.addEventListener('click', function() {
-            const minutes = parseInt(customMinutesInput.value);
-            setCustomTime(minutes);
-        });
-
-        // 新增：回车键设置自定义时间
-        customMinutesInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const minutes = parseInt(customMinutesInput.value);
-                setCustomTime(minutes);
-            }
-        });
-
-        // 添加震动控制的事件监听
-        document.getElementById('vibrationToggle').addEventListener('change', function(e) {
-            vibrationEnabled = e.target.checked;
-            saveSettings();
-            
-            // 测试震动
-            if (vibrationEnabled && navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-        });
-
-        // 新增：点击音效控制的事件监听
-        clickSoundToggle.addEventListener('change', function(e) {
-            clickSoundEnabled = e.target.checked;
-            saveSettings();
-            
-            // 测试点击音效
-            if (clickSoundEnabled && soundEnabled) {
-                playClickSound('test');
-            }
-        });
 
         // 启动番茄钟
         function startPomodoro() {
+            console.log('▶️ 开始番茄钟');
             if (isPomodoroRunning) return;
             
             if (pomodoroTimer) {
@@ -1535,7 +1388,6 @@
             pauseBtn.disabled = false;
             timerDisplay.classList.add('timer-pulse');
             
-            const startTime = new Date();
             if (isFocusTime) {
                 updateStatus('专注时间开始！保持专注');
             } else {
@@ -1546,7 +1398,6 @@
                 pomodoroSeconds--;
                 updateTimerDisplay();
                 
-                // 检查是否需要切换时间
                 if (pomodoroSeconds <= 0) {
                     clearInterval(pomodoroTimer);
                     pomodoroTimer = null;
@@ -1559,33 +1410,27 @@
                     }, 1500);
                     
                     if (isFocusTime) {
-                        // 专注时间结束，开始休息
                         pomodoroSeconds = parseInt(breakTimeInput.value) * 60;
                         isFocusTime = false;
                         console.log('⏰ 专注时间结束');
                         
-                        // 使用JavaScript音频播放提示音
                         playSound('end');
                         updateStatus('专注时间结束！开始休息', 5000);
                         
-                        // 记录完成的番茄钟
                         currentSessionHistory.push({
                             type: 'pomodoro_completed',
                             time: new Date().toLocaleTimeString(),
                             duration: parseInt(focusTimeInput.value)
                         });
                         
-                        // 自动开始休息时间
                         setTimeout(() => {
                             startPomodoro();
                         }, 2000);
                     } else {
-                        // 休息时间结束，回到专注
                         pomodoroSeconds = parseInt(focusTimeInput.value) * 60;
                         isFocusTime = true;
                         console.log('⏰ 休息时间结束');
                         
-                        // 使用JavaScript音频播放提示音
                         playSound('end');
                         updateStatus('休息时间结束！准备开始下一轮专注', 5000);
                     }
@@ -1597,6 +1442,7 @@
 
         // 暂停番茄钟
         function pausePomodoro() {
+            console.log('⏸️ 暂停番茄钟');
             if (!isPomodoroRunning) return;
             
             clearInterval(pomodoroTimer);
@@ -1610,6 +1456,7 @@
 
         // 重置番茄钟
         function resetPomodoro() {
+            console.log('🔄 重置番茄钟');
             if (pomodoroTimer) {
                 clearInterval(pomodoroTimer);
             }
@@ -1657,11 +1504,11 @@
             saveSettings();
         }
 
-        // 开始临时中断（高精度秒级计时）- JavaScript音频方案
+        // 开始临时中断
         function startInterrupt() {
+            console.log('⏱️ 开始中断计时');
             if (isInterruptRunning) return;
             
-            console.log('⏱️ 开始中断计时（v6.0.0 JavaScript音频方案）');
             updateDebugInfo('开始中断');
             
             const minutes = parseInt(interruptMinutesInput.value) || 0;
@@ -1674,12 +1521,11 @@
                 return;
             }
             
-            if (totalSeconds > 7200) { // 2小时限制
+            if (totalSeconds > 7200) {
                 updateStatus('中断时间不能超过2小时');
                 return;
             }
             
-            // 暂停番茄钟
             if (isPomodoroRunning) {
                 pausePomodoro();
             }
@@ -1691,10 +1537,8 @@
             cancelInterruptBtn.style.display = 'block';
             interruptTimerDisplay.classList.add('show');
             
-            // 记录精确的开始时间
             interruptStartTime = Date.now();
             
-            // 记录中断开始
             const interruptStart = new Date();
             const interruptRecord = {
                 type: 'interrupt_start',
@@ -1711,7 +1555,6 @@
             
             updateStatus(`开始中断：${minutes}分${seconds}秒`);
             
-            // 使用高精度计时
             function updateInterruptTimer() {
                 if (!isInterruptRunning) return;
                 
@@ -1719,17 +1562,14 @@
                 const elapsed = Math.floor((now - interruptStartTime) / 1000);
                 remainingSeconds = Math.max(0, interruptDuration - elapsed);
                 
-                // 更新显示
                 updateInterruptTimerDisplay();
                 
                 if (remainingSeconds <= 0) {
-                    // 时间到
                     isInterruptRunning = false;
                     startInterruptBtn.style.display = 'block';
                     cancelInterruptBtn.style.display = 'none';
                     interruptTimerDisplay.classList.remove('show');
                     
-                    // 记录中断结束
                     const interruptEnd = new Date();
                     const endRecord = {
                         type: 'interrupt_end',
@@ -1746,26 +1586,23 @@
                     
                     console.log('⏰ 中断结束，播放提示音');
                     
-                    // 使用JavaScript音频播放提示音
                     playSound('end');
                     updateStatus(`中断时间结束！${reason ? '原因：' + reason : ''}`, 5000);
                     
-                    // 清理输入框
                     interruptMinutesInput.value = 0;
                     interruptSecondsInput.value = 10;
                     interruptReasonInput.value = '';
                 } else {
-                    // 继续下一帧更新
                     interruptAnimationFrame = requestAnimationFrame(updateInterruptTimer);
                 }
             }
             
-            // 开始计时循环
             interruptAnimationFrame = requestAnimationFrame(updateInterruptTimer);
         }
 
         // 取消中断
         function cancelInterrupt() {
+            console.log('❌ 取消中断');
             if (interruptAnimationFrame) {
                 cancelAnimationFrame(interruptAnimationFrame);
                 interruptAnimationFrame = null;
@@ -1788,7 +1625,6 @@
             const seconds = pomodoroSeconds % 60;
             timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             
-            // 更新浏览器标签页标题
             let titlePrefix = '';
             if (!isFocusTime) {
                 titlePrefix = '休息 - ';
@@ -1810,14 +1646,12 @@
             volume = volumeControl.value / 100;
             volumeValue.textContent = `${volumeControl.value}%`;
             
-            // 音量范围检查
             if (volume < 0.1) volume = 0.1;
             if (volume > 1.0) volume = 1.0;
             
             saveSettings();
             console.log(`🔊 音量更新: ${volume}`);
             
-            // 播放一个测试音来确认音量
             if (soundEnabled && !isTestingSound) {
                 setTimeout(() => {
                     playSound('test');
@@ -1846,7 +1680,6 @@
             soundTestResult.textContent = '正在测试声音兼容性...';
             soundTestResult.className = 'compatibility-warning';
             
-            // 清除之前的测试结果
             const dots = soundTestResult.querySelector('.loading-dots');
             if (dots) {
                 soundTestResult.textContent = '正在测试声音兼容性';
@@ -1856,19 +1689,16 @@
             console.log('🔊 开始测试声音兼容性，设备:', window.isIOS ? 'iOS' : '非iOS');
             updateDebugInfo('测试声音兼容性...');
             
-            // 测试震动
             if (vibrationEnabled && navigator.vibrate) {
                 navigator.vibrate(200);
             }
             
-            // 测试JavaScript音频
             testJavaScriptAudioCompatibility();
         }
         
         // 测试JavaScript音频兼容性
         function testJavaScriptAudioCompatibility() {
             try {
-                // iOS特殊处理：确保用户已交互
                 if (window.isIOS && !window.userInteracted) {
                     soundTestResult.textContent = '请点击页面任意位置以启用声音';
                     isTestingSound = false;
@@ -1876,7 +1706,6 @@
                     return;
                 }
                 
-                // 初始化音频生成器
                 const audioReady = audioGenerator.init();
                 
                 if (!audioReady) {
@@ -1888,7 +1717,6 @@
                     return;
                 }
                 
-                // 播放测试音
                 const success = audioGenerator.play('beep');
                 
                 if (success) {
@@ -1932,7 +1760,6 @@
             updateStatus('❌ 声音测试失败，将使用振动提示', 3000);
             updateDebugInfo('声音测试失败');
             
-            // 确保震动启用
             document.getElementById('vibrationToggle').checked = true;
             saveSettings();
             
@@ -1984,7 +1811,6 @@
             historyItem.appendChild(detailsElement);
             historyList.prepend(historyItem);
             
-            // 限制历史记录数量
             const maxHistory = 10;
             const items = historyList.querySelectorAll('.history-item');
             if (items.length > maxHistory) {
@@ -2058,7 +1884,6 @@
                             vibrationToggle.checked = vibrationEnabled;
                         }
                     }
-                    // 新增：加载点击音效设置
                     if (settings.clickSoundEnabled !== undefined) {
                         clickSoundEnabled = settings.clickSoundEnabled;
                         if (clickSoundToggle) {
@@ -2082,7 +1907,7 @@
                 soundType: currentSoundType,
                 soundEnabled: soundEnabled,
                 vibrationEnabled: vibrationEnabled,
-                clickSoundEnabled: clickSoundEnabled  // 新增：保存点击音效设置
+                clickSoundEnabled: clickSoundEnabled
             };
             
             try {
@@ -2136,7 +1961,6 @@
                             interruptTimerDisplay.classList.add('show');
                             interruptStartTime = Date.now() - (state.interruptDuration - remainingSeconds) * 1000;
                             
-                            // 重新开始计时循环
                             function updateInterruptTimer() {
                                 if (!isInterruptRunning) return;
                                 
@@ -2144,21 +1968,17 @@
                                 const elapsed = Math.floor((now - interruptStartTime) / 1000);
                                 remainingSeconds = Math.max(0, interruptDuration - elapsed);
                                 
-                                // 更新显示
                                 updateInterruptTimerDisplay();
                                 
                                 if (remainingSeconds <= 0) {
-                                    // 时间到
                                     isInterruptRunning = false;
                                     startInterruptBtn.style.display = 'block';
                                     cancelInterruptBtn.style.display = 'none';
                                     interruptTimerDisplay.classList.remove('show');
                                     
-                                    // 自动播放结束声音
                                     playSound('end');
                                     updateStatus('中断时间结束！', 5000);
                                 } else {
-                                    // 继续下一帧更新
                                     interruptAnimationFrame = requestAnimationFrame(updateInterruptTimer);
                                 }
                             }
@@ -2175,34 +1995,114 @@
             }
         });
 
-        // 防止页面休眠（保持计时器准确）
-        let wakeLock = null;
+        // 事件监听器
+        startBtn.addEventListener('click', startPomodoro);
+        pauseBtn.addEventListener('click', pausePomodoro);
+        resetBtn.addEventListener('click', resetPomodoro);
+        stopSoundBtn.addEventListener('click', stopAllSounds);
+        stopSoundBtn2.addEventListener('click', stopAllSounds);
+        testSoundBtn.addEventListener('click', testSoundCompatibility);
         
-        async function requestWakeLock() {
-            if ('wakeLock' in navigator) {
-                try {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                    console.log('✅ Wake Lock 已启用');
-                } catch (err) {
-                    console.log('⚠️ Wake Lock 失败:', err);
-                }
-            }
-        }
+        focusTimeInput.addEventListener('change', updatePomodoroTime);
+        breakTimeInput.addEventListener('change', saveSettings);
         
-        if ('wakeLock' in navigator) {
-            requestWakeLock();
-            
-            // 当页面重新获得焦点时重新获取 Wake Lock
-            document.addEventListener('visibilitychange', async () => {
-                if (document.visibilityState === 'visible' && (isPomodoroRunning || isInterruptRunning)) {
-                    await requestWakeLock();
+        startInterruptBtn.addEventListener('click', startInterrupt);
+        cancelInterruptBtn.addEventListener('click', cancelInterrupt);
+        clearHistoryBtn.addEventListener('click', clearHistory);
+        
+        volumeControl.addEventListener('input', updateVolume);
+        
+        soundOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                soundOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                currentSoundType = option.dataset.sound;
+                saveSettings();
+                
+                if (soundEnabled && !isTestingSound) {
+                    playSound('test');
                 }
             });
-        }
+        });
 
-        // 键盘快捷键支持
+        // 快速测试按钮事件
+        quickTestButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const seconds = parseInt(this.getAttribute('data-seconds'));
+                interruptMinutesInput.value = 0;
+                interruptSecondsInput.value = seconds;
+                startInterrupt();
+            });
+        });
+
+        // 预设时间按钮事件
+        presetTimeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const minutes = parseInt(this.getAttribute('data-minutes'));
+                setCustomTime(minutes);
+            });
+        });
+
+        // 自定义时间设置按钮事件
+        setCustomTimeBtn.addEventListener('click', function() {
+            const minutes = parseInt(customMinutesInput.value);
+            setCustomTime(minutes);
+        });
+
+        // 回车键设置自定义时间
+        customMinutesInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const minutes = parseInt(customMinutesInput.value);
+                setCustomTime(minutes);
+            }
+        });
+
+        // 震动控制事件
+        document.getElementById('vibrationToggle').addEventListener('change', function(e) {
+            vibrationEnabled = e.target.checked;
+            saveSettings();
+            
+            if (vibrationEnabled && navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        });
+
+        // 点击音效控制事件
+        clickSoundToggle.addEventListener('change', function(e) {
+            clickSoundEnabled = e.target.checked;
+            saveSettings();
+            
+            if (clickSoundEnabled && soundEnabled) {
+                playClickSound('test');
+            }
+        });
+
+        // 初始化
+        loadSettings();
+        loadHistory();
+        updateTimerDisplay();
+        updateDeviceStatus();
+        updateStatus('准备开始，请点击"测试声音"按钮授权声音权限');
+        pauseBtn.disabled = true;
+        
+        updateDebugInfo('v6.0.0修复版初始化完成');
+        
+        setTimeout(() => {
+            initAudioSystem();
+        }, 1000);
+
+        // 添加用户交互监听
+        document.addEventListener('touchstart', handleUserInteraction, { once: true });
+        document.addEventListener('click', handleUserInteraction, { once: true });
+        
+        // 为所有按钮添加音频解锁
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('touchstart', handleUserInteraction);
+            button.addEventListener('click', handleUserInteraction);
+        });
+
+        // 键盘快捷键
         document.addEventListener('keydown', (e) => {
-            // 空格键：开始/暂停
             if (e.code === 'Space') {
                 e.preventDefault();
                 if (isPomodoroRunning) {
@@ -2211,22 +2111,18 @@
                     startPomodoro();
                 }
             }
-            // Ctrl + R：重置
             if (e.code === 'KeyR' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 resetPomodoro();
             }
-            // Ctrl + S：停止声音
             if (e.code === 'KeyS' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 stopAllSounds();
             }
-            // Ctrl + I：开始中断
             if (e.code === 'KeyI' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 startInterrupt();
             }
-            // Ctrl + V：切换震动
             if (e.code === 'KeyV' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 const vibrationToggle = document.getElementById('vibrationToggle');
@@ -2235,12 +2131,10 @@
                     vibrationToggle.dispatchEvent(new Event('change'));
                 }
             }
-            // Ctrl + T：测试声音
             if (e.code === 'KeyT' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 testSoundCompatibility();
             }
-            // Ctrl + C：开关点击音效
             if (e.code === 'KeyC' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 if (clickSoundToggle) {
@@ -2250,12 +2144,9 @@
             }
         });
 
-        // 初始化完成
-        console.log('✅ 番茄钟 v6.0.0 初始化完成');
+        console.log('✅ 番茄钟 v6.0.0 修复版初始化完成');
         console.log('📊 系统信息 - iOS:', window.isIOS, '用户已交互:', window.userInteracted, '声音启用:', soundEnabled, '震动:', vibrationEnabled, '点击音效:', clickSoundEnabled);
-        console.log('📊 版本特性: 自由调节时间 + 按键点击音效，100%兼容');
         
-        // 桌面通知权限请求
         if ('Notification' in window && Notification.permission === 'default') {
             setTimeout(() => {
                 Notification.requestPermission().then(permission => {
@@ -2264,7 +2155,6 @@
             }, 2000);
         }
         
-        // 添加调试信息
         console.log('📊 番茄钟系统状态检查:');
         console.log('  Web Audio API 支持:', !!(window.AudioContext || window.webkitAudioContext));
         console.log('  震动功能支持:', !!navigator.vibrate);
@@ -2279,13 +2169,11 @@
         // 为所有按钮添加点击音效
         addClickSoundToButtons();
         
-        // PWA 安装提示（如果支持）
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
             
-            // 显示安装提示
             setTimeout(() => {
                 if (confirm('是否将番茄钟安装到桌面以获得更好的体验？')) {
                     deferredPrompt.prompt();
@@ -2297,7 +2185,6 @@
             }, 10000);
         });
 
-        // 添加服务工作者（如果支持PWA）
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js').then(registration => {
@@ -2308,7 +2195,6 @@
             });
         }
 
-        // 添加离线检测
         window.addEventListener('online', () => {
             updateStatus('🌐 网络连接已恢复', 2000);
         });
@@ -2317,12 +2203,10 @@
             updateStatus('🌐 网络连接已断开，应用可离线使用', 3000);
         });
         
-        // iOS音频优化：在页面可见性变化时尝试恢复音频
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
                 console.log('📱 页面恢复可见状态');
                 
-                // 页面重新可见时，尝试恢复AudioContext
                 if (audioGenerator.audioContext && audioGenerator.audioContext.state === 'suspended') {
                     console.log('🔄 尝试恢复AudioContext');
                     audioGenerator.ensureRunning();
@@ -2330,17 +2214,14 @@
             }
         });
 
-        // 自动音频优化：定期检查AudioContext状态
         setInterval(() => {
             if (audioGenerator.audioContext && audioGenerator.audioContext.state === 'suspended') {
                 console.log('🔍 定期检查：AudioContext被挂起，尝试恢复');
                 audioGenerator.ensureRunning();
             }
-        }, 30000); // 每30秒检查一次
+        }, 30000);
         
-        // 新增：页面加载完成后添加点击音效
         window.addEventListener('load', () => {
-            // 延迟添加点击音效，确保DOM完全加载
             setTimeout(() => {
                 addClickSoundToButtons();
                 console.log('✅ 点击音效系统已初始化');
