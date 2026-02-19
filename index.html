@@ -3,15 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>番茄钟计时器 | Pomodoro Timer</title>
+    <title>番茄钟计时器 - 高效率的时间管理工具</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         :root {
             --primary-color: #ff6b6b;
             --primary-dark: #ff4757;
@@ -24,11 +18,15 @@
             --light-text: #f5f6fa;
             --medium-text: #dcdde1;
             --dark-text: #2f3640;
-            --success-color: #44bd32;
-            --warning-color: #e1b12c;
-            --danger-color: #c23616;
             --shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            --card-bg: rgba(255, 255, 255, 0.05);
             --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
@@ -36,146 +34,78 @@
             background: linear-gradient(135deg, var(--dark-bg), var(--darker-bg));
             color: var(--light-text);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
             overflow-x: hidden;
         }
 
         .container {
-            width: 100%;
             max-width: 1200px;
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 30px;
+            margin: 0 auto;
             padding: 20px;
         }
 
-        @media (max-width: 900px) {
-            .container {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: var(--medium-text);
+            font-size: 1.1rem;
         }
 
         .main-content {
-            background: rgba(255, 255, 255, 0.05);
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .timer-card {
+            background: var(--card-bg);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 40px;
             box-shadow: var(--shadow);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
         }
 
         .timer-display {
-            text-align: center;
             margin-bottom: 40px;
         }
 
-        .mode-indicator {
-            font-size: 1.2rem;
-            font-weight: 300;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-            opacity: 0.8;
-        }
-
-        .mode-indicator.work {
-            color: var(--primary-color);
-        }
-
-        .mode-indicator.break {
-            color: var(--break-color);
-        }
-
         .pomodoro-name {
-            font-size: 2.5rem;
-            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--medium-text);
             margin-bottom: 20px;
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
-        .time-display {
-            font-size: 8rem;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            margin: 20px 0;
-            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .timer-controls {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 30px;
-        }
-
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            justify-content: center;
-            min-width: 140px;
-        }
-
-        .btn-primary {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--light-text);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .btn-success {
-            background: var(--success-color);
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #3fa82a;
-            transform: translateY(-2px);
-        }
-
-        .progress-ring {
+        .timer-circle {
             position: relative;
-            width: 320px;
-            height: 320px;
+            width: 300px;
+            height: 300px;
             margin: 0 auto 30px;
         }
 
-        .progress-ring-svg {
-            width: 100%;
-            height: 100%;
+        .progress-ring {
             transform: rotate(-90deg);
         }
 
-        .progress-ring-circle-bg {
+        .progress-ring-background {
             fill: none;
             stroke: rgba(255, 255, 255, 0.1);
             stroke-width: 8;
@@ -185,7 +115,7 @@
             fill: none;
             stroke-width: 8;
             stroke-linecap: round;
-            transition: stroke-dashoffset 1s linear;
+            transition: stroke-dashoffset 0.5s ease;
         }
 
         .progress-ring-circle.work {
@@ -196,70 +126,156 @@
             stroke: var(--break-color);
         }
 
-        .timer-settings {
+        .time-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--light-text);
+        }
+
+        .mode-indicator {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .mode-indicator.work {
+            background: rgba(255, 107, 107, 0.2);
+            color: var(--primary-color);
+        }
+
+        .mode-indicator.break {
+            background: rgba(46, 213, 115, 0.2);
+            color: var(--break-color);
+        }
+
+        .timer-controls {
             display: flex;
-            gap: 30px;
             justify-content: center;
-            margin-top: 40px;
+            gap: 15px;
             flex-wrap: wrap;
         }
 
-        .setting-group {
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
             display: flex;
-            flex-direction: column;
             align-items: center;
             gap: 10px;
         }
 
-        .setting-label {
-            font-size: 0.9rem;
-            opacity: 0.7;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--secondary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--break-color);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: var(--break-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #ff3838;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #ff2e2e;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .time-settings {
+            margin-top: 40px;
+        }
+
+        .time-settings h3 {
+            margin-bottom: 20px;
+            color: var(--medium-text);
+        }
+
+        .time-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .time-input-group label {
+            width: 120px;
+            text-align: right;
+            color: var(--medium-text);
         }
 
         .time-input {
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 10px 20px;
-            border-radius: 50px;
+            flex: 1;
         }
 
         .time-input input {
-            background: none;
-            border: none;
+            width: 100px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
             color: var(--light-text);
-            font-size: 1.5rem;
-            width: 60px;
             text-align: center;
-            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
         }
 
-        .time-input input:focus {
-            outline: none;
-        }
-
-        .time-input button {
-            background: none;
+        .time-btn {
+            width: 40px;
+            height: 40px;
             border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
             color: var(--light-text);
-            font-size: 1.2rem;
             cursor: pointer;
-            opacity: 0.5;
-            transition: opacity 0.3s;
-            width: 30px;
-            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
+            transition: var(--transition);
         }
 
-        .time-input button:hover {
-            opacity: 1;
-            background: rgba(255, 255, 255, 0.1);
+        .time-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .sidebar {
@@ -269,12 +285,11 @@
         }
 
         .stats-card, .tasks-card, .history-card {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--card-bg);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
+            border-radius: 15px;
+            padding: 25px;
             box-shadow: var(--shadow);
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .card-header {
@@ -285,57 +300,48 @@
         }
 
         .card-title {
-            font-size: 1.2rem;
-            font-weight: 600;
+            font-size: 1.3rem;
             color: var(--light-text);
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            gap: 15px;
         }
 
         .stat-item {
             text-align: center;
-            padding: 20px;
+            padding: 15px;
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            transition: var(--transition);
-        }
-
-        .stat-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
+            border-radius: 10px;
         }
 
         .stat-value {
-            font-size: 2.5rem;
-            font-weight: 700;
+            font-size: 1.8rem;
+            font-weight: bold;
             color: var(--primary-color);
             margin-bottom: 5px;
         }
 
         .stat-label {
+            color: var(--medium-text);
             font-size: 0.9rem;
-            opacity: 0.7;
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .task-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
         }
 
         .task-item {
             display: flex;
             align-items: center;
-            gap: 15px;
-            padding: 15px;
+            padding: 12px;
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
             transition: var(--transition);
         }
 
@@ -346,8 +352,9 @@
         .task-checkbox {
             width: 20px;
             height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 2px solid var(--medium-text);
             border-radius: 4px;
+            margin-right: 12px;
             cursor: pointer;
             position: relative;
         }
@@ -357,7 +364,7 @@
             border-color: var(--primary-color);
         }
 
-        .task-checkbox.checked:after {
+        .task-checkbox.checked::after {
             content: '✓';
             position: absolute;
             top: 50%;
@@ -372,52 +379,54 @@
         }
 
         .task-name {
-            font-size: 1rem;
-            margin-bottom: 5px;
+            font-weight: bold;
+            margin-bottom: 4px;
         }
 
         .task-pomodoros {
-            font-size: 0.8rem;
-            opacity: 0.7;
+            font-size: 0.85rem;
+            color: var(--medium-text);
         }
 
         .task-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .task-btn {
-            background: none;
+            width: 30px;
+            height: 30px;
             border: none;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
             color: var(--light-text);
-            opacity: 0.5;
             cursor: pointer;
-            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
         }
 
         .task-btn:hover {
-            opacity: 1;
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .add-task {
             display: flex;
             gap: 10px;
-            margin-top: 20px;
         }
 
         .add-task input {
             flex: 1;
-            padding: 12px 20px;
+            padding: 12px;
             background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
             color: var(--light-text);
-            font-size: 1rem;
         }
 
-        .add-task input:focus {
-            outline: none;
-            background: rgba(255, 255, 255, 0.15);
+        .add-task input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
         }
 
         .history-list {
@@ -426,34 +435,31 @@
         }
 
         .history-item {
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .history-info {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 10px;
         }
 
         .history-task {
-            font-weight: 600;
+            font-weight: bold;
+            margin-bottom: 4px;
         }
 
         .history-time {
-            font-size: 0.9rem;
-            opacity: 0.7;
+            font-size: 0.85rem;
+            color: var(--medium-text);
         }
 
         .history-duration {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
         }
 
         .notifications {
@@ -464,28 +470,30 @@
         }
 
         .notification {
-            background: var(--success-color);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
+            background: var(--darker-bg);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px 20px;
             margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            border-radius: 8px;
             box-shadow: var(--shadow);
             animation: slideIn 0.3s ease;
+            max-width: 300px;
+        }
+
+        .notification.success {
+            border-color: var(--break-color);
         }
 
         .notification.error {
-            background: var(--danger-color);
+            border-color: #ff3838;
         }
 
         .notification.warning {
-            background: var(--warning-color);
+            border-color: #ff9f1a;
         }
 
-        .notification.info {
-            background: var(--secondary-color);
+        .notification-icon {
+            margin-right: 10px;
         }
 
         @keyframes slideIn {
@@ -504,12 +512,12 @@
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
             z-index: 2000;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
         }
 
         .modal.show {
@@ -518,8 +526,8 @@
 
         .modal-content {
             background: var(--dark-bg);
-            padding: 40px;
-            border-radius: 20px;
+            border-radius: 15px;
+            padding: 30px;
             max-width: 500px;
             width: 90%;
             box-shadow: var(--shadow);
@@ -529,26 +537,20 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .modal-title {
             font-size: 1.5rem;
-            font-weight: 600;
+            color: var(--light-text);
         }
 
         .modal-close {
             background: none;
             border: none;
-            color: var(--light-text);
+            color: var(--medium-text);
             font-size: 1.5rem;
             cursor: pointer;
-            opacity: 0.5;
-            transition: opacity 0.3s;
-        }
-
-        .modal-close:hover {
-            opacity: 1;
         }
 
         .form-group {
@@ -558,206 +560,126 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            opacity: 0.8;
+            color: var(--medium-text);
         }
 
-        .form-group input,
-        .form-group select {
+        .form-group input, .form-group select {
             width: 100%;
-            padding: 12px 20px;
+            padding: 12px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
+            border-radius: 8px;
             color: var(--light-text);
-            font-size: 1rem;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--primary-color);
         }
 
         .form-actions {
             display: flex;
-            gap: 15px;
             justify-content: flex-end;
+            gap: 10px;
             margin-top: 30px;
         }
 
-        .audio-activation-notice {
-            display: none;
+        .settings-btn, .fullscreen-btn, .theme-toggle {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: var(--warning-color);
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: var(--primary-color);
             color: white;
-            padding: 12px 20px;
-            text-align: center;
-            z-index: 9999;
-            font-size: 0.9rem;
-            animation: pulse 2s infinite;
-        }
-
-        .audio-activation-notice.show {
-            display: block;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .notification-icon {
-            animation: pulse 1.5s infinite;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: var(--transition);
+            z-index: 100;
         }
 
         .settings-btn {
-            position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 50px;
-            height: 50px;
-            background: var(--primary-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            border: none;
-        }
-
-        .settings-btn:hover {
-            transform: rotate(30deg) scale(1.1);
         }
 
         .fullscreen-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 80px;
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--light-text);
-            cursor: pointer;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            transition: var(--transition);
-        }
-
-        .fullscreen-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
+            bottom: 80px;
+            right: 20px;
         }
 
         .theme-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 140px;
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--light-text);
-            cursor: pointer;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            transition: var(--transition);
+            bottom: 140px;
+            right: 20px;
         }
 
-        .theme-toggle:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .settings-btn:hover, .fullscreen-btn:hover, .theme-toggle:hover {
             transform: scale(1.1);
         }
 
-        .time-input-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+        .pulse {
+            animation: pulse 1s infinite;
         }
 
-        .time-input-controls button {
-            width: 25px;
-            height: 25px;
-            padding: 0;
-            display: flex;
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* 音频激活提示 */
+        .audio-activation-notice {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-dark);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            display: none;
             align-items: center;
-            justify-content: center;
+            gap: 10px;
+            z-index: 3000;
         }
 
-        /* 滚动条样式 */
-        ::-webkit-scrollbar {
-            width: 8px;
+        .audio-activation-notice.show {
+            display: flex;
+            animation: fadeInDown 0.5s ease;
         }
 
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 4px;
+        .audio-activation-notice i {
+            font-size: 1.2rem;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
         }
 
         /* 响应式设计 */
         @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .main-content {
-                padding: 20px;
-            }
-            
-            .time-display {
-                font-size: 5rem;
-            }
-            
-            .progress-ring {
+            .timer-circle {
                 width: 250px;
                 height: 250px;
             }
             
-            .btn {
-                padding: 12px 20px;
-                min-width: 120px;
-                font-size: 1rem;
-            }
-            
-            .timer-settings {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .stats-card,
-            .tasks-card,
-            .history-card {
-                padding: 20px;
-            }
-        }
-
-        @media (max-width: 480px) {
             .time-display {
-                font-size: 4rem;
-            }
-            
-            .progress-ring {
-                width: 200px;
-                height: 200px;
+                font-size: 3rem;
             }
             
             .timer-controls {
@@ -767,72 +689,64 @@
             
             .btn {
                 width: 100%;
-                max-width: 200px;
+                max-width: 300px;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .timer-card {
+                padding: 20px;
             }
             
-            .settings-btn,
-            .fullscreen-btn,
-            .theme-toggle {
-                width: 40px;
-                height: 40px;
-                bottom: 10px;
+            .header h1 {
+                font-size: 2rem;
             }
             
-            .fullscreen-btn {
-                right: 60px;
+            .time-input-group {
+                flex-direction: column;
+                align-items: flex-start;
             }
             
-            .theme-toggle {
-                right: 110px;
+            .time-input-group label {
+                width: 100%;
+                text-align: left;
             }
-        }
-
-        /* 动画类 */
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        .shake {
-            animation: shake 0.5s ease-in-out;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        .zoom {
-            animation: zoom 0.3s ease-out;
-        }
-
-        @keyframes zoom {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
 <body>
     <!-- 音频激活提示 -->
-    <div id="audio-activation-notice" class="audio-activation-notice">
-        <span><i class="fas fa-volume-mute"></i> 点击任意位置启用音频提示</span>
+    <div class="audio-activation-notice" id="audio-activation-notice">
+        <i class="fas fa-volume-up"></i>
+        <span>点击任意位置激活音频</span>
     </div>
 
     <div class="container">
-        <!-- 主计时器区域 -->
-        <main class="main-content">
-            <div class="timer-display">
-                <div class="mode-indicator" id="modeIndicator">专注时间</div>
-                <h1 class="pomodoro-name" id="pomodoroName">专注工作</h1>
-                
-                <div class="progress-ring">
-                    <svg class="progress-ring-svg" viewBox="0 0 100 100">
-                        <circle class="progress-ring-circle-bg" cx="50" cy="50" r="45"></circle>
-                        <circle class="progress-ring-circle" id="progressCircle" cx="50" cy="50" r="45"></circle>
-                    </svg>
-                    <div class="time-display" id="timeDisplay">25:00</div>
+        <!-- 页头 -->
+        <header class="header">
+            <h1><i class="fas fa-clock"></i> 番茄钟计时器</h1>
+            <p>专注工作，高效休息 - 科学的时间管理方法</p>
+        </header>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <!-- 主计时器卡片 -->
+            <div class="timer-card">
+                <div class="timer-display">
+                    <div class="pomodoro-name" id="pomodoroName">专注工作</div>
+                    <div class="mode-indicator work" id="modeIndicator">专注时间</div>
+                    
+                    <div class="timer-circle">
+                        <svg class="progress-ring" width="300" height="300">
+                            <circle class="progress-ring-background" cx="150" cy="150" r="145"></circle>
+                            <circle class="progress-ring-circle work" id="progressCircle" cx="150" cy="150" r="145" stroke-dasharray="911.06" stroke-dashoffset="0"></circle>
+                        </svg>
+                        <div class="time-display" id="timeDisplay">25:00</div>
+                    </div>
                 </div>
-                
+
+                <!-- 计时器控制按钮 -->
                 <div class="timer-controls">
                     <button id="startBtn" class="btn btn-primary">
                         <i class="fas fa-play"></i> 开始
@@ -840,119 +754,107 @@
                     <button id="pauseBtn" class="btn btn-secondary" disabled>
                         <i class="fas fa-pause"></i> 暂停
                     </button>
-                    <button id="resetBtn" class="btn btn-secondary">
+                    <button id="resetBtn" class="btn btn-danger">
                         <i class="fas fa-redo"></i> 重置
                     </button>
-                    <button id="skipBtn" class="btn btn-secondary">
+                    <button id="skipBtn" class="btn btn-success">
                         <i class="fas fa-forward"></i> 跳过
                     </button>
                 </div>
-                
-                <div class="timer-settings">
-                    <div class="setting-group">
-                        <div class="setting-label">专注时间</div>
+
+                <!-- 时间设置 -->
+                <div class="time-settings">
+                    <h3><i class="fas fa-cog"></i> 时间设置（分钟）</h3>
+                    <div class="time-input-group">
+                        <label>专注时间:</label>
                         <div class="time-input">
-                            <button id="decreaseWorkTime">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <input type="text" id="workTimeInput" value="25" maxlength="3" readonly>
-                            <button id="increaseWorkTime">
-                                <i class="fas fa-plus"></i>
-                            </button>
+                            <button class="time-btn" id="decreaseWorkTime">-</button>
+                            <input type="number" id="workTimeInput" min="1" max="120" value="25">
+                            <button class="time-btn" id="increaseWorkTime">+</button>
                         </div>
                     </div>
-                    
-                    <div class="setting-group">
-                        <div class="setting-label">休息时间</div>
+                    <div class="time-input-group">
+                        <label>休息时间:</label>
                         <div class="time-input">
-                            <button id="decreaseBreakTime">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <input type="text" id="breakTimeInput" value="5" maxlength="3" readonly>
-                            <button id="increaseBreakTime">
-                                <i class="fas fa-plus"></i>
-                            </button>
+                            <button class="time-btn" id="decreaseBreakTime">-</button>
+                            <input type="number" id="breakTimeInput" min="1" max="60" value="5">
+                            <button class="time-btn" id="increaseBreakTime">+</button>
                         </div>
                     </div>
-                    
-                    <div class="setting-group">
-                        <div class="setting-label">长休息</div>
+                    <div class="time-input-group">
+                        <label>长休息时间:</label>
                         <div class="time-input">
-                            <button id="decreaseLongBreakTime">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <input type="text" id="longBreakTimeInput" value="15" maxlength="3" readonly>
-                            <button id="increaseLongBreakTime">
-                                <i class="fas fa-plus"></i>
-                            </button>
+                            <button class="time-btn" id="decreaseLongBreakTime">-</button>
+                            <input type="number" id="longBreakTimeInput" min="5" max="60" value="15">
+                            <button class="time-btn" id="increaseLongBreakTime">+</button>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
 
-        <!-- 侧边栏 -->
-        <aside class="sidebar">
-            <!-- 统计卡片 -->
-            <div class="stats-card">
-                <div class="card-header">
-                    <h2 class="card-title">今日统计</h2>
-                    <button id="resetStatsBtn" class="btn-secondary" style="padding: 8px 15px; font-size: 0.9rem;">
-                        <i class="fas fa-redo"></i> 重置
-                    </button>
+            <!-- 侧边栏 -->
+            <aside class="sidebar">
+                <!-- 统计卡片 -->
+                <div class="stats-card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-chart-bar"></i> 今日统计</h2>
+                        <button id="resetStatsBtn" class="btn-secondary" style="padding: 8px 15px; font-size: 0.9rem;">
+                            <i class="fas fa-redo"></i> 重置
+                        </button>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="pomodorosCompleted">0</div>
+                            <div class="stat-label">完成的番茄</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="focusTime">0h 0m</div>
+                            <div class="stat-label">专注时长</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="tasksCompleted">0</div>
+                            <div class="stat-label">完成的任务</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalTime">0h 0m</div>
+                            <div class="stat-label">总工作时长</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-value" id="pomodorosCompleted">0</div>
-                        <div class="stat-label">完成的番茄</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="focusTime">0h 0m</div>
-                        <div class="stat-label">专注时长</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="tasksCompleted">0</div>
-                        <div class="stat-label">完成的任务</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalTime">0h 0m</div>
-                        <div class="stat-label">总工作时长</div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- 任务卡片 -->
-            <div class="tasks-card">
-                <div class="card-header">
-                    <h2 class="card-title">任务列表</h2>
-                    <button id="addTaskBtn" class="btn-primary" style="padding: 8px 15px; font-size: 0.9rem;">
-                        <i class="fas fa-plus"></i> 添加
-                    </button>
+                <!-- 任务卡片 -->
+                <div class="tasks-card">
+                    <div class="card-header">
+                        <h2 class="card-title">任务列表</h2>
+                        <button id="addTaskBtn" class="btn-primary" style="padding: 8px 15px; font-size: 0.9rem;">
+                            <i class="fas fa-plus"></i> 添加
+                        </button>
+                    </div>
+                    <div class="task-list" id="taskList">
+                        <!-- 任务项会动态添加 -->
+                    </div>
+                    <div class="add-task">
+                        <input type="text" id="newTaskInput" placeholder="输入新任务...">
+                        <button id="confirmAddTask" class="btn-success" style="padding: 12px 20px;">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="task-list" id="taskList">
-                    <!-- 任务项会动态添加 -->
-                </div>
-                <div class="add-task">
-                    <input type="text" id="newTaskInput" placeholder="输入新任务...">
-                    <button id="confirmAddTask" class="btn-success" style="padding: 12px 20px;">
-                        <i class="fas fa-check"></i>
-                    </button>
-                </div>
-            </div>
 
-            <!-- 历史记录卡片 -->
-            <div class="history-card">
-                <div class="card-header">
-                    <h2 class="card-title">历史记录</h2>
-                    <button id="clearHistoryBtn" class="btn-secondary" style="padding: 8px 15px; font-size: 0.9rem;">
-                        <i class="fas fa-trash"></i> 清空
-                    </button>
+                <!-- 历史记录卡片 -->
+                <div class="history-card">
+                    <div class="card-header">
+                        <h2 class="card-title">历史记录</h2>
+                        <button id="clearHistoryBtn" class="btn-secondary" style="padding: 8px 15px; font-size: 0.9rem;">
+                            <i class="fas fa-trash"></i> 清空
+                        </button>
+                    </div>
+                    <div class="history-list" id="historyList">
+                        <!-- 历史记录会动态添加 -->
+                    </div>
                 </div>
-                <div class="history-list" id="historyList">
-                    <!-- 历史记录会动态添加 -->
-                </div>
-            </div>
-        </aside>
+            </aside>
+        </div>
     </div>
 
     <!-- 通知区域 -->
@@ -1003,48 +905,194 @@
     </button>
 
     <script>
-        // 番茄钟计时器主应用程序
+        // 修复AudioContext问题的解决方案
         document.addEventListener('DOMContentLoaded', function() {
             console.log('[系统] 番茄钟计时器初始化中...');
-            console.log('[系统] 版本: 6.3.0 | 支持番茄钟命名功能');
+            console.log('[系统] 版本: 6.3.1 | 修复了AudioContext问题');
             
-            // 检查存储权限
-            if (typeof Storage === 'undefined') {
-                console.error('[系统] 此浏览器不支持Web存储');
-                showNotification('此浏览器不支持本地存储功能，部分功能可能无法正常使用。', 'warning');
-            }
+            // 显示音频激活提示
+            const audioNotice = document.getElementById('audio-activation-notice');
+            audioNotice.classList.add('show');
+            
+            // 设置用户交互监听器
+            setupAudioUnlock();
             
             // 初始化存储
             initStorage();
             
-            // 设置音频解锁
-            setupAudioUnlock();
-            
             // 检查设备兼容性
             checkCompatibility();
-            
-            // 初始化音频系统
-            window.audioManager = new AudioManager();
             
             // 初始化应用
             initApp();
         });
 
-        // 存储初始化函数
-        async function initStorage() {
-            try {
-                // 尝试访问localStorage
-                localStorage.setItem('test', 'test');
-                localStorage.removeItem('test');
-                console.log('[存储] 存储访问正常');
-                return true;
-            } catch (e) {
-                console.warn('[存储] 浏览器隐私设置阻止了存储访问，将使用内存存储');
-                // 回退到内存存储
-                window.fallbackStorage = new Map();
-                showNotification('浏览器隐私设置阻止了本地存储，历史记录和设置将在当前会话中保存。', 'warning');
-                return false;
-            }
+        // 修复音频解锁机制
+        function setupAudioUnlock() {
+            console.log('[音频] 设置音频解锁...');
+            
+            // 创建音频上下文
+            let audioContext = null;
+            let audioInitialized = false;
+            
+            // 用户交互事件列表
+            const userInteractionEvents = [
+                'click',
+                'touchstart',
+                'keydown',
+                'pointerdown',
+                'mousedown',
+                'dragstart'
+            ];
+            
+            // 音频解锁函数
+            const unlockAudio = () => {
+                if (audioInitialized) return;
+                
+                console.log('[音频] 检测到用户交互，开始初始化音频系统...');
+                
+                try {
+                    // 创建音频上下文
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    audioContext = new AudioContext();
+                    
+                    // 创建全局音频管理器
+                    window.audioManager = {
+                        audioContext: audioContext,
+                        unlocked: false,
+                        
+                        // 播放声音
+                        playSound: function(type) {
+                            if (!this.audioContext || this.audioContext.state === 'suspended') {
+                                this.audioContext.resume().then(() => {
+                                    this.unlocked = true;
+                                    console.log('[音频] 音频上下文已恢复');
+                                    this._playSoundNow(type);
+                                }).catch(error => {
+                                    console.error('[音频] 音频恢复失败:', error);
+                                });
+                            } else {
+                                this._playSoundNow(type);
+                            }
+                        },
+                        
+                        // 实际播放声音
+                        _playSoundNow: function(type) {
+                            try {
+                                if (this.audioContext.state !== 'running') {
+                                    console.warn('[音频] 音频上下文未运行，跳过播放');
+                                    return;
+                                }
+                                
+                                const oscillator = this.audioContext.createOscillator();
+                                const gainNode = this.audioContext.createGain();
+                                
+                                const soundConfigs = {
+                                    start: { frequency: 800, duration: 0.5 },
+                                    pause: { frequency: 600, duration: 0.3 },
+                                    complete: { frequency: 1000, duration: 1 },
+                                    alert: { frequency: 1200, duration: 0.2 },
+                                    notification: { frequency: 900, duration: 0.1 }
+                                };
+                                
+                                const config = soundConfigs[type] || soundConfigs.start;
+                                
+                                oscillator.type = 'sine';
+                                oscillator.frequency.value = config.frequency;
+                                
+                                gainNode.gain.value = 0.1;
+                                gainNode.gain.exponentialRampToValueAtTime(
+                                    0.01, 
+                                    this.audioContext.currentTime + config.duration
+                                );
+                                
+                                oscillator.connect(gainNode);
+                                gainNode.connect(this.audioContext.destination);
+                                
+                                oscillator.start(this.audioContext.currentTime);
+                                oscillator.stop(this.audioContext.currentTime + config.duration);
+                                
+                                console.log(`[音频] 播放声音: ${type}`);
+                            } catch (error) {
+                                console.error('[音频] 播放声音失败:', error);
+                            }
+                        },
+                        
+                        // 解锁音频
+                        unlock: function() {
+                            if (this.audioContext) {
+                                this.audioContext.resume().then(() => {
+                                    this.unlocked = true;
+                                    console.log('[音频] 音频已解锁');
+                                }).catch(error => {
+                                    console.error('[音频] 音频解锁失败:', error);
+                                });
+                            }
+                        }
+                    };
+                    
+                    // 立即尝试解锁音频
+                    window.audioManager.unlock();
+                    audioInitialized = true;
+                    
+                    // 隐藏音频激活提示
+                    const audioNotice = document.getElementById('audio-activation-notice');
+                    if (audioNotice) {
+                        setTimeout(() => {
+                            audioNotice.style.opacity = '0';
+                            setTimeout(() => {
+                                audioNotice.style.display = 'none';
+                            }, 500);
+                        }, 1000);
+                    }
+                    
+                    // 播放一个测试音
+                    setTimeout(() => {
+                        window.audioManager.playSound('notification');
+                    }, 100);
+                    
+                } catch (error) {
+                    console.error('[音频] 音频系统初始化失败:', error);
+                }
+            };
+            
+            // 添加用户交互事件监听器
+            userInteractionEvents.forEach(eventType => {
+                document.addEventListener(eventType, unlockAudio, { 
+                    once: true,
+                    passive: true 
+                });
+            });
+            
+            // 3秒后如果还没有用户交互，显示提示
+            setTimeout(() => {
+                if (!audioInitialized) {
+                    console.log('[音频] 等待用户交互以激活音频...');
+                    
+                    // 显示提示
+                    const audioNotice = document.getElementById('audio-activation-notice');
+                    if (audioNotice) {
+                        audioNotice.innerHTML = `
+                            <i class="fas fa-volume-up"></i>
+                            <div>
+                                <div style="font-weight: bold; margin-bottom: 4px;">点击任意位置激活声音</div>
+                                <div style="font-size: 0.9em; opacity: 0.9;">某些浏览器需要用户交互才能播放声音</div>
+                            </div>
+                        `;
+                        audioNotice.classList.add('show');
+                    }
+                }
+            }, 3000);
+            
+            // 强制页面加载后3秒激活音频（如果用户已与页面交互）
+            setTimeout(() => {
+                if (document.activeElement || 
+                    document.hasFocus() || 
+                    window.matchMedia('(pointer: fine) and (hover: hover)').matches) {
+                    console.log('[音频] 检测到页面已有焦点，尝试激活音频...');
+                    unlockAudio();
+                }
+            }, 3000);
         }
 
         // 检查设备兼容性
@@ -1053,190 +1101,153 @@
                 audio: 'AudioContext' in window || 'webkitAudioContext' in window,
                 storage: typeof Storage !== 'undefined',
                 notifications: 'Notification' in window,
-                serviceWorker: 'serviceWorker' in navigator
+                serviceWorker: 'serviceWorker' in navigator,
+                vibration: 'vibrate' in navigator
             };
             
             console.log('[系统] 设备兼容性检查:', compatibility);
             
             if (!compatibility.audio) {
                 console.warn('[系统] 音频API不支持，声音提示将不可用');
+                const audioNotice = document.getElementById('audio-activation-notice');
+                if (audioNotice) {
+                    audioNotice.innerHTML = `
+                        <i class="fas fa-volume-mute"></i>
+                        <span>当前浏览器不支持音频功能，声音提示不可用</span>
+                    `;
+                    audioNotice.style.background = '#ff9f1a';
+                }
             }
             
             if (!compatibility.storage) {
                 console.warn('[系统] 本地存储不支持，将使用会话存储');
+                showNotification('浏览器隐私设置可能阻止了本地存储，历史记录和设置将在当前会话中保存。', 'warning');
             }
             
             return compatibility;
         }
 
-        // 设置音频解锁
-        function setupAudioUnlock() {
-            const audioNotice = document.getElementById('audio-activation-notice');
-            const unlockEvents = ['click', 'touchstart', 'keydown'];
-            
-            const unlockAudio = () => {
-                if (window.audioManager) {
-                    window.audioManager.unlockAudio();
-                }
-                if (audioNotice) {
-                    audioNotice.classList.remove('show');
-                }
-                console.log('[音频] 音频系统已激活');
-                
-                // 播放测试声音
-                if (window.audioManager && window.audioManager.unlocked) {
-                    setTimeout(() => window.audioManager.playTest(), 100);
-                }
-                
-                // 移除监听器
-                unlockEvents.forEach(event => {
-                    document.removeEventListener(event, unlockAudio);
-                });
-            };
-            
-            // 如果音频上下文需要用户交互，显示提示
-            setTimeout(() => {
-                if (window.audioManager && !window.audioManager.unlocked) {
-                    audioNotice.classList.add('show');
-                }
-            }, 2000);
-            
-            unlockEvents.forEach(event => {
-                document.addEventListener(event, unlockAudio, { once: true });
-            });
+        // 初始化存储
+        async function initStorage() {
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                console.log('[存储] 存储访问正常');
+                return true;
+            } catch (e) {
+                console.warn('[存储] 浏览器隐私设置阻止了存储访问');
+                window.fallbackStorage = new Map();
+                return false;
+            }
         }
 
-        // 音频管理器类
+        // 音频管理器类（简化版，不需要复杂的初始化）
         class AudioManager {
             constructor() {
                 this.audioContext = null;
                 this.unlocked = false;
-                this.audioElements = new Map();
-                this.initAudio();
+                this.initialized = false;
+                console.log('[音频] 音频管理器创建，等待用户交互');
             }
             
-            initAudio() {
+            // 初始化音频（在用户交互后调用）
+            init() {
+                if (this.initialized) return;
+                
                 try {
                     const AudioContext = window.AudioContext || window.webkitAudioContext;
                     this.audioContext = new AudioContext();
-                    
-                    // 创建音频元素
-                    this.createAudioElements();
-                    
-                    console.log('[音频] 音频系统初始化成功');
+                    this.initialized = true;
+                    console.log('[音频] 音频上下文创建成功');
                 } catch (error) {
                     console.error('[音频] 音频上下文创建失败:', error);
                 }
             }
             
-            createAudioElements() {
-                const sounds = {
-                    start: { frequency: 800, duration: 0.5 },
-                    pause: { frequency: 600, duration: 0.3 },
-                    complete: { frequency: 1000, duration: 1 },
-                    alert: { frequency: 1200, duration: 0.2, type: 'square' },
-                    notification: { frequency: 900, duration: 0.1, type: 'sine' }
-                };
-                
-                Object.keys(sounds).forEach(key => {
-                    this.createTone(sounds[key]);
-                });
-            }
-            
-            createTone(config) {
-                if (!this.audioContext) return null;
-                
-                try {
-                    const oscillator = this.audioContext.createOscillator();
-                    const gainNode = this.audioContext.createGain();
-                    
-                    oscillator.type = config.type || 'sine';
-                    oscillator.frequency.value = config.frequency;
-                    
-                    gainNode.gain.value = 0.1;
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + config.duration);
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(this.audioContext.destination);
-                    
-                    this.audioElements.set(config.frequency, { oscillator, gainNode, duration: config.duration });
-                } catch (error) {
-                    console.error('[音频] 创建音调失败:', error);
-                }
-            }
-            
-            unlockAudio() {
-                if (this.audioContext && this.audioContext.state === 'suspended') {
-                    this.audioContext.resume().then(() => {
-                        this.unlocked = true;
-                        console.log('[音频] 音频上下文已解锁');
-                    }).catch(error => {
-                        console.error('[音频] 音频解锁失败:', error);
-                    });
-                } else {
-                    this.unlocked = true;
-                }
-            }
-            
-            async playSound(type) {
-                if (!this.unlocked) {
-                    console.warn('[音频] 需要用户交互后才能播放声音');
+            // 播放声音
+            playSound(type) {
+                if (!this.initialized || !this.audioContext) {
+                    console.warn('[音频] 音频系统未初始化，跳过播放');
                     return;
                 }
                 
-                if (!this.audioContext) {
-                    this.initAudio();
-                    if (!this.audioContext) return;
+                // 确保音频上下文处于运行状态
+                if (this.audioContext.state === 'suspended') {
+                    this.audioContext.resume().then(() => {
+                        console.log('[音频] 音频上下文已恢复');
+                        this._playTone(type);
+                    }).catch(error => {
+                        console.error('[音频] 音频恢复失败:', error);
+                    });
+                } else {
+                    this._playTone(type);
+                }
+            }
+            
+            // 播放音调
+            _playTone(type) {
+                if (!this.audioContext || this.audioContext.state !== 'running') {
+                    console.warn('[音频] 音频上下文未运行，跳过播放');
+                    return;
                 }
                 
                 try {
-                    const configs = {
-                        start: { frequency: 800, duration: 0.5 },
-                        pause: { frequency: 600, duration: 0.3 },
-                        complete: { frequency: 1000, duration: 1 },
-                        alert: { frequency: 1200, duration: 0.2, type: 'square' },
-                        notification: { frequency: 900, duration: 0.1, type: 'sine' }
-                    };
-                    
-                    const config = configs[type];
-                    if (!config) return;
-                    
                     const oscillator = this.audioContext.createOscillator();
                     const gainNode = this.audioContext.createGain();
                     
-                    oscillator.type = config.type || 'sine';
+                    const soundConfigs = {
+                        start: { frequency: 800, duration: 0.5 },
+                        pause: { frequency: 600, duration: 0.3 },
+                        complete: { frequency: 1000, duration: 1 },
+                        alert: { frequency: 1200, duration: 0.2 },
+                        notification: { frequency: 900, duration: 0.1 }
+                    };
+                    
+                    const config = soundConfigs[type] || soundConfigs.start;
+                    
+                    oscillator.type = 'sine';
                     oscillator.frequency.value = config.frequency;
                     
                     gainNode.gain.value = 0.1;
+                    gainNode.gain.exponentialRampToValueAtTime(
+                        0.01, 
+                        this.audioContext.currentTime + config.duration
+                    );
                     
                     oscillator.connect(gainNode);
                     gainNode.connect(this.audioContext.destination);
                     
-                    const now = this.audioContext.currentTime;
-                    gainNode.gain.setValueAtTime(0.1, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + config.duration);
-                    
-                    oscillator.start(now);
-                    oscillator.stop(now + config.duration);
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + config.duration);
                     
                 } catch (error) {
-                    console.error('[音频] 播放声音失败:', error);
+                    console.error('[音频] 播放音调失败:', error);
                 }
             }
             
-            playTest() {
-                this.playSound('notification');
+            // 解锁音频
+            unlock() {
+                if (this.audioContext) {
+                    this.audioContext.resume().then(() => {
+                        this.unlocked = true;
+                        console.log('[音频] 音频已解锁');
+                    }).catch(error => {
+                        console.error('[音频] 音频解锁失败:', error);
+                    });
+                }
             }
         }
 
         // 初始化应用程序
         function initApp() {
+            console.log('[系统] 初始化应用程序...');
+            
             // 初始化状态
             window.timerState = {
                 isRunning: false,
                 isPaused: false,
                 isWorkTime: true,
-                timeLeft: 25 * 60, // 25分钟
+                timeLeft: 25 * 60,
                 workTime: 25 * 60,
                 breakTime: 5 * 60,
                 longBreakTime: 15 * 60,
@@ -1277,7 +1288,6 @@
                     const data = JSON.parse(savedData);
                     Object.assign(window.timerState, data);
                     
-                    // 确保时间相关状态正确
                     if (window.timerState.isWorkTime) {
                         window.timerState.timeLeft = window.timerState.workTime;
                     } else {
@@ -1297,8 +1307,6 @@
                 localStorage.setItem('pomodoroTimerData', JSON.stringify(window.timerState));
             } catch (error) {
                 console.error('[存储] 保存数据失败:', error);
-                
-                // 尝试使用回退存储
                 if (window.fallbackStorage) {
                     window.fallbackStorage.set('pomodoroTimerData', JSON.stringify(window.timerState));
                 }
@@ -1309,24 +1317,17 @@
         function updateDisplay() {
             const { timeLeft, isWorkTime, pomodoroName } = window.timerState;
             
-            // 更新时间显示
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
             document.getElementById('timeDisplay').textContent = 
                 `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             
-            // 更新模式指示器
             const modeIndicator = document.getElementById('modeIndicator');
             modeIndicator.textContent = isWorkTime ? '专注时间' : '休息时间';
             modeIndicator.className = `mode-indicator ${isWorkTime ? 'work' : 'break'}`;
             
-            // 更新番茄钟名称
             document.getElementById('pomodoroName').textContent = pomodoroName;
-            
-            // 更新进度环
             updateProgressRing();
-            
-            // 更新时间设置输入
             updateTimeInputs();
         }
 
@@ -1337,7 +1338,7 @@
             const progress = 1 - (timeLeft / totalTime);
             
             const progressCircle = document.getElementById('progressCircle');
-            const circumference = 2 * Math.PI * 45;
+            const circumference = 2 * Math.PI * 145;
             const offset = circumference - (progress * circumference);
             
             progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
@@ -1358,7 +1359,6 @@
         function updateStats() {
             const { pomodorosCompleted, focusTimeToday, tasksCompleted, completedPomodoros } = window.timerState;
             
-            // 计算总工作时长
             const totalWorkTime = completedPomodoros.reduce((total, pomodoro) => {
                 return total + (pomodoro.workTime || 25 * 60);
             }, 0);
@@ -1395,7 +1395,7 @@
                          data-index="${index}"></div>
                     <div class="task-content">
                         <div class="task-name">${task.name}</div>
-                        <div class="task-pomodoros">预计: ${task.estimatedPomodoros} 个番茄</div>
+                        <div class="task-pomodoros">预计: ${task.estimatedPomodoros || 1} 个番茄</div>
                     </div>
                     <div class="task-actions">
                         <button class="task-btn edit-task" data-index="${index}" title="编辑">
@@ -1409,7 +1409,6 @@
                 taskList.appendChild(taskElement);
             });
             
-            // 如果没有任务，显示提示
             if (tasks.length === 0) {
                 taskList.innerHTML = `
                     <div class="task-item" style="justify-content: center; opacity: 0.7;">
@@ -1427,7 +1426,6 @@
             
             historyList.innerHTML = '';
             
-            // 只显示最近10条记录
             const recentHistory = completedPomodoros.slice(-10).reverse();
             
             recentHistory.forEach((pomodoro, index) => {
@@ -1450,7 +1448,6 @@
                 historyList.appendChild(historyElement);
             });
             
-            // 如果没有历史记录，显示提示
             if (recentHistory.length === 0) {
                 historyList.innerHTML = `
                     <div class="history-item" style="justify-content: center; opacity: 0.7;">
@@ -1469,8 +1466,10 @@
             window.timerState.isPaused = false;
             
             // 播放开始声音
-            if (window.audioManager) {
+            if (window.audioManager && window.audioManager.initialized) {
                 window.audioManager.playSound('start');
+            } else {
+                console.log('[音频] 音频未初始化，跳过声音');
             }
             
             // 更新按钮状态
@@ -1488,7 +1487,6 @@
                 
                 updateDisplay();
                 
-                // 每10秒自动保存一次
                 if (window.timerState.timeLeft % 10 === 0) {
                     saveToStorage();
                 }
@@ -1505,11 +1503,10 @@
             clearInterval(window.timerState.timerInterval);
             
             // 播放暂停声音
-            if (window.audioManager) {
+            if (window.audioManager && window.audioManager.initialized) {
                 window.audioManager.playSound('pause');
             }
             
-            // 更新按钮状态
             document.getElementById('startBtn').disabled = false;
             document.getElementById('pauseBtn').disabled = true;
             document.getElementById('startBtn').innerHTML = '<i class="fas fa-play"></i> 继续';
@@ -1527,7 +1524,6 @@
                 window.timerState.workTime : 
                 window.timerState.breakTime;
             
-            // 更新按钮状态
             document.getElementById('startBtn').disabled = false;
             document.getElementById('pauseBtn').disabled = true;
             document.getElementById('startBtn').innerHTML = '<i class="fas fa-play"></i> 开始';
@@ -1545,11 +1541,9 @@
             const { isWorkTime, workTime, pomodorosCompleted, focusTimeToday, completedPomodoros } = window.timerState;
             
             if (isWorkTime) {
-                // 专注时间结束
                 window.timerState.pomodorosCompleted++;
                 window.timerState.focusTimeToday += workTime;
                 
-                // 添加到历史记录
                 completedPomodoros.push({
                     name: window.timerState.pomodoroName,
                     workTime: workTime,
@@ -1557,27 +1551,23 @@
                     category: window.timerState.pomodoroCategory
                 });
                 
-                // 检查是否应该进入长休息
                 const shouldTakeLongBreak = window.timerState.pomodorosCompleted % 4 === 0;
                 
-                // 切换到休息时间
                 window.timerState.isWorkTime = false;
                 window.timerState.timeLeft = shouldTakeLongBreak ? 
                     window.timerState.longBreakTime : 
                     window.timerState.breakTime;
                 
                 // 播放完成声音
-                if (window.audioManager) {
+                if (window.audioManager && window.audioManager.initialized) {
                     window.audioManager.playSound('complete');
                 }
                 
-                // 显示通知
                 const message = shouldTakeLongBreak ? 
                     '专注时间结束！现在是长休息时间。' : 
                     '专注时间结束！现在是休息时间。';
                 showNotification(message, 'success');
                 
-                // 发送系统通知
                 if (Notification.permission === 'granted') {
                     new Notification('番茄钟完成！', {
                         body: message,
@@ -1587,36 +1577,29 @@
                 
                 console.log('[计时器] 专注时间完成，进入休息时间');
             } else {
-                // 休息时间结束
                 window.timerState.isWorkTime = true;
                 window.timerState.timeLeft = window.timerState.workTime;
                 
-                // 播放提示声音
-                if (window.audioManager) {
+                if (window.audioManager && window.audioManager.initialized) {
                     window.audioManager.playSound('alert');
                 }
                 
-                // 显示通知
                 showNotification('休息时间结束！开始下一个专注时段。', 'info');
-                
                 console.log('[计时器] 休息时间结束，开始专注时间');
             }
             
             window.timerState.isRunning = false;
             window.timerState.isPaused = false;
             
-            // 更新按钮状态
             document.getElementById('startBtn').disabled = false;
             document.getElementById('pauseBtn').disabled = true;
             document.getElementById('startBtn').innerHTML = '<i class="fas fa-play"></i> 开始';
             
-            // 更新统计和显示
             updateDisplay();
             updateStats();
             renderHistory();
             saveToStorage();
             
-            // 显示番茄钟命名模态框
             if (window.timerState.isWorkTime) {
                 setTimeout(() => {
                     showPomodoroNameModal();
@@ -1641,7 +1624,6 @@
                 window.timerState.workTime : 
                 window.timerState.breakTime;
             
-            // 更新按钮状态
             document.getElementById('startBtn').disabled = false;
             document.getElementById('pauseBtn').disabled = true;
             document.getElementById('startBtn').innerHTML = '<i class="fas fa-play"></i> 开始';
@@ -1665,7 +1647,6 @@
             
             notifications.appendChild(notification);
             
-            // 自动移除通知
             setTimeout(() => {
                 notification.style.animation = 'slideIn 0.3s ease reverse';
                 setTimeout(() => {
@@ -1691,7 +1672,6 @@
             const nameInput = document.getElementById('pomodoroNameInput');
             const categorySelect = document.getElementById('pomodoroCategory');
             
-            // 设置默认值
             nameInput.value = window.timerState.pomodoroName;
             categorySelect.value = window.timerState.pomodoroCategory;
             
@@ -1717,25 +1697,85 @@
 
         // 设置事件监听器
         function setupEventListeners() {
+            console.log('[系统] 设置事件监听器...');
+            
+            // 音频管理器初始化
+            let audioManagerInitialized = false;
+            
+            // 用户交互时初始化音频管理器
+            const initAudioOnInteraction = () => {
+                if (!audioManagerInitialized) {
+                    window.audioManager = new AudioManager();
+                    window.audioManager.init();
+                    audioManagerInitialized = true;
+                    console.log('[音频] 音频管理器已初始化');
+                }
+            };
+            
+            // 添加用户交互事件
+            const interactionEvents = ['click', 'touchstart', 'keydown', 'mousedown'];
+            interactionEvents.forEach(event => {
+                document.addEventListener(event, initAudioOnInteraction, { once: true });
+            });
+            
             // 计时器控制按钮
-            document.getElementById('startBtn').addEventListener('click', startTimer);
-            document.getElementById('pauseBtn').addEventListener('click', pauseTimer);
-            document.getElementById('resetBtn').addEventListener('click', resetTimer);
-            document.getElementById('skipBtn').addEventListener('click', skipTimer);
+            document.getElementById('startBtn').addEventListener('click', () => {
+                initAudioOnInteraction();
+                startTimer();
+            });
+            
+            document.getElementById('pauseBtn').addEventListener('click', () => {
+                initAudioOnInteraction();
+                pauseTimer();
+            });
+            
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                initAudioOnInteraction();
+                resetTimer();
+            });
+            
+            document.getElementById('skipBtn').addEventListener('click', () => {
+                initAudioOnInteraction();
+                skipTimer();
+            });
             
             // 时间设置按钮
-            document.getElementById('increaseWorkTime').addEventListener('click', () => changeWorkTime(1));
-            document.getElementById('decreaseWorkTime').addEventListener('click', () => changeWorkTime(-1));
-            document.getElementById('increaseBreakTime').addEventListener('click', () => changeBreakTime(1));
-            document.getElementById('decreaseBreakTime').addEventListener('click', () => changeBreakTime(-1));
-            document.getElementById('increaseLongBreakTime').addEventListener('click', () => changeLongBreakTime(1));
-            document.getElementById('decreaseLongBreakTime').addEventListener('click', () => changeLongBreakTime(-1));
+            document.getElementById('increaseWorkTime').addEventListener('click', () => {
+                initAudioOnInteraction();
+                changeWorkTime(1);
+            });
+            
+            document.getElementById('decreaseWorkTime').addEventListener('click', () => {
+                initAudioOnInteraction();
+                changeWorkTime(-1);
+            });
+            
+            document.getElementById('increaseBreakTime').addEventListener('click', () => {
+                initAudioOnInteraction();
+                changeBreakTime(1);
+            });
+            
+            document.getElementById('decreaseBreakTime').addEventListener('click', () => {
+                initAudioOnInteraction();
+                changeBreakTime(-1);
+            });
+            
+            document.getElementById('increaseLongBreakTime').addEventListener('click', () => {
+                initAudioOnInteraction();
+                changeLongBreakTime(1);
+            });
+            
+            document.getElementById('decreaseLongBreakTime').addEventListener('click', () => {
+                initAudioOnInteraction();
+                changeLongBreakTime(-1);
+            });
             
             // 时间输入框事件
             const timeInputs = ['workTimeInput', 'breakTimeInput', 'longBreakTimeInput'];
             timeInputs.forEach(id => {
                 const input = document.getElementById(id);
                 input.addEventListener('blur', function() {
+                    initAudioOnInteraction();
                     const value = parseInt(this.value) || 1;
                     const min = 1;
                     const max = 120;
@@ -1770,6 +1810,7 @@
             
             // 统计重置按钮
             document.getElementById('resetStatsBtn').addEventListener('click', function() {
+                initAudioOnInteraction();
                 if (confirm('确定要重置所有统计信息吗？此操作不可撤销。')) {
                     window.timerState.pomodorosCompleted = 0;
                     window.timerState.focusTimeToday = 0;
@@ -1784,20 +1825,27 @@
             
             // 任务相关按钮
             document.getElementById('addTaskBtn').addEventListener('click', function() {
+                initAudioOnInteraction();
                 const input = document.getElementById('newTaskInput');
                 input.focus();
                 input.select();
             });
             
-            document.getElementById('confirmAddTask').addEventListener('click', addNewTask);
+            document.getElementById('confirmAddTask').addEventListener('click', () => {
+                initAudioOnInteraction();
+                addNewTask();
+            });
+            
             document.getElementById('newTaskInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
+                    initAudioOnInteraction();
                     addNewTask();
                 }
             });
             
             // 历史记录清空按钮
             document.getElementById('clearHistoryBtn').addEventListener('click', function() {
+                initAudioOnInteraction();
                 if (confirm('确定要清空历史记录吗？此操作不可撤销。')) {
                     window.timerState.completedPomodoros = [];
                     renderHistory();
@@ -1807,9 +1855,18 @@
             });
             
             // 模态框相关按钮
-            document.getElementById('closeNameModal').addEventListener('click', hidePomodoroNameModal);
-            document.getElementById('cancelNameBtn').addEventListener('click', hidePomodoroNameModal);
+            document.getElementById('closeNameModal').addEventListener('click', () => {
+                initAudioOnInteraction();
+                hidePomodoroNameModal();
+            });
+            
+            document.getElementById('cancelNameBtn').addEventListener('click', () => {
+                initAudioOnInteraction();
+                hidePomodoroNameModal();
+            });
+            
             document.getElementById('saveNameBtn').addEventListener('click', function() {
+                initAudioOnInteraction();
                 const name = document.getElementById('pomodoroNameInput').value.trim();
                 const category = document.getElementById('pomodoroCategory').value;
                 
@@ -1827,18 +1884,25 @@
             
             // 设置按钮
             document.getElementById('settingsBtn').addEventListener('click', function() {
-                // TODO: 实现设置功能
+                initAudioOnInteraction();
                 showNotification('设置功能开发中...', 'info');
             });
             
             // 全屏按钮
-            document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+            document.getElementById('fullscreenBtn').addEventListener('click', function() {
+                initAudioOnInteraction();
+                toggleFullscreen();
+            });
             
             // 主题切换按钮
-            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            document.getElementById('themeToggle').addEventListener('click', function() {
+                initAudioOnInteraction();
+                toggleTheme();
+            });
             
-            // 点击任务列表（事件委托）
+            // 点击任务列表
             document.getElementById('taskList').addEventListener('click', function(e) {
+                initAudioOnInteraction();
                 const target = e.target;
                 const taskItem = target.closest('.task-item');
                 
@@ -1868,6 +1932,7 @@
                     case ' ':
                     case 'Spacebar':
                         e.preventDefault();
+                        initAudioOnInteraction();
                         if (window.timerState.isRunning) {
                             pauseTimer();
                         } else {
@@ -1884,6 +1949,7 @@
                     case 'R':
                         if (e.ctrlKey) {
                             e.preventDefault();
+                            initAudioOnInteraction();
                             resetTimer();
                         }
                         break;
@@ -1891,6 +1957,7 @@
                     case 'S':
                         if (e.ctrlKey) {
                             e.preventDefault();
+                            initAudioOnInteraction();
                             skipTimer();
                         }
                         break;
@@ -1911,6 +1978,8 @@
                 saveToStorage();
                 console.log('[系统] 页面卸载，数据已保存');
             });
+            
+            console.log('[系统] 事件监听器设置完成');
         }
 
         // 修改专注时间
@@ -2060,589 +2129,8 @@
             }
         }
 
-        // 初始化完成
-        console.log('[系统] 番茄钟计时器已准备就绪');
-        showNotification('番茄钟计时器已启动！按空格键开始/暂停。', 'info');
-    </script>
-</body>
-</html>
-// 页面加载完成后的初始化检查
-        window.addEventListener('load', function() {
-            // 检查是否是第一次访问
-            const isFirstVisit = !localStorage.getItem('pomodoroTimerFirstVisit');
-            
-            if (isFirstVisit) {
-                setTimeout(() => {
-                    showNotification('欢迎使用番茄钟计时器！按空格键可以快速开始/暂停计时。', 'info');
-                    localStorage.setItem('pomodoroTimerFirstVisit', 'true');
-                }, 2000);
-            }
-            
-            // 检查服务工作者支持
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('[系统] Service Worker 注册成功，作用域：', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('[系统] Service Worker 注册失败：', error);
-                    });
-            }
-            
-            // 检查离线状态
-            window.addEventListener('online', function() {
-                showNotification('已恢复网络连接', 'success');
-            });
-            
-            window.addEventListener('offline', function() {
-                showNotification('网络连接已断开，但计时器可继续本地工作', 'warning');
-            });
-            
-            // 检查浏览器兼容性警告
-            if (!('indexedDB' in window)) {
-                console.warn('[系统] IndexedDB 不支持，某些功能可能受限');
-            }
-            
-            if (!('serviceWorker' in navigator)) {
-                console.warn('[系统] Service Worker 不支持，无法离线使用');
-            }
-        });
-
-        // 添加键盘快捷键提示
-        function showKeyboardShortcuts() {
-            const shortcuts = [
-                { key: '空格键', action: '开始/暂停计时' },
-                { key: 'R', action: '重置计时' },
-                { key: 'S', action: '跳过当前时段' },
-                { key: 'ESC', action: '退出全屏/关闭模态框' },
-                { key: 'F11 或 全屏按钮', action: '切换全屏模式' }
-            ];
-            
-            let message = '键盘快捷键：\n';
-            shortcuts.forEach(shortcut => {
-                message += `${shortcut.key}: ${shortcut.action}\n`;
-            });
-            
-            alert(message);
-        }
-
-        // 添加快捷键帮助菜单
-        document.addEventListener('keydown', function(e) {
-            // Ctrl + / 显示快捷键帮助
-            if (e.key === '?' && e.ctrlKey) {
-                e.preventDefault();
-                showKeyboardShortcuts();
-            }
-            
-            // Ctrl + S 保存当前状态
-            if (e.key === 's' && e.ctrlKey && !e.altKey) {
-                e.preventDefault();
-                saveToStorage();
-                showNotification('数据已保存', 'success');
-            }
-        });
-
-        // 添加触摸事件支持
-        let touchStartY = 0;
-        let touchStartX = 0;
-        
-        document.addEventListener('touchstart', function(e) {
-            touchStartY = e.touches[0].clientY;
-            touchStartX = e.touches[0].clientX;
-        }, { passive: true });
-        
-        document.addEventListener('touchend', function(e) {
-            const touchEndY = e.changedTouches[0].clientY;
-            const touchEndX = e.changedTouches[0].clientX;
-            
-            const deltaY = touchStartY - touchEndY;
-            const deltaX = touchStartX - touchEndX;
-            
-            // 垂直滑动调整时间
-            if (Math.abs(deltaY) > 50 && Math.abs(deltaX) < 30) {
-                const timeInputs = document.querySelectorAll('.time-input input');
-                const activeElement = document.activeElement;
-                
-                if (timeInputs.contains(activeElement)) {
-                    e.preventDefault();
-                    
-                    if (deltaY > 0) {
-                        // 向上滑动增加
-                        if (activeElement.id === 'workTimeInput') changeWorkTime(1);
-                        else if (activeElement.id === 'breakTimeInput') changeBreakTime(1);
-                        else if (activeElement.id === 'longBreakTimeInput') changeLongBreakTime(1);
-                    } else {
-                        // 向下滑动减少
-                        if (activeElement.id === 'workTimeInput') changeWorkTime(-1);
-                        else if (activeElement.id === 'breakTimeInput') changeBreakTime(-1);
-                        else if (activeElement.id === 'longBreakTimeInput') changeLongBreakTime(-1);
-                    }
-                }
-            }
-        }, { passive: false });
-
-        // 添加振动反馈（如果支持）
-        function vibrate(pattern) {
-            if ('vibrate' in navigator) {
-                navigator.vibrate(pattern);
-            }
-        }
-
-        // 修改播放声音函数以包含振动反馈
-        async function playSoundWithVibration(type) {
-            if (window.audioManager) {
-                window.audioManager.playSound(type);
-            }
-            
-            // 根据声音类型添加振动反馈
-            const vibrationPatterns = {
-                start: [100, 30, 100],
-                pause: [50, 20, 50],
-                complete: [200, 50, 100, 50, 200],
-                alert: [100],
-                notification: [50]
-            };
-            
-            if (vibrationPatterns[type]) {
-                vibrate(vibrationPatterns[type]);
-            }
-        }
-
-        // 更新计时器控制函数以使用新的声音函数
-        function startTimer() {
-            if (window.timerState.isRunning) return;
-            
-            window.timerState.isRunning = true;
-            window.timerState.isPaused = false;
-            
-            // 播放开始声音和振动
-            playSoundWithVibration('start');
-            
-            // 更新按钮状态
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('pauseBtn').disabled = false;
-            document.getElementById('startBtn').innerHTML = '<i class="fas fa-play"></i> 运行中';
-            
-            // 设置定时器
-            window.timerState.timerInterval = setInterval(() => {
-                window.timerState.timeLeft--;
-                
-                if (window.timerState.timeLeft <= 0) {
-                    completeTimer();
-                }
-                
-                updateDisplay();
-                
-                // 每10秒自动保存一次
-                if (window.timerState.timeLeft % 10 === 0) {
-                    saveToStorage();
-                }
-                
-                // 倒计时最后一分钟时添加视觉提示
-                if (window.timerState.timeLeft === 60) {
-                    document.getElementById('timeDisplay').classList.add('pulse');
-                }
-                
-                // 倒计时最后10秒时添加视觉提示
-                if (window.timerState.timeLeft === 10) {
-                    document.getElementById('timeDisplay').classList.add('shake');
-                }
-            }, 1000);
-            
-            console.log('[计时器] 计时器已启动');
-        }
-
-        // 添加页面可见性变化的计时器同步
-        let hiddenTime = 0;
-        let lastUpdateTime = Date.now();
-        
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                // 页面进入后台
-                hiddenTime = Date.now();
-                console.log('[系统] 页面进入后台');
-            } else {
-                // 页面返回前台
-                if (window.timerState.isRunning && !window.timerState.isPaused) {
-                    const timeInBackground = Date.now() - hiddenTime;
-                    const secondsInBackground = Math.floor(timeInBackground / 1000);
-                    
-                    if (secondsInBackground > 0) {
-                        window.timerState.timeLeft = Math.max(0, window.timerState.timeLeft - secondsInBackground);
-                        
-                        if (window.timerState.timeLeft <= 0) {
-                            completeTimer();
-                        } else {
-                            updateDisplay();
-                        }
-                        
-                        console.log(`[系统] 后台运行时间: ${secondsInBackground}秒，已同步计时器`);
-                    }
-                }
-                console.log('[系统] 页面返回前台');
-            }
-        });
-
-        // 添加屏幕常亮功能
-        let wakeLock = null;
-        
-        async function requestWakeLock() {
-            if ('wakeLock' in navigator) {
-                try {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                    console.log('[系统] 屏幕常亮已启用');
-                    
-                    wakeLock.addEventListener('release', () => {
-                        console.log('[系统] 屏幕常亮已释放');
-                    });
-                } catch (err) {
-                    console.error('[系统] 屏幕常亮请求失败:', err);
-                }
-            }
-        }
-        
-        async function releaseWakeLock() {
-            if (wakeLock !== null) {
-                await wakeLock.release();
-                wakeLock = null;
-            }
-        }
-        
-        // 在计时器启动时请求屏幕常亮
-        function startTimer() {
-            if (window.timerState.isRunning) return;
-            
-            // 请求屏幕常亮
-            requestWakeLock();
-            
-            // 原有代码...
-        }
-        
-        // 在计时器暂停或完成时释放屏幕常亮
-        function pauseTimer() {
-            if (!window.timerState.isRunning || window.timerState.isPaused) return;
-            
-            // 释放屏幕常亮
-            releaseWakeLock();
-            
-            // 原有代码...
-        }
-        
-        function completeTimer() {
-            // 释放屏幕常亮
-            releaseWakeLock();
-            
-            // 原有代码...
-        }
-        
-        function resetTimer() {
-            // 释放屏幕常亮
-            releaseWakeLock();
-            
-            // 原有代码...
-        }
-        
-        function skipTimer() {
-            // 释放屏幕常亮
-            releaseWakeLock();
-            
-            // 原有代码...
-        }
-
-        // 添加数据导出功能
-        function exportData() {
-            const data = {
-                timerState: window.timerState,
-                exportDate: new Date().toISOString(),
-                version: '6.3.0'
-            };
-            
-            const dataStr = JSON.stringify(data, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `pomodoro-timer-backup-${new Date().toISOString().slice(0, 10)}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            showNotification('数据已导出为JSON文件', 'success');
-        }
-
-        // 添加数据导入功能
-        function importData(file) {
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    
-                    // 验证数据格式
-                    if (importedData.timerState && importedData.version) {
-                        if (confirm('确定要导入备份数据吗？当前数据将被覆盖。')) {
-                            window.timerState = importedData.timerState;
-                            updateDisplay();
-                            updateStats();
-                            renderTaskList();
-                            renderHistory();
-                            saveToStorage();
-                            showNotification('数据导入成功', 'success');
-                        }
-                    } else {
-                        showNotification('导入的文件格式不正确', 'error');
-                    }
-                } catch (error) {
-                    showNotification('导入失败：文件格式错误', 'error');
-                }
-            };
-            
-            reader.readAsText(file);
-        }
-
-        // 添加快捷键触发数据导出/导入
-        document.addEventListener('keydown', function(e) {
-            // Ctrl + E 导出数据
-            if (e.key === 'e' && e.ctrlKey && !e.altKey) {
-                e.preventDefault();
-                exportData();
-            }
-            
-            // Ctrl + I 触发数据导入
-            if (e.key === 'i' && e.ctrlKey && !e.altKey) {
-                e.preventDefault();
-                document.getElementById('importFileInput').click();
-            }
-        });
-
-        // 添加上传文件输入
-        const importInput = document.createElement('input');
-        importInput.type = 'file';
-        importInput.id = 'importFileInput';
-        importInput.accept = '.json';
-        importInput.style.display = 'none';
-        importInput.addEventListener('change', function(e) {
-            if (this.files.length > 0) {
-                importData(this.files[0]);
-                this.value = '';
-            }
-        });
-        document.body.appendChild(importInput);
-
-        // 添加主题系统
-        const themes = {
-            dark: {
-                '--dark-bg': '#2c3e50',
-                '--darker-bg': '#1e272e',
-                '--light-text': '#f5f6fa',
-                '--medium-text': '#dcdde1',
-                '--dark-text': '#2f3640',
-                '--primary-color': '#ff6b6b',
-                '--primary-dark': '#ff4757',
-                '--secondary-color': '#1e90ff',
-                '--secondary-dark': '#3742fa',
-                '--break-color': '#2ed573',
-                '--break-dark': '#1dd1a1',
-                '--shadow': '0 10px 20px rgba(0, 0, 0, 0.2)'
-            },
-            light: {
-                '--dark-bg': '#f5f6fa',
-                '--darker-bg': '#dcdde1',
-                '--light-text': '#2f3640',
-                '--medium-text': '#353b48',
-                '--dark-text': '#192a56',
-                '--primary-color': '#ff6b6b',
-                '--primary-dark': '#ff4757',
-                '--secondary-color': '#1e90ff',
-                '--secondary-dark': '#3742fa',
-                '--break-color': '#2ed573',
-                '--break-dark': '#1dd1a1',
-                '--shadow': '0 10px 20px rgba(0, 0, 0, 0.1)'
-            },
-            blue: {
-                '--dark-bg': '#1a237e',
-                '--darker-bg': '#0d1452',
-                '--light-text': '#e8eaf6',
-                '--medium-text': '#c5cae9',
-                '--dark-text': '#283593',
-                '--primary-color': '#5c6bc0',
-                '--primary-dark': '#3949ab',
-                '--secondary-color': '#29b6f6',
-                '--secondary-dark': '#0288d1',
-                '--break-color': '#66bb6a',
-                '--break-dark': '#388e3c',
-                '--shadow': '0 10px 20px rgba(0, 0, 0, 0.3)'
-            },
-            green: {
-                '--dark-bg': '#1b5e20',
-                '--darker-bg': '#0d3c0f',
-                '--light-text': '#e8f5e9',
-                '--medium-text': '#c8e6c9',
-                '--dark-text': '#2e7d32',
-                '--primary-color': '#4caf50',
-                '--primary-dark': '#388e3c',
-                '--secondary-color': '#00bcd4',
-                '--secondary-dark': '#0097a7',
-                '--break-color': '#ff9800',
-                '--break-dark': '#f57c00',
-                '--shadow': '0 10px 20px rgba(0, 0, 0, 0.3)'
-            }
-        };
-
-        let currentTheme = 'dark';
-
-        function setTheme(themeName) {
-            const theme = themes[themeName];
-            if (!theme) return;
-            
-            currentTheme = themeName;
-            
-            Object.entries(theme).forEach(([property, value]) => {
-                document.documentElement.style.setProperty(property, value);
-            });
-            
-            // 更新主题图标
-            const themeIcons = {
-                dark: 'moon',
-                light: 'sun',
-                blue: 'tint',
-                green: 'leaf'
-            };
-            
-            const icon = document.querySelector('#themeToggle i');
-            if (icon) {
-                icon.className = `fas fa-${themeIcons[themeName]}`;
-            }
-            
-            // 保存主题设置
-            localStorage.setItem('pomodoroTimerTheme', themeName);
-        }
-
-        // 修改主题切换功能
-        document.getElementById('themeToggle').addEventListener('click', function() {
-            const themeOrder = ['dark', 'light', 'blue', 'green'];
-            const currentIndex = themeOrder.indexOf(currentTheme);
-            const nextIndex = (currentIndex + 1) % themeOrder.length;
-            setTheme(themeOrder[nextIndex]);
-        });
-
-        // 页面加载时应用保存的主题
-        window.addEventListener('load', function() {
-            const savedTheme = localStorage.getItem('pomodoroTimerTheme');
-            if (savedTheme && themes[savedTheme]) {
-                setTheme(savedTheme);
-            }
-        });
-
-        // 添加性能优化
-        let lastUpdateTime = 0;
-        const UPDATE_INTERVAL = 1000; // 1秒更新一次
-        
-        function optimizedUpdate() {
-            const now = Date.now();
-            if (now - lastUpdateTime >= UPDATE_INTERVAL) {
-                updateDisplay();
-                lastUpdateTime = now;
-            }
-        }
-
-        // 修改定时器循环
-        function startTimer() {
-            if (window.timerState.isRunning) return;
-            
-            window.timerState.isRunning = true;
-            window.timerState.isPaused = false;
-            
-            // 播放开始声音和振动
-            playSoundWithVibration('start');
-            
-            // 更新按钮状态
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('pauseBtn').disabled = false;
-            document.getElementById('startBtn').innerHTML = '<i class="fas fa-play"></i> 运行中';
-            
-            // 使用requestAnimationFrame优化
-            let lastTime = performance.now();
-            
-            function timerLoop(currentTime) {
-                if (!window.timerState.isRunning || window.timerState.isPaused) return;
-                
-                const delta = currentTime - lastTime;
-                
-                if (delta >= 1000) {
-                    window.timerState.timeLeft--;
-                    lastTime = currentTime - (delta % 1000);
-                    
-                    if (window.timerState.timeLeft <= 0) {
-                        completeTimer();
-                        return;
-                    }
-                    
-                    optimizedUpdate();
-                    
-                    // 每10秒自动保存一次
-                    if (window.timerState.timeLeft % 10 === 0) {
-                        saveToStorage();
-                    }
-                }
-                
-                if (window.timerState.isRunning && !window.timerState.isPaused) {
-                    requestAnimationFrame(timerLoop);
-                }
-            }
-            
-            requestAnimationFrame(timerLoop);
-            console.log('[计时器] 计时器已启动');
-        }
-
-        // 添加错误边界处理
-        window.addEventListener('error', function(event) {
-            console.error('[错误] 未捕获的错误:', event.error);
-            showNotification('应用程序发生错误，请刷新页面重试', 'error');
-        });
-
-        window.addEventListener('unhandledrejection', function(event) {
-            console.error('[错误] 未处理的Promise拒绝:', event.reason);
-            showNotification('应用程序发生错误，请刷新页面重试', 'error');
-        });
-
-        // 添加离线检测
-        function checkConnection() {
-            if (!navigator.onLine) {
-                showNotification('您当前处于离线状态，但应用程序仍可正常使用', 'warning');
-            }
-        }
-
-        window.addEventListener('online', checkConnection);
-        window.addEventListener('offline', checkConnection);
-
-        // 页面加载时检查
-        window.addEventListener('load', checkConnection);
-
-        // 添加快捷键帮助菜单到设置按钮
-        document.getElementById('settingsBtn').addEventListener('click', function() {
-            const shortcuts = [
-                { key: '空格键', action: '开始/暂停计时' },
-                { key: 'R', action: '重置计时' },
-                { key: 'S', action: '跳过当前时段' },
-                { key: 'ESC', action: '退出全屏/关闭模态框' },
-                { key: 'F11', action: '切换全屏模式' },
-                { key: 'Ctrl+S', action: '保存数据' },
-                { key: 'Ctrl+E', action: '导出数据' },
-                { key: 'Ctrl+I', action: '导入数据' },
-                { key: 'Ctrl+?', action: '显示此帮助' }
-            ];
-            
-            let message = '<strong>键盘快捷键：</strong><br><br>';
-            shortcuts.forEach(shortcut => {
-                message += `<strong>${shortcut.key}:</strong> ${shortcut.action}<br>`;
-            });
-            
-            showNotification(message, 'info', 5000);
-        });
-
-        // 修改通知函数以支持HTML和更长时间
-        function showNotification(message, type = 'info', duration = 3000) {
+        // 显示通知
+        function showNotification(message, type = 'info') {
             const notifications = document.getElementById('notifications');
             
             const notification = document.createElement('div');
@@ -2654,237 +2142,1172 @@
             
             notifications.appendChild(notification);
             
-            // 自动移除通知
             setTimeout(() => {
                 notification.style.animation = 'slideIn 0.3s ease reverse';
                 setTimeout(() => {
                     notification.remove();
                 }, 300);
-            }, duration);
+            }, 3000);
         }
 
-        // 添加PWA安装提示
-        let deferredPrompt;
+        // 初始化完成
+        console.log('[系统] 番茄钟计时器已准备就绪');
+        showNotification('番茄钟计时器已启动！按空格键开始/暂停。', 'info');
         
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            
-            // 显示安装提示
-            setTimeout(() => {
-                showNotification('想将番茄钟添加到主屏幕吗？点击这里安装应用。', 'info', 10000);
-                
-                const installNotification = document.querySelector('.notification:last-child');
-                if (installNotification) {
-                    installNotification.style.cursor = 'pointer';
-                    installNotification.addEventListener('click', async () => {
-                        deferredPrompt.prompt();
-                        const { outcome } = await deferredPrompt.userChoice;
-                        if (outcome === 'accepted') {
-                            showNotification('应用已成功安装！', 'success');
-                        }
-                        deferredPrompt = null;
-                    });
-                }
-            }, 10000);
-        });
-
-        // 添加分享功能
-        function shareProgress() {
-            const { pomodorosCompleted, focusTimeToday } = window.timerState;
-            const hours = Math.floor(focusTimeToday / 3600);
-            const minutes = Math.floor((focusTimeToday % 3600) / 60);
-            
-            const text = `我今天使用番茄钟完成了 ${pomodorosCompleted} 个番茄，专注了 ${hours > 0 ? `${hours}小时` : ''}${minutes}分钟！`;
-            const url = window.location.href;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: '番茄钟进度',
-                    text: text,
-                    url: url
-                }).then(() => {
-                    showNotification('分享成功！', 'success');
-                }).catch(error => {
-                    console.log('分享失败:', error);
-                });
+        // 3秒后检查音频状态
+        setTimeout(() => {
+            if (window.audioManager && window.audioManager.initialized) {
+                console.log('[音频] 音频系统已准备就绪');
             } else {
-                // 回退方案
-                navigator.clipboard.writeText(`${text} ${url}`).then(() => {
-                    showNotification('分享文本已复制到剪贴板！', 'success');
-                }).catch(err => {
-                    const shareUrl = `${text} ${url}`;
-                    prompt('复制以下链接分享：', shareUrl);
-                });
+                console.log('[音频] 等待用户交互以激活音频系统');
             }
-        }
+        }, 3000);
+    </script>
+</body>
+</html>
+// 续接上面代码...
 
-        // 添加快捷键分享
-        document.addEventListener('keydown', function(e) {
-            // Ctrl + P 分享进度
-            if (e.key === 'p' && e.ctrlKey && !e.altKey) {
-                e.preventDefault();
-                shareProgress();
-            }
-        });
-
-        // 添加数据备份提醒
-        function setupBackupReminder() {
-            const lastBackup = localStorage.getItem('pomodoroTimerLastBackup');
-            const now = Date.now();
-            const oneWeek = 7 * 24 * 60 * 60 * 1000;
+        // 键盘快捷键提示
+        function showKeyboardShortcuts() {
+            const shortcuts = [
+                { key: '空格键', action: '开始/暂停计时器' },
+                { key: 'R', action: '重置计时器' },
+                { key: 'S', action: '跳过当前时段' },
+                { key: 'ESC', action: '退出全屏/关闭对话框' },
+                { key: 'F11', action: '切换全屏模式' },
+                { key: 'Ctrl+S', action: '保存数据' },
+                { key: 'Ctrl+E', action: '导出数据' },
+                { key: 'Ctrl+I', action: '导入数据' }
+            ];
             
-            if (!lastBackup || (now - parseInt(lastBackup) > oneWeek)) {
-                setTimeout(() => {
-                    if (confirm('已经一周没有备份数据了，是否要导出备份？')) {
-                        exportData();
-                        localStorage.setItem('pomodoroTimerLastBackup', now.toString());
-                    }
-                }, 5000);
-            }
-        }
-
-        // 页面加载时设置备份提醒
-        window.addEventListener('load', function() {
-            setTimeout(setupBackupReminder, 30000); // 30秒后检查
-        });
-
-        // 添加自动保存功能
-        const AUTOSAVE_INTERVAL = 30000; // 30秒
-        
-        setInterval(() => {
-            if (window.timerState.isRunning) {
-                saveToStorage();
-                console.log('[系统] 自动保存完成');
-            }
-        }, AUTOSAVE_INTERVAL);
-
-        // 添加触摸长按支持
-        let longPressTimer;
-        const LONG_PRESS_DURATION = 1000; // 1秒
-        
-        document.addEventListener('touchstart', function(e) {
-            if (e.target.classList.contains('time-input')) {
-                longPressTimer = setTimeout(() => {
-                    e.target.style.transform = 'scale(0.95)';
-                    vibrate([50]);
-                    
-                    // 显示快速调整菜单
-                    const rect = e.target.getBoundingClientRect();
-                    showQuickAdjustMenu(e.target.id, rect.left, rect.top);
-                }, LONG_PRESS_DURATION);
-            }
-        }, { passive: true });
-        
-        document.addEventListener('touchend', function(e) {
-            clearTimeout(longPressTimer);
-            if (e.target.classList.contains('time-input')) {
-                e.target.style.transform = '';
-            }
-        });
-        
-        document.addEventListener('touchmove', function(e) {
-            clearTimeout(longPressTimer);
-        }, { passive: true });
-
-        function showQuickAdjustMenu(inputId, x, y) {
-            const menu = document.createElement('div');
-            menu.className = 'quick-adjust-menu';
-            menu.style.cssText = `
-                position: fixed;
-                left: ${x}px;
-                top: ${y - 100}px;
-                background: var(--dark-bg);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 10px;
-                padding: 10px;
-                box-shadow: var(--shadow);
-                z-index: 10000;
-                display: flex;
-                gap: 5px;
-            `;
-            
-            const increments = [1, 5, 10, 15, 30];
-            
-            increments.forEach(inc => {
-                const btn = document.createElement('button');
-                btn.textContent = `+${inc}`;
-                btn.style.cssText = `
-                    padding: 8px 12px;
-                    background: var(--primary-color);
-                    border: none;
-                    border-radius: 5px;
-                    color: white;
-                    cursor: pointer;
-                `;
-                btn.addEventListener('click', () => {
-                    if (inputId.includes('Work')) changeWorkTime(inc);
-                    else if (inputId.includes('Break')) changeBreakTime(inc);
-                    else if (inputId.includes('Long')) changeLongBreakTime(inc);
-                    menu.remove();
-                });
-                menu.appendChild(btn);
+            let message = '键盘快捷键：\n';
+            shortcuts.forEach(shortcut => {
+                message += `  ${shortcut.key}: ${shortcut.action}\n`;
             });
             
-            document.body.appendChild(menu);
-            
-            // 点击其他地方关闭菜单
-            setTimeout(() => {
-                const closeMenu = (e) => {
-                    if (!menu.contains(e.target)) {
-                        menu.remove();
-                        document.removeEventListener('click', closeMenu);
-                    }
-                };
-                document.addEventListener('click', closeMenu);
-            }, 0);
+            alert(message);
         }
 
-        // 添加最终初始化检查
-        window.addEventListener('load', function() {
-            // 检查所有功能是否正常
-            const checks = {
-                audio: !!window.audioManager,
-                storage: typeof Storage !== 'undefined',
-                notifications: 'Notification' in window,
-                serviceWorker: 'serviceWorker' in navigator,
-                vibration: 'vibrate' in navigator,
-                share: 'share' in navigator,
-                wakeLock: 'wakeLock' in navigator
+        // 导出数据
+        function exportData() {
+            const data = {
+                version: '1.0.0',
+                exportDate: new Date().toISOString(),
+                timerData: window.timerState,
+                tasks: window.timerState.tasks,
+                history: window.timerState.completedPomodoros
             };
             
-            console.log('[系统] 功能检查:', checks);
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
             
-            // 请求通知权限
-            if (checks.notifications && Notification.permission === 'default') {
+            const url = URL.createObjectURL(dataBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pomodoro-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('数据导出成功！', 'success');
+        }
+
+        // 导入数据
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const importedData = JSON.parse(event.target.result);
+                        
+                        if (confirm('导入数据将覆盖当前所有数据，确定继续吗？')) {
+                            if (importedData.timerData) {
+                                Object.assign(window.timerState, importedData.timerData);
+                            }
+                            
+                            if (importedData.tasks) {
+                                window.timerState.tasks = importedData.tasks;
+                            }
+                            
+                            if (importedData.history) {
+                                window.timerState.completedPomodoros = importedData.history;
+                            }
+                            
+                            updateDisplay();
+                            updateStats();
+                            renderTaskList();
+                            renderHistory();
+                            saveToStorage();
+                            
+                            showNotification('数据导入成功！', 'success');
+                        }
+                    } catch (error) {
+                        console.error('[导入] 数据导入失败:', error);
+                        showNotification('导入失败：文件格式不正确', 'error');
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        // 初始化服务工作者（PWA支持）
+        function initServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/service-worker.js').then(registration => {
+                        console.log('[PWA] ServiceWorker 注册成功:', registration.scope);
+                    }).catch(error => {
+                        console.log('[PWA] ServiceWorker 注册失败:', error);
+                    });
+                });
+            }
+        }
+
+        // 添加到主屏幕提示
+        function showInstallPrompt() {
+            let deferredPrompt;
+            
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                
+                const installButton = document.createElement('button');
+                installButton.innerHTML = '<i class="fas fa-download"></i> 安装应用';
+                installButton.className = 'btn btn-primary';
+                installButton.style.position = 'fixed';
+                installButton.style.bottom = '20px';
+                installButton.style.left = '20px';
+                installButton.style.zIndex = '1000';
+                
+                installButton.addEventListener('click', () => {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(choiceResult => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('[PWA] 用户同意安装');
+                        } else {
+                            console.log('[PWA] 用户拒绝安装');
+                        }
+                        deferredPrompt = null;
+                        installButton.remove();
+                    });
+                });
+                
+                document.body.appendChild(installButton);
+                
+                // 7天后自动移除提示
                 setTimeout(() => {
-                    Notification.requestPermission();
-                }, 1000);
+                    if (installButton.parentNode) {
+                        installButton.remove();
+                    }
+                }, 7 * 24 * 60 * 60 * 1000);
+            });
+        }
+
+        // 触摸手势支持
+        function setupTouchGestures() {
+            let touchStartX = 0;
+            let touchStartY = 0;
+            
+            document.addEventListener('touchstart', function(e) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            });
+            
+            document.addEventListener('touchend', function(e) {
+                if (!touchStartX || !touchStartY) return;
+                
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                
+                const diffX = touchStartX - touchEndX;
+                const diffY = touchStartY - touchEndY;
+                
+                // 水平滑动大于垂直滑动
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    // 左滑
+                    if (diffX > 50) {
+                        skipTimer();
+                        e.preventDefault();
+                    }
+                    // 右滑
+                    else if (diffX < -50) {
+                        resetTimer();
+                        e.preventDefault();
+                    }
+                }
+                // 垂直滑动
+                else {
+                    // 下滑
+                    if (diffY > 50) {
+                        if (window.timerState.isRunning) {
+                            pauseTimer();
+                        } else {
+                            startTimer();
+                        }
+                        e.preventDefault();
+                    }
+                }
+                
+                touchStartX = 0;
+                touchStartY = 0;
+            });
+        }
+
+        // 设备振动（如果支持）
+        function vibrate(pattern) {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(pattern);
             }
+        }
+
+        // 屏幕常亮功能
+        function keepScreenAwake() {
+            if ('wakeLock' in navigator) {
+                let wakeLock = null;
+                
+                const requestWakeLock = async () => {
+                    try {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                        console.log('[屏幕] 屏幕常亮已启用');
+                        
+                        wakeLock.addEventListener('release', () => {
+                            console.log('[屏幕] 屏幕常亮已释放');
+                        });
+                    } catch (err) {
+                        console.error('[屏幕] 屏幕常亮启用失败:', err);
+                    }
+                };
+                
+                // 页面可见时启用
+                const handleVisibilityChange = () => {
+                    if (wakeLock !== null && document.visibilityState === 'visible') {
+                        requestWakeLock();
+                    }
+                };
+                
+                document.addEventListener('visibilitychange', handleVisibilityChange);
+                
+                // 初始启用
+                requestWakeLock();
+                
+                return wakeLock;
+            }
+            return null;
+        }
+
+        // 语音合成提示
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // 主题管理
+        class ThemeManager {
+            constructor() {
+                this.themes = {
+                    'dark': {
+                        '--primary-color': '#ff6b6b',
+                        '--primary-dark': '#ff4757',
+                        '--secondary-color': '#1e90ff',
+                        '--secondary-dark': '#3742fa',
+                        '--break-color': '#2ed573',
+                        '--break-dark': '#1dd1a1',
+                        '--dark-bg': '#2c3e50',
+                        '--darker-bg': '#1e272e',
+                        '--light-text': '#f5f6fa',
+                        '--medium-text': '#dcdde1',
+                        '--card-bg': 'rgba(255, 255, 255, 0.05)'
+                    },
+                    'light': {
+                        '--primary-color': '#ff6b6b',
+                        '--primary-dark': '#ff4757',
+                        '--secondary-color': '#1e90ff',
+                        '--secondary-dark': '#3742fa',
+                        '--break-color': '#2ed573',
+                        '--break-dark': '#1dd1a1',
+                        '--dark-bg': '#f5f6fa',
+                        '--darker-bg': '#dcdde1',
+                        '--light-text': '#2f3640',
+                        '--medium-text': '#353b48',
+                        '--card-bg': 'rgba(0, 0, 0, 0.05)'
+                    },
+                    'blue': {
+                        '--primary-color': '#3498db',
+                        '--primary-dark': '#2980b9',
+                        '--secondary-color': '#9b59b6',
+                        '--secondary-dark': '#8e44ad',
+                        '--break-color': '#2ecc71',
+                        '--break-dark': '#27ae60',
+                        '--dark-bg': '#2c3e50',
+                        '--darker-bg': '#34495e',
+                        '--light-text': '#ecf0f1',
+                        '--medium-text': '#bdc3c7',
+                        '--card-bg': 'rgba(255, 255, 255, 0.05)'
+                    },
+                    'green': {
+                        '--primary-color': '#2ecc71',
+                        '--primary-dark': '#27ae60',
+                        '--secondary-color': '#3498db',
+                        '--secondary-dark': '#2980b9',
+                        '--break-color': '#e74c3c',
+                        '--break-dark': '#c0392b',
+                        '--dark-bg': '#2c3e50',
+                        '--darker-bg': '#27ae60',
+                        '--light-text': '#ecf0f1',
+                        '--medium-text': '#bdc3c7',
+                        '--card-bg': 'rgba(255, 255, 255, 0.05)'
+                    }
+                };
+                
+                this.currentTheme = 'dark';
+                this.loadTheme();
+            }
+            
+            loadTheme() {
+                const savedTheme = localStorage.getItem('pomodoro-theme');
+                if (savedTheme && this.themes[savedTheme]) {
+                    this.currentTheme = savedTheme;
+                }
+                this.applyTheme();
+            }
+            
+            applyTheme() {
+                const theme = this.themes[this.currentTheme];
+                Object.keys(theme).forEach(key => {
+                    document.documentElement.style.setProperty(key, theme[key]);
+                });
+                
+                const themeToggleIcon = document.querySelector('#themeToggle i');
+                if (themeToggleIcon) {
+                    themeToggleIcon.className = this.getThemeIcon();
+                }
+                
+                localStorage.setItem('pomodoro-theme', this.currentTheme);
+            }
+            
+            getThemeIcon() {
+                switch(this.currentTheme) {
+                    case 'light': return 'fas fa-sun';
+                    case 'blue': return 'fas fa-tint';
+                    case 'green': return 'fas fa-leaf';
+                    default: return 'fas fa-moon';
+                }
+            }
+            
+            nextTheme() {
+                const themeKeys = Object.keys(this.themes);
+                const currentIndex = themeKeys.indexOf(this.currentTheme);
+                this.currentTheme = themeKeys[(currentIndex + 1) % themeKeys.length];
+                this.applyTheme();
+                return this.currentTheme;
+            }
+            
+            setTheme(themeName) {
+                if (this.themes[themeName]) {
+                    this.currentTheme = themeName;
+                    this.applyTheme();
+                }
+            }
+        }
+
+        // 番茄钟统计
+        class PomodoroStats {
+            constructor() {
+                this.today = new Date().toISOString().split('T')[0];
+                this.weeklyData = {};
+                this.monthlyData = {};
+                this.loadStats();
+            }
+            
+            loadStats() {
+                try {
+                    const savedStats = localStorage.getItem('pomodoro-stats');
+                    if (savedStats) {
+                        const stats = JSON.parse(savedStats);
+                        
+                        if (stats.today === this.today) {
+                            this.daily = stats.daily;
+                        } else {
+                            this.daily = {
+                                date: this.today,
+                                pomodoros: 0,
+                                focusTime: 0,
+                                tasksCompleted: 0,
+                                breaksTaken: 0
+                            };
+                        }
+                        
+                        this.weeklyData = stats.weeklyData || {};
+                        this.monthlyData = stats.monthlyData || {};
+                    } else {
+                        this.daily = {
+                            date: this.today,
+                            pomodoros: 0,
+                            focusTime: 0,
+                            tasksCompleted: 0,
+                            breaksTaken: 0
+                        };
+                    }
+                } catch (error) {
+                    console.error('[统计] 加载统计失败:', error);
+                    this.resetDaily();
+                }
+            }
+            
+            saveStats() {
+                try {
+                    const stats = {
+                        today: this.today,
+                        daily: this.daily,
+                        weeklyData: this.weeklyData,
+                        monthlyData: this.monthlyData
+                    };
+                    localStorage.setItem('pomodoro-stats', JSON.stringify(stats));
+                } catch (error) {
+                    console.error('[统计] 保存统计失败:', error);
+                }
+            }
+            
+            resetDaily() {
+                this.daily = {
+                    date: this.today,
+                    pomodoros: 0,
+                    focusTime: 0,
+                    tasksCompleted: 0,
+                    breaksTaken: 0
+                };
+                this.saveStats();
+            }
+            
+            addPomodoro(workTime) {
+                this.daily.pomodoros++;
+                this.daily.focusTime += workTime;
+                
+                const week = this.getWeekNumber();
+                const month = new Date().getMonth();
+                
+                if (!this.weeklyData[week]) {
+                    this.weeklyData[week] = { pomodoros: 0, focusTime: 0 };
+                }
+                this.weeklyData[week].pomodoros++;
+                this.weeklyData[week].focusTime += workTime;
+                
+                if (!this.monthlyData[month]) {
+                    this.monthlyData[month] = { pomodoros: 0, focusTime: 0 };
+                }
+                this.monthlyData[month].pomodoros++;
+                this.monthlyData[month].focusTime += workTime;
+                
+                this.saveStats();
+            }
+            
+            getWeekNumber() {
+                const now = new Date();
+                const oneJan = new Date(now.getFullYear(), 0, 1);
+                const weekNumber = Math.ceil(((now - oneJan) / 86400000 + oneJan.getDay() + 1) / 7);
+                return weekNumber;
+            }
+            
+            getStats() {
+                return {
+                    daily: this.daily,
+                    weekly: this.weeklyData[this.getWeekNumber()] || { pomodoros: 0, focusTime: 0 },
+                    monthly: this.monthlyData[new Date().getMonth()] || { pomodoros: 0, focusTime: 0 }
+                };
+            }
+        }
+
+        // 番茄钟分析
+        class PomodoroAnalytics {
+            constructor() {
+                this.stats = new PomodoroStats();
+            }
+            
+            getDailyChartData() {
+                const today = new Date();
+                const hours = Array.from({length: 24}, (_, i) => {
+                    const hour = i.toString().padStart(2, '0') + ':00';
+                    return { hour, pomodoros: 0 };
+                });
+                
+                window.timerState.completedPomodoros.forEach(pomodoro => {
+                    const date = new Date(pomodoro.completedAt);
+                    if (date.toDateString() === today.toDateString()) {
+                        const hour = date.getHours();
+                        hours[hour].pomodoros++;
+                    }
+                });
+                
+                return hours;
+            }
+            
+            getWeeklyChartData() {
+                const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+                const today = new Date();
+                const data = {};
+                
+                days.forEach(day => data[day] = 0);
+                
+                window.timerState.completedPomodoros.forEach(pomodoro => {
+                    const date = new Date(pomodoro.completedAt);
+                    const dayDiff = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+                    
+                    if (dayDiff < 7) {
+                        const dayName = days[date.getDay()];
+                        data[dayName]++;
+                    }
+                });
+                
+                return Object.keys(data).map(day => ({ day, count: data[day] }));
+            }
+            
+            getCategoryDistribution() {
+                const categories = {};
+                
+                window.timerState.completedPomodoros.forEach(pomodoro => {
+                    const category = pomodoro.category || '未分类';
+                    categories[category] = (categories[category] || 0) + 1;
+                });
+                
+                return Object.keys(categories).map(category => ({
+                    category,
+                    count: categories[category]
+                }));
+            }
+            
+            getProductivityScore() {
+                const stats = this.stats.getStats();
+                const today = new Date();
+                const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+                
+                const todayPomodoros = window.timerState.completedPomodoros.filter(pomodoro => {
+                    const pomodoroDate = new Date(pomodoro.completedAt);
+                    return pomodoroDate >= startOfDay && pomodoroDate < endOfDay;
+                }).length;
+                
+                const hoursWorked = stats.daily.focusTime / 3600;
+                const breaksEfficiency = stats.daily.breaksTaken > 0 ? 
+                    Math.min(1, todayPomodoros / (stats.daily.breaksTaken * 4)) : 1;
+                
+                const productivity = Math.min(100, 
+                    (todayPomodoros * 25) + 
+                    (hoursWorked * 20) + 
+                    (breaksEfficiency * 25));
+                
+                return {
+                    score: Math.round(productivity),
+                    factors: {
+                        pomodoros: todayPomodoros * 25,
+                        hoursWorked: hoursWorked * 20,
+                        breaksEfficiency: breaksEfficiency * 25
+                    },
+                    todayPomodoros,
+                        breaksTaken: stats.daily.breaksTaken
+                };
+            }
+        }
+
+        // 高级功能
+        class PomodoroAdvanced {
+            constructor() {
+                this.analytics = new PomodoroAnalytics();
+                this.taskScheduler = null;
+                this.reminders = [];
+                this.loadReminders();
+            }
+            
+            // 任务调度
+            scheduleTask(task, scheduleTime) {
+                const now = new Date();
+                const scheduleDate = new Date(scheduleTime);
+                const delay = scheduleDate.getTime() - now.getTime();
+                
+                if (delay > 0) {
+                    this.taskScheduler = setTimeout(() => {
+                        this.showReminder(task);
+                        speak(`提醒：${task.name}`);
+                        
+                        if (window.audioManager && window.audioManager.initialized) {
+                            window.audioManager.playSound('alert');
+                        }
+                    }, delay);
+                    
+                    console.log(`[提醒] 任务已安排：${task.name} 在 ${scheduleTime}`);
+                }
+            }
+            
+            // 显示提醒
+            showReminder(task) {
+                if (Notification.permission === 'granted') {
+                    new Notification('任务提醒', {
+                        body: task.name,
+                        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%233498db"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5c-1.4 0-2.5-1.1-2.5-2.5s1.1-2.5 2.5-2.5 2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5z"/></svg>'
+                    });
+                }
+                
+                showNotification(`任务提醒：${task.name}`, 'info');
+            }
+            
+            // 保存提醒
+            saveReminders() {
+                try {
+                    localStorage.setItem('pomodoro-reminders', JSON.stringify(this.reminders));
+                } catch (error) {
+                    console.error('[提醒] 保存提醒失败:', error);
+                }
+            }
+            
+            // 加载提醒
+            loadReminders() {
+                try {
+                    const saved = localStorage.getItem('pomodoro-reminders');
+                    if (saved) {
+                        this.reminders = JSON.parse(saved);
+                    }
+                } catch (error) {
+                    console.error('[提醒] 加载提醒失败:', error);
+                }
+            }
+            
+            // 添加提醒
+            addReminder(task, time) {
+                const reminder = {
+                    id: Date.now(),
+                    task: { ...task },
+                    time: time,
+                    enabled: true
+                };
+                
+                this.reminders.push(reminder);
+                this.saveReminders();
+                this.scheduleReminder(reminder);
+            }
+            
+            // 安排提醒
+            scheduleReminder(reminder) {
+                if (!reminder.enabled) return;
+                
+                const now = new Date();
+                const reminderTime = new Date(reminder.time);
+                
+                if (reminderTime > now) {
+                    const delay = reminderTime.getTime() - now.getTime();
+                    
+                    setTimeout(() => {
+                        this.showReminder(reminder.task);
+                        this.removeReminder(reminder.id);
+                    }, delay);
+                }
+            }
+            
+            // 移除提醒
+            removeReminder(id) {
+                this.reminders = this.reminders.filter(r => r.id !== id);
+                this.saveReminders();
+            }
+            
+            // 导出分析报告
+            exportReport() {
+                const report = {
+                    exportDate: new Date().toISOString(),
+                    analytics: {
+                        dailyStats: this.analytics.getDailyChartData(),
+                        weeklyStats: this.analytics.getWeeklyChartData(),
+                        categoryStats: this.analytics.getCategoryDistribution(),
+                        productivity: this.analytics.getProductivityScore()
+                    },
+                    tasks: window.timerState.tasks,
+                    history: window.timerState.completedPomodoros,
+                    settings: {
+                        workTime: window.timerState.workTime,
+                        breakTime: window.timerState.breakTime,
+                        longBreakTime: window.timerState.longBreakTime
+                    }
+                };
+                
+                const dataStr = JSON.stringify(report, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                
+                const url = URL.createObjectURL(dataBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `pomodoro-report-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showNotification('分析报告导出成功！', 'success');
+            }
+            
+            // 显示分析界面
+            showAnalytics() {
+                const analyticsData = this.analytics.getProductivityScore();
+                
+                let message = '📊 今日生产力分析\n';
+                message += `🏆 生产力得分: ${analyticsData.score}/100\n`;
+                message += `🍅 完成番茄钟: ${analyticsData.todayPomodoros}\n`;
+                message += `⏰ 专注时长: ${formatTime(window.timerState.focusTimeToday)}\n`;
+                message += `✅ 完成任务: ${window.timerState.tasksCompleted}\n`;
+                message += `💪 休息效率: ${analyticsData.breaksTaken} 次休息\n\n`;
+                message += '📈 表现分析:\n';
+                
+                if (analyticsData.score >= 80) {
+                    message += '🎉 优秀！继续保持高效的专注！\n';
+                } else if (analyticsData.score >= 60) {
+                    message += '👍 良好！可以尝试增加专注时间。\n';
+                } else if (analyticsData.score >= 40) {
+                    message += '😊 一般！注意休息和工作平衡。\n';
+                } else {
+                    message += '💪 加油！试试25分钟的番茄钟。\n';
+                }
+                
+                alert(message);
+            }
+        }
+
+        // 扩展键盘快捷键
+        function setupExtendedKeyboardShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                // 只在没有输入框聚焦时处理
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+                
+                switch(e.key.toLowerCase()) {
+                    case ' ':
+                        e.preventDefault();
+                        if (window.timerState.isRunning) {
+                            pauseTimer();
+                        } else {
+                            startTimer();
+                        }
+                        break;
+                        
+                    case 'r':
+                        if (e.ctrlKey) {
+                            e.preventDefault();
+                            resetTimer();
+                        }
+                        break;
+                        
+                    case 's':
+                        if (e.ctrlKey) {
+                            e.preventDefault();
+                            skipTimer();
+                        }
+                        break;
+                        
+                    case 'e':
+                        if (e.ctrlKey) {
+                            e.preventDefault();
+                            exportData();
+                        }
+                        break;
+                        
+                    case 'i':
+                        if (e.ctrlKey) {
+                            e.preventDefault();
+                            importData();
+                        }
+                        break;
+                        
+                    case '?':
+                        if (e.ctrlKey || e.key === '?') {
+                            e.preventDefault();
+                            showKeyboardShortcuts();
+                        }
+                        break;
+                        
+                    case 'f11':
+                        toggleFullscreen();
+                        break;
+                        
+                    case 'escape':
+                        if (document.fullscreenElement) {
+                            document.exitFullscreen();
+                        }
+                        hidePomodoroNameModal();
+                        break;
+                }
+            });
+        }
+
+        // 初始化高级功能
+        function initAdvancedFeatures() {
+            console.log('[系统] 初始化高级功能...');
+            
+            // 主题管理器
+            window.themeManager = new ThemeManager();
+            
+            // 高级功能管理器
+            window.advancedManager = new PomodoroAdvanced();
+            
+            // 屏幕常亮
+            if ('wakeLock' in navigator) {
+                const wakeLockButton = document.createElement('button');
+                wakeLockButton.innerHTML = '<i class="fas fa-sun"></i>';
+                wakeLockButton.className = 'theme-toggle';
+                wakeLockButton.style.bottom = '200px';
+                wakeLockButton.title = '屏幕常亮';
+                wakeLockButton.id = 'wakeLockBtn';
+                
+                wakeLockButton.addEventListener('click', () => {
+                    if (window.wakeLock) {
+                        window.wakeLock.release();
+                        window.wakeLock = null;
+                        wakeLockButton.innerHTML = '<i class="fas fa-sun"></i>';
+                        showNotification('屏幕常亮已关闭', 'info');
+                    } else {
+                        window.wakeLock = keepScreenAwake();
+                        if (window.wakeLock) {
+                            wakeLockButton.innerHTML = '<i class="fas fa-sun" style="color: #ff6b6b;"></i>';
+                            showNotification('屏幕常亮已开启', 'success');
+                        }
+                    }
+                });
+                
+                document.body.appendChild(wakeLockButton);
+            }
+            
+            // 语音控制
+            if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'zh-CN';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                
+                recognition.onresult = function(event) {
+                    const command = event.results[0][0].transcript.toLowerCase();
+                    handleVoiceCommand(command);
+                };
+                
+                recognition.onerror = function(event) {
+                    console.log('[语音] 语音识别错误:', event.error);
+                };
+                
+                const voiceButton = document.createElement('button');
+                voiceButton.innerHTML = '<i class="fas fa-microphone"></i>';
+                voiceButton.className = 'theme-toggle';
+                voiceButton.style.bottom = '260px';
+                voiceButton.title = '语音控制';
+                voiceButton.id = 'voiceControlBtn';
+                
+                voiceButton.addEventListener('click', () => {
+                    recognition.start();
+                    showNotification('正在监听语音命令...', 'info');
+                });
+                
+                document.body.appendChild(voiceButton);
+            }
+            
+            // 分析按钮
+            const analyticsButton = document.createElement('button');
+            analyticsButton.innerHTML = '<i class="fas fa-chart-line"></i>';
+            analyticsButton.className = 'theme-toggle';
+            analyticsButton.style.bottom = '320px';
+            analyticsButton.title = '分析报告';
+            analyticsButton.id = 'analyticsBtn';
+            
+            analyticsButton.addEventListener('click', () => {
+                window.advancedManager.showAnalytics();
+            });
+            
+            document.body.appendChild(analyticsButton);
+            
+            // 备份按钮
+            const backupButton = document.createElement('button');
+            backupButton.innerHTML = '<i class="fas fa-save"></i>';
+            backupButton.className = 'theme-toggle';
+            backupButton.style.bottom = '380px';
+            backupButton.title = '备份数据';
+            backupButton.id = 'backupBtn';
+            
+            backupButton.addEventListener('click', () => {
+                exportData();
+            });
+            
+            document.body.appendChild(backupButton);
+            
+            console.log('[系统] 高级功能初始化完成');
+        }
+
+        // 处理语音命令
+        function handleVoiceCommand(command) {
+            console.log('[语音] 收到命令:', command);
+            
+            if (command.includes('开始') || command.includes('启动')) {
+                startTimer();
+                speak('计时器已启动');
+            } else if (command.includes('暂停') || command.includes('停止')) {
+                pauseTimer();
+                speak('计时器已暂停');
+            } else if (command.includes('重置') || command.includes('重新开始')) {
+                resetTimer();
+                speak('计时器已重置');
+            } else if (command.includes('跳过')) {
+                skipTimer();
+                speak('已跳过当前时段');
+            } else if (command.includes('专注') && command.includes('时间')) {
+                const match = command.match(/(\d+)/);
+                if (match) {
+                    const minutes = parseInt(match[1]);
+                    if (minutes >= 1 && minutes <= 120) {
+                        window.timerState.workTime = minutes * 60;
+                        if (window.timerState.isWorkTime && !window.timerState.isRunning) {
+                            window.timerState.timeLeft = window.timerState.workTime;
+                        }
+                        updateDisplay();
+                        saveToStorage();
+                        speak(`专注时间已设置为${minutes}分钟`);
+                    }
+                }
+            } else if (command.includes('休息') && command.includes('时间')) {
+                const match = command.match(/(\d+)/);
+                if (match) {
+                    const minutes = parseInt(match[1]);
+                    if (minutes >= 1 && minutes <= 60) {
+                        window.timerState.breakTime = minutes * 60;
+                        if (!window.timerState.isWorkTime && !window.timerState.isRunning) {
+                            window.timerState.timeLeft = window.timerState.breakTime;
+                        }
+                        updateDisplay();
+                        saveToStorage();
+                        speak(`休息时间已设置为${minutes}分钟`);
+                    }
+                }
+            } else {
+                speak('未识别命令，请重试');
+            }
+        }
+
+        // 错误边界处理
+        function setupErrorHandling() {
+            // 全局错误处理
+            window.addEventListener('error', function(event) {
+                console.error('[错误] 全局错误:', event.error);
+                showNotification('发生错误，请刷新页面重试', 'error');
+            });
+            
+            // 未处理的Promise拒绝
+            window.addEventListener('unhandledrejection', function(event) {
+                console.error('[错误] 未处理的Promise拒绝:', event.reason);
+                showNotification('发生未知错误', 'error');
+            });
+            
+            // 存储错误处理
+            window.addEventListener('storage', function(event) {
+                if (event.key === 'pomodoroTimerData' && event.newValue) {
+                    try {
+                        const newData = JSON.parse(event.newValue);
+                        Object.assign(window.timerState, newData);
+                        updateDisplay();
+                        updateStats();
+                        renderTaskList();
+                        renderHistory();
+                        showNotification('数据已从其他标签页同步', 'info');
+                    } catch (error) {
+                        console.error('[同步] 数据同步失败:', error);
+                    }
+                }
+            });
+        }
+
+        // 性能监控
+        function setupPerformanceMonitoring() {
+            if ('performance' in window && 'memory' in performance) {
+                setInterval(() => {
+                    const memory = performance.memory;
+                    console.log('[性能] 内存使用:', 
+                        Math.round(memory.usedJSHeapSize / 1024 / 1024) + 'MB / ' +
+                        Math.round(memory.totalJSHeapSize / 1024 / 1024) + 'MB'
+                    );
+                    
+                    // 如果内存使用过高，清理一些临时数据
+                    if (memory.usedJSHeapSize > memory.totalJSHeapSize * 0.8) {
+                        console.warn('[性能] 内存使用过高，清理缓存');
+                        if (window.audioManager && window.audioManager.audioContext) {
+                            window.audioManager.audioContext.close();
+                            window.audioManager.audioContext = null;
+                        }
+                    }
+                }, 60000); // 每分钟检查一次
+            }
+        }
+
+        // 触摸反馈
+        function setupTouchFeedback() {
+            document.addEventListener('touchstart', function(e) {
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    vibrate([50]);
+                }
+            });
+        }
+
+        // 初始化完成后的额外设置
+        window.addEventListener('load', function() {
+            console.log('[系统] 页面加载完成，进行最终初始化...');
+            
+            // 初始化高级功能
+            initAdvancedFeatures();
+            
+            // 设置触摸手势
+            setupTouchGestures();
+            
+            // 设置扩展键盘快捷键
+            setupExtendedKeyboardShortcuts();
+            
+            // 设置错误处理
+            setupErrorHandling();
+            
+            // 设置性能监控
+            setupPerformanceMonitoring();
+            
+            // 设置触摸反馈
+            if ('vibrate' in navigator) {
+                setupTouchFeedback();
+            }
+            
+            // 初始化PWA
+            if ('serviceWorker' in navigator) {
+                initServiceWorker();
+                showInstallPrompt();
+            }
+            
+            // 自动保存
+            setInterval(() => {
+                saveToStorage();
+                console.log('[系统] 自动保存完成');
+            }, 30000); // 每30秒保存一次
+            
+            // 每日重置
+            setInterval(() => {
+                const now = new Date();
+                if (now.getHours() === 0 && now.getMinutes() === 0) {
+                    window.timerState.focusTimeToday = 0;
+                    window.timerState.tasksCompleted = 0;
+                    window.timerState.completedPomodoros = [];
+                    updateStats();
+                    showNotification('新的一天开始了！统计数据已重置。', 'info');
+                }
+            }, 60000); // 每分钟检查一次
+            
+            // 检查在线状态
+            window.addEventListener('online', () => {
+                showNotification('已恢复网络连接', 'success');
+            });
+            
+            window.addEventListener('offline', () => {
+                showNotification('网络连接断开，应用将在离线模式下运行', 'warning');
+            });
+            
+            console.log('[系统] 最终初始化完成');
         });
 
-        // 添加最终清理
-        window.addEventListener('beforeunload', function() {
-            // 清理定时器
-            if (window.timerState.timerInterval) {
-                clearInterval(window.timerState.timerInterval);
-            }
+        // 服务工作者文件（模拟）
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', function(event) {
+                    console.log('[Service Worker] 安装中...');
+                    event.waitUntil(
+                        caches.open('pomodoro-v1').then(function(cache) {
+                            return cache.addAll([
+                                './',
+                                './index.html',
+                                './manifest.json'
+                            ]);
+                        })
+                    );
+                });
+                
+                self.addEventListener('fetch', function(event) {
+                    event.respondWith(
+                        caches.match(event.request).then(function(response) {
+                            return response || fetch(event.request);
+                        })
+                    );
+                });
+                
+                self.addEventListener('activate', function(event) {
+                    console.log('[Service Worker] 激活');
+                });
+            `;
             
-            // 释放屏幕常亮
-            if (wakeLock) {
-                wakeLock.release();
-            }
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
             
-            // 保存数据
-            saveToStorage();
-            
-            console.log('[系统] 应用程序正在关闭，已清理资源');
-        });
+            navigator.serviceWorker.register(swUrl).then(registration => {
+                console.log('[PWA] ServiceWorker 注册成功:', registration.scope);
+            }).catch(error => {
+                console.log('[PWA] ServiceWorker 注册失败:', error);
+            });
+        }
 
-        // 添加最终状态日志
-        console.log('[系统] 应用程序初始化完成，所有功能已就绪');
-        console.log('[系统] 番茄钟计时器 v6.3.0');
-        console.log('[系统] 功能：音频提示、本地存储、离线支持、PWA安装、主题切换、数据导入导出');
+        // 应用清单
+        const manifest = {
+            "name": "番茄钟计时器",
+            "short_name": "番茄钟",
+            "description": "高效率的番茄钟时间管理工具",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#2c3e50",
+            "theme_color": "#ff6b6b",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍅</text></svg>",
+                    "sizes": "192x192",
+                    "type": "image/svg+xml"
+                },
+                {
+                    "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍅</text></svg>",
+                    "sizes": "512x512",
+                    "type": "image/svg+xml"
+                }
+            ]
+        };
+
+        // 将清单添加到页面
+        const manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        manifestLink.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(manifest));
+        document.head.appendChild(manifestLink);
+
+        // 添加元标签
+        const metaThemeColor = document.createElement('meta');
+        metaThemeColor.name = 'theme-color';
+        metaThemeColor.content = '#2c3e50';
+        document.head.appendChild(metaThemeColor);
+
+        const metaAppleMobileWebAppCapable = document.createElement('meta');
+        metaAppleMobileWebAppCapable.name = 'apple-mobile-web-app-capable';
+        metaAppleMobileWebAppCapable.content = 'yes';
+        document.head.appendChild(metaAppleMobileWebAppCapable);
+
+        const metaAppleMobileWebAppStatusBarStyle = document.createElement('meta');
+        metaAppleMobileWebAppStatusBarStyle.name = 'apple-mobile-web-app-status-bar-style';
+        metaAppleMobileWebAppStatusBarStyle.content = 'black-translucent';
+        document.head.appendChild(metaAppleMobileWebAppStatusBarStyle);
+
+        console.log('[系统] 番茄钟计时器已完全加载！');
+        console.log('[系统] 版本: 6.3.1 | 高级功能已启用');
     </script>
 </body>
 </html>
