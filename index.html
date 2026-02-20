@@ -14,7 +14,101 @@
             -webkit-user-select: none;
             user-select: none;
         }
-        
+        /* === 新增：任务管理样式 === */
+        .task-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .task-header h2 {
+            color: #2c3e50;
+            font-size: 1.4em;
+        }
+
+        .task-item {
+            padding: 10px 12px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            cursor: move; /* 表示可拖动排序 */
+        }
+
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+            background: #f1f1f1;
+        }
+
+        .task-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .task-name {
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+
+        .task-meta {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .task-action-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.8em;
+            cursor: pointer;
+        }
+
+        .task-action-btn.start {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .task-action-btn.delete {
+            background: #f44336;
+            color: white;
+        }
+
+        .task-action-btn.complete {
+            background: #2196F3;
+            color: white;
+        }
+
+        .empty-quadrant {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-style: italic;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -979,7 +1073,75 @@
                 </div>
             </div>
         </div>
+<!-- === 新增：任务管理区域（四象限法） === -->
+        <div class="task-section">
+            <div class="task-header">
+                <h2>📋 任务管理（四象限法）</h2>
+                <div class="button-group" style="gap: 10px;">
+                    <button id="sortTasksBtn" class="btn btn-secondary" style="padding: 10px 20px;">🔄 智能排序</button>
+                    <button id="clearTasksBtn" class="btn btn-danger" style="padding: 10px 20px;">🗑️ 清空任务</button>
+                </div>
+            </div>
 
+            <!-- 任务输入表单 -->
+            <div class="task-input-area" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: end;">
+                    <div>
+                        <label for="newTaskName" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">任务内容</label>
+                        <input type="text" id="newTaskName" class="interrupt-input" placeholder="例如：完成项目报告" style="width: 100%;">
+                    </div>
+                    <div>
+                        <label for="taskImportance" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">重要性</label>
+                        <select id="taskImportance" class="interrupt-input" style="width: 100%;">
+                            <option value="high">高</option>
+                            <option value="medium" selected>中</option>
+                            <option value="low">低</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="taskUrgency" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">紧急性</label>
+                        <select id="taskUrgency" class="interrupt-input" style="width: 100%;">
+                            <option value="high">高</option>
+                            <option value="medium" selected>中</option>
+                            <option value="low">低</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button id="addTaskBtn" class="btn btn-primary" style="padding: 12px 24px;">➕ 添加任务</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 四象限任务展示 -->
+            <div class="quadrants-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <!-- 第一象限：重要且紧急 -->
+                <div class="quadrant" data-quadrant="1" style="border: 2px solid #e74c3c; border-radius: 10px; padding: 15px; background-color: #ffebee;">
+                    <h3 style="color: #c62828; margin-bottom: 10px;">🔥 第一象限：重要且紧急</h3>
+                    <div class="task-list" id="quadrant1List" style="min-height: 80px;"></div>
+                </div>
+                <!-- 第二象限：重要不紧急 -->
+                <div class="quadrant" data-quadrant="2" style="border: 2px solid #2ecc71; border-radius: 10px; padding: 15px; background-color: #e8f5e9;">
+                    <h3 style="color: #2e7d32; margin-bottom: 10px;">📈 第二象限：重要不紧急</h3>
+                    <div class="task-list" id="quadrant2List" style="min-height: 80px;"></div>
+                </div>
+                <!-- 第三象限：紧急不重要 -->
+                <div class="quadrant" data-quadrant="3" style="border: 2px solid #f39c12; border-radius: 10px; padding: 15px; background-color: #fff3e0;">
+                    <h3 style="color: #ef6c00; margin-bottom: 10px;">⚠️ 第三象限：紧急不重要</h3>
+                    <div class="task-list" id="quadrant3List" style="min-height: 80px;"></div>
+                </div>
+                <!-- 第四象限：不紧急不重要 -->
+                <div class="quadrant" data-quadrant="4" style="border: 2px solid #95a5a6; border-radius: 10px; padding: 15px; background-color: #f5f5f5;">
+                    <h3 style="color: #546e7a; margin-bottom: 10px;">💤 第四象限：不紧急不重要</h3>
+                    <div class="task-list" id="quadrant4List" style="min-height: 80px;"></div>
+                </div>
+            </div>
+
+            <!-- 执行建议区域 -->
+            <div class="recommendation-area" style="padding: 15px; background: #e3f2fd; border-radius: 10px; margin-top: 20px;">
+                <h3 style="color: #1565c0; margin-bottom: 10px;">🚀 智能执行建议</h3>
+                <div id="taskRecommendation">暂无任务，请先添加任务。</div>
+            </div>
+        </div>
         <div class="interrupt-section">
             <h2>⏱️ 快速中断计时器</h2>
             <div class="interrupt-controls">
@@ -1301,7 +1463,24 @@ stopAll() {
         let totalFocusTime = 0;
         let isLogVisible = true;
         let currentTaskName = ''; // 新增：用于存储当前番茄钟的任务名
+        // === 新增：任务管理相关变量 ===
+        let tasks = []; // 存储所有任务
+        let currentQuadrantSort = 'priority'; // 当前排序方式
         // DOM元素引用
+        // === 新增：任务管理DOM元素 ===
+        const newTaskNameInput = document.getElementById('newTaskName');
+        const taskImportanceSelect = document.getElementById('taskImportance');
+        const taskUrgencySelect = document.getElementById('taskUrgency');
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const sortTasksBtn = document.getElementById('sortTasksBtn');
+        const clearTasksBtn = document.getElementById('clearTasksBtn');
+        const taskRecommendationEl = document.getElementById('taskRecommendation');
+        const quadrantLists = {
+            1: document.getElementById('quadrant1List'),
+            2: document.getElementById('quadrant2List'),
+            3: document.getElementById('quadrant3List'),
+            4: document.getElementById('quadrant4List')
+        };
         const timerDisplay = document.getElementById('timerDisplay');
         const startBtn = document.getElementById('startBtn');
         const pauseBtn = document.getElementById('pauseBtn');
@@ -2302,7 +2481,27 @@ pomodoroRecords.unshift({
         // 初始化事件监听器
         function initEventListeners() {
             addLogEntry('初始化事件监听器...', 'info', '系统');
-            
+            // === 新增：任务管理按钮事件 ===
+            if (addTaskBtn) {
+                addTaskBtn.addEventListener('click', addNewTask);
+                addLogEntry('添加任务按钮监听器已绑定', 'success', '任务管理');
+            }
+            if (sortTasksBtn) {
+                sortTasksBtn.addEventListener('click', sortTasksByQuadrant);
+                addLogEntry('智能排序按钮监听器已绑定', 'success', '任务管理');
+            }
+            if (clearTasksBtn) {
+                clearTasksBtn.addEventListener('click', clearAllTasks);
+                addLogEntry('清空任务按钮监听器已绑定', 'success', '任务管理');
+            }
+            // 支持按回车键添加任务
+            if (newTaskNameInput) {
+                newTaskNameInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        addNewTask();
+                    }
+                });
+            }
             // 番茄钟控制按钮
             if (startBtn) {
                 startBtn.addEventListener('click', startPomodoro);
@@ -2708,7 +2907,284 @@ pomodoroRecords.unshift({
                     break;
             }
         });
-        
+        // === 新增：任务管理核心函数 ===
+
+        // 确定任务所属象限 (1:重要紧急, 2:重要不紧急, 3:紧急不重要, 4:不紧急不重要)
+        function getTaskQuadrant(importance, urgency) {
+            if (importance === 'high' && urgency === 'high') return 1;
+            if (importance === 'high' && urgency !== 'high') return 2;
+            if (importance !== 'high' && urgency === 'high') return 3;
+            return 4; // 低重要低紧急
+        }
+
+        // 添加新任务
+        function addNewTask() {
+            try {
+                const name = newTaskNameInput ? newTaskNameInput.value.trim() : '';
+                const importance = taskImportanceSelect ? taskImportanceSelect.value : 'medium';
+                const urgency = taskUrgencySelect ? taskUrgencySelect.value : 'medium';
+                
+                if (!name) {
+                    showStatus('⚠️ 请输入任务内容', 2000);
+                    addLogEntry('添加任务失败：任务内容为空', 'warning', '任务管理');
+                    return;
+                }
+                
+                const newTask = {
+                    id: Date.now(), // 使用时间戳作为唯一ID
+                    name: name,
+                    importance: importance,
+                    urgency: urgency,
+                    quadrant: getTaskQuadrant(importance, urgency),
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                };
+                
+                tasks.push(newTask);
+                
+                // 清空输入框
+                if (newTaskNameInput) newTaskNameInput.value = '';
+                
+                // 更新显示和存储
+                updateTasksDisplay();
+                saveTasks();
+                
+                // 更新推荐
+                updateTaskRecommendation();
+                
+                addLogEntry(`任务已添加：“${name}” (象限${newTask.quadrant})`, 'success', '任务管理');
+                showStatus(`✅ 任务“${name}”已添加`, 2000);
+                
+            } catch (error) {
+                addLogEntry(`添加任务失败: ${error.message}`, 'error', '任务管理');
+            }
+        }
+
+        // 更新任务显示
+        function updateTasksDisplay() {
+            // 先清空所有象限列表
+            Object.values(quadrantLists).forEach(list => {
+                if (list) list.innerHTML = '';
+            });
+            
+            // 如果没有任务，显示空状态
+            if (tasks.length === 0) {
+                Object.values(quadrantLists).forEach(list => {
+                    if (list) {
+                        list.innerHTML = '<div class="empty-quadrant">暂无任务</div>';
+                    }
+                });
+                return;
+            }
+            
+            // 按象限分组任务
+            const tasksByQuadrant = {1: [], 2: [], 3: [], 4: []};
+            
+            tasks.forEach(task => {
+                if (!task.completed) { // 只显示未完成的任务
+                    tasksByQuadrant[task.quadrant].push(task);
+                }
+            });
+            
+            // 渲染每个象限的任务
+            Object.entries(tasksByQuadrant).forEach(([quadrantNum, quadrantTasks]) => {
+                const listEl = quadrantLists[quadrantNum];
+                if (!listEl) return;
+                
+                if (quadrantTasks.length === 0) {
+                    listEl.innerHTML = '<div class="empty-quadrant">暂无任务</div>';
+                    return;
+                }
+                
+                let html = '';
+                quadrantTasks.forEach(task => {
+                    const importanceText = task.importance === 'high' ? '重要' : task.importance === 'medium' ? '中等' : '次要';
+                    const urgencyText = task.urgency === 'high' ? '紧急' : task.urgency === 'medium' ? '中等' : '宽松';
+                    
+                    html += `
+                        <div class="task-item" data-task-id="${task.id}">
+                            <div class="task-content">
+                                <div class="task-name">${task.name}</div>
+                                <div class="task-meta">重要性：${importanceText} | 紧急性：${urgencyText}</div>
+                            </div>
+                            <div class="task-actions">
+                                <button class="task-action-btn start" onclick="startTaskPomodoro(${task.id})" title="开始番茄钟">▶</button>
+                                <button class="task-action-btn complete" onclick="toggleTaskComplete(${task.id})" title="标记完成">✓</button>
+                                <button class="task-action-btn delete" onclick="deleteTask(${task.id})" title="删除">×</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                listEl.innerHTML = html;
+            });
+        }
+
+        // 智能排序（按象限优先级）
+        function sortTasksByQuadrant() {
+            // 1. 先按象限排序（1 > 2 > 3 > 4）
+            // 2. 同象限内按创建时间排序（新的在前）
+            tasks.sort((a, b) => {
+                if (a.quadrant !== b.quadrant) {
+                    return a.quadrant - b.quadrant; // 象限数字小的优先级高
+                }
+                return new Date(b.createdAt) - new Date(a.createdAt); // 时间近的在前
+            });
+            
+            updateTasksDisplay();
+            saveTasks();
+            
+            addLogEntry('任务已按四象限智能排序', 'success', '任务管理');
+            showStatus('✅ 任务已智能排序，请优先处理第一象限任务', 3000);
+            
+            // 更新推荐
+            updateTaskRecommendation();
+        }
+
+        // 更新任务执行建议
+        function updateTaskRecommendation() {
+            if (!taskRecommendationEl) return;
+            
+            const pendingTasks = tasks.filter(t => !t.completed);
+            
+            if (pendingTasks.length === 0) {
+                taskRecommendationEl.innerHTML = '🎉 恭喜！所有任务已完成。';
+                return;
+            }
+            
+            // 按象限分组统计
+            const quadrantCounts = {1: 0, 2: 0, 3: 0, 4: 0};
+            pendingTasks.forEach(task => {
+                quadrantCounts[task.quadrant]++;
+            });
+            
+            let recommendation = '';
+            
+            if (quadrantCounts[1] > 0) {
+                const quadrant1Tasks = pendingTasks.filter(t => t.quadrant === 1);
+                recommendation = `<strong>🚨 立即处理（${quadrantCounts[1]}项重要且紧急的任务）</strong><br>`;
+                recommendation += `建议优先处理：<em>“${quadrant1Tasks[0].name}”</em>`;
+            } else if (quadrantCounts[2] > 0) {
+                recommendation = `<strong>📅 计划执行（${quadrantCounts[2]}项重要但不紧急的任务）</strong><br>`;
+                recommendation += `这是提升长期价值的关键，请安排时间专注处理。`;
+            } else if (quadrantCounts[3] > 0) {
+                recommendation = `<strong>⚠️ 酌情处理（${quadrantCounts[3]}项紧急但不重要的任务）</strong><br>`;
+                recommendation += `考虑委托或批量处理，避免占用过多专注时间。`;
+            } else {
+                recommendation = `<strong>🕒 空闲处理（${quadrantCounts[4]}项不紧急不重要的任务）</strong><br>`;
+                recommendation += `可以在休息时间或精力不足时处理。`;
+            }
+            
+            taskRecommendationEl.innerHTML = recommendation;
+        }
+
+        // 开始任务的番茄钟
+        function startTaskPomodoro(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            // 1. 将任务名称填入番茄钟的任务输入框
+            const taskNameInput = document.getElementById('taskNameInput');
+            if (taskNameInput) {
+                taskNameInput.value = task.name;
+                // 触发input事件以确保currentTaskName被更新
+                taskNameInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            
+            // 2. 高亮显示选中的任务（可选视觉反馈）
+            const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+            if (taskElement) {
+                taskElement.style.backgroundColor = '#e3f2fd';
+                setTimeout(() => {
+                    taskElement.style.backgroundColor = '';
+                }, 1000);
+            }
+            
+            // 3. 开始番茄钟（如果未运行）
+            if (!isPomodoroRunning) {
+                // 这里可以自动开始番茄钟，或者只是提示用户
+                showStatus(`🎯 已选择任务“${task.name}”，点击“开始”按钮启动番茄钟`, 3000);
+                addLogEntry(`选中任务准备专注: "${task.name}"`, 'info', '任务管理');
+            } else {
+                showStatus(`🎯 已为当前番茄钟设置任务：“${task.name}”`, 3000);
+                addLogEntry(`为进行中的番茄钟设置任务: "${task.name}"`, 'info', '任务管理');
+            }
+        }
+
+        // 切换任务完成状态
+        function toggleTaskComplete(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            task.completed = !task.completed;
+            
+            updateTasksDisplay();
+            saveTasks();
+            updateTaskRecommendation();
+            
+            const action = task.completed ? '完成' : '恢复';
+            addLogEntry(`任务“${task.name}”标记为${action}`, 'info', '任务管理');
+            showStatus(`✅ 任务“${task.name}”已${action}`, 2000);
+        }
+
+        // 删除任务
+        function deleteTask(taskId) {
+            const taskIndex = tasks.findIndex(t => t.id === taskId);
+            if (taskIndex === -1) return;
+            
+            const taskName = tasks[taskIndex].name;
+            tasks.splice(taskIndex, 1);
+            
+            updateTasksDisplay();
+            saveTasks();
+            updateTaskRecommendation();
+            
+            addLogEntry(`任务“${taskName}”已删除`, 'info', '任务管理');
+            showStatus(`🗑️ 任务“${taskName}”已删除`, 2000);
+        }
+
+        // 清空所有任务
+        function clearAllTasks() {
+            if (tasks.length === 0) {
+                showStatus('📭 任务列表已为空', 2000);
+                return;
+            }
+            
+            if (confirm(`确定要清空所有 ${tasks.length} 项任务吗？此操作不可恢复。`)) {
+                tasks = [];
+                updateTasksDisplay();
+                saveTasks();
+                updateTaskRecommendation();
+                
+                addLogEntry('所有任务已清空', 'warning', '任务管理');
+                showStatus('🗑️ 所有任务已清空', 2000);
+            }
+        }
+
+        // 保存任务到本地存储
+        function saveTasks() {
+            try {
+                localStorage.setItem('pomodoroTasks', JSON.stringify(tasks));
+            } catch (error) {
+                addLogEntry(`保存任务失败: ${error.message}`, 'error', '任务管理');
+            }
+        }
+
+        // 从本地存储加载任务
+        function loadTasks() {
+            try {
+                const savedTasks = localStorage.getItem('pomodoroTasks');
+                if (savedTasks) {
+                    tasks = JSON.parse(savedTasks);
+                    updateTasksDisplay();
+                    updateTaskRecommendation();
+                    addLogEntry(`已加载 ${tasks.length} 项任务`, 'success', '任务管理');
+                }
+            } catch (error) {
+                addLogEntry(`加载任务失败: ${error.message}`, 'error', '任务管理');
+                tasks = [];
+            }
+        }
         // 初始化应用
         async function initApp() {
             try {
@@ -2718,7 +3194,8 @@ pomodoroRecords.unshift({
                 
                 // 初始化音频
                 await initAudioSystem();
-                
+               // 加载任务数据
+                loadTasks(); // 新增这行 
                 // 绑定事件监听器
                 initEventListeners();
                 
