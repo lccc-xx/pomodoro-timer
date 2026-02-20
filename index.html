@@ -1093,17 +1093,23 @@
                     <div>
                         <label for="taskImportance" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">重要性</label>
                         <select id="taskImportance" class="interrupt-input" style="width: 100%;">
-                            <option value="high">高</option>
-                            <option value="medium" selected>中</option>
-                            <option value="low">低</option>
+                            <option value="6">非常重要 (6级)</option>
+                            <option value="5">重要 (5级)</option>
+                            <option value="4" selected>较高 (4级)</option>
+                            <option value="3">中等 (3级)</option>
+                            <option value="2">较低 (2级)</option>
+                            <option value="1">非常低 (1级)</option>
                         </select>
                     </div>
                     <div>
                         <label for="taskUrgency" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">紧急性</label>
                         <select id="taskUrgency" class="interrupt-input" style="width: 100%;">
-                            <option value="high">高</option>
-                            <option value="medium" selected>中</option>
-                            <option value="low">低</option>
+                            <option value="6">非常紧急 (6级)</option>
+                            <option value="5">紧急 (5级)</option>
+                            <option value="4" selected>较紧急 (4级)</option>
+                            <option value="3">中等 (3级)</option>
+                            <option value="2">较宽松 (2级)</option>
+                            <option value="1">非常宽松 (1级)</option>
                         </select>
                     </div>
                     <div>
@@ -2917,20 +2923,27 @@ pomodoroRecords.unshift({
         });
         // === 新增：任务管理核心函数 ===
 
-        // 确定任务所属象限 (1:重要紧急, 2:重要不紧急, 3:紧急不重要, 4:不紧急不重要)
+// 确定任务所属象限 (基于6级评分)
+        // 象限规则：重要性≥4且紧急性≥4 → 第一象限，重要性≥4且紧急性<4 → 第二象限
+        //          重要性<4且紧急性≥4 → 第三象限，重要性<4且紧急性<4 → 第四象限
         function getTaskQuadrant(importance, urgency) {
-            if (importance === 'high' && urgency === 'high') return 1;
-            if (importance === 'high' && urgency !== 'high') return 2;
-            if (importance !== 'high' && urgency === 'high') return 3;
-            return 4; // 低重要低紧急
+            const imp = parseInt(importance);
+            const urg = parseInt(urgency);
+            
+            // 使用4作为阈值（因为6级中，4代表中等偏上）
+            if (imp >= 4 && urg >= 4) return 1; // 第一象限：重要且紧急
+            if (imp >= 4 && urg < 4) return 2;  // 第二象限：重要不紧急
+            if (imp < 4 && urg >= 4) return 3;  // 第三象限：紧急不重要
+            return 4; // 第四象限：不紧急不重要
         }
 
         // 添加新任务
         function addNewTask() {
             try {
                 const name = newTaskNameInput ? newTaskNameInput.value.trim() : '';
-                const importance = taskImportanceSelect ? taskImportanceSelect.value : 'medium';
-                const urgency = taskUrgencySelect ? taskUrgencySelect.value : 'medium';
+                // 在 addNewTask 函数中，修改获取值的方式：
+        const importance = taskImportanceSelect ? parseInt(taskImportanceSelect.value) : 4;
+        const urgency = taskUrgencySelect ? parseInt(taskUrgencySelect.value) : 4;
                 
                 if (!name) {
                     showStatus('⚠️ 请输入任务内容', 2000);
@@ -3006,8 +3019,8 @@ pomodoroRecords.unshift({
                 
                 let html = '';
                 quadrantTasks.forEach(task => {
-                    const importanceText = task.importance === 'high' ? '重要' : task.importance === 'medium' ? '中等' : '次要';
-                    const urgencyText = task.urgency === 'high' ? '紧急' : task.urgency === 'medium' ? '中等' : '宽松';
+                    const importanceText = getImportanceText(task.importance);
+                    const urgencyText = getUrgencyText(task.urgency);
                     
                     html += `
                         <div class="task-item" data-task-id="${task.id}">
@@ -3064,13 +3077,33 @@ pomodoroRecords.unshift({
                 return;
             }
             
-            // 2. 对未完成任务进行智能排序（按象限优先级）
+// 2. 对未完成任务进行智能排序
             const sortedTasks = [...pendingTasks].sort((a, b) => {
                 // 第一优先级：象限 (1 > 2 > 3 > 4)
                 if (a.quadrant !== b.quadrant) {
-                    return a.quadrant - b.quadrant;
+                    return a.quadrant - b.quadrant; // 象限数字小的优先级高
                 }
-                // 第二优先级：创建时间（新的在前，认为可能更紧急）
+                
+                // 第二优先级：象限内按加权分数排序
+                // 计算综合优先级分数：重要性×0.6 + 紧急性×0.4（重要性权重更高）
+                const scoreA = (parseInt(a.importance) * 0.6) + (parseInt(a.urgency) * 0.4);
+                const scoreB = (parseInt(b.importance) * 0.6) + (parseInt(b.urgency) * 0.4);
+                
+                if (scoreB !== scoreA) {
+                    return scoreB - scoreA; // 分数高的排前面
+                }
+                
+                // 第三优先级：同分数时按紧急性排序
+                if (parseInt(b.urgency) !== parseInt(a.urgency)) {
+                    return parseInt(b.urgency) - parseInt(a.urgency);
+                }
+                
+                // 第四优先级：同紧急性时按重要性排序
+                if (parseInt(b.importance) !== parseInt(a.importance)) {
+                    return parseInt(b.importance) - parseInt(a.importance);
+                }
+                
+                // 第五优先级：按创建时间（新的任务可能更紧急）
                 return new Date(b.createdAt) - new Date(a.createdAt);
             });
             
@@ -3114,22 +3147,28 @@ pomodoroRecords.unshift({
                     li.style.borderLeft = index === 0 ? '3px solid #ff9800' : 'none';
                     
                     // 象限标签
-                    const quadrantLabels = {1: '🔥', 2: '📈', 3: '⚠️', 4: '💤'};
-                    const quadrantTexts = {1: '重要且紧急', 2: '重要不紧急', 3: '紧急不重要', 4: '不紧急不重要'};
-                    
-                    li.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <span style="font-weight: 500;">${task.name}</span>
-                                <span style="font-size: 0.85em; color: #666; margin-left: 8px;">
-                                    ${quadrantLabels[task.quadrant]} ${quadrantTexts[task.quadrant]}
-                                </span>
-                            </div>
-                            <div>
-                                <button class="task-action-btn start" onclick="startTaskPomodoro(${task.id})" title="开始番茄钟" style="padding: 3px 8px; font-size: 0.85em;">▶ 开始</button>
-                            </div>
-                        </div>
-                    `;
+const quadrantLabels = {1: '🔥', 2: '📈', 3: '⚠️', 4: '💤'};
+        const quadrantTexts = {1: '重要且紧急', 2: '重要不紧急', 3: '紧急不重要', 4: '不紧急不重要'};
+        
+        // 计算优先级分数用于显示
+        const priorityScore = (parseInt(task.importance) * 0.6 + parseInt(task.urgency) * 0.4).toFixed(1);
+        
+        li.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-weight: 500;">${task.name}</span>
+                    <div style="font-size: 0.75em; color: #666; margin-top: 2px;">
+                        <span>${quadrantLabels[task.quadrant]} ${quadrantTexts[task.quadrant]}</span>
+                        <span style="margin-left: 10px;">重要性: ${getImportanceText(task.importance)}</span>
+                        <span style="margin-left: 5px;">紧急性: ${getUrgencyText(task.urgency)}</span>
+                        <span style="margin-left: 10px; color: #2196F3; font-weight: bold;">优先级: ${priorityScore}</span>
+                    </div>
+                </div>
+                <div>
+                    <button class="task-action-btn start" onclick="startTaskPomodoro(${task.id})" title="开始番茄钟" style="padding: 3px 8px; font-size: 0.85em;">▶ 开始</button>
+                </div>
+            </div>
+        `;
                     suggestedTaskListEl.appendChild(li);
                 });
             }
@@ -3227,12 +3266,30 @@ pomodoroRecords.unshift({
             }
         }
 
-        // 从本地存储加载任务
+// 从本地存储加载任务
         function loadTasks() {
             try {
                 const savedTasks = localStorage.getItem('pomodoroTasks');
                 if (savedTasks) {
                     tasks = JSON.parse(savedTasks);
+                    
+                    // 兼容性处理：如果旧数据使用的是字符串等级（高/中/低），转换为数字
+                    tasks.forEach(task => {
+                        if (typeof task.importance === 'string') {
+                            // 将旧的三级系统转换为新的六级系统
+                            const oldImportance = task.importance;
+                            task.importance = oldImportance === 'high' ? 6 : 
+                                            oldImportance === 'medium' ? 4 : 2;
+                        }
+                        if (typeof task.urgency === 'string') {
+                            const oldUrgency = task.urgency;
+                            task.urgency = oldUrgency === 'high' ? 6 : 
+                                         oldUrgency === 'medium' ? 4 : 2;
+                        }
+                        // 重新计算象限（使用新函数）
+                        task.quadrant = getTaskQuadrant(task.importance, task.urgency);
+                    });
+                    
                     updateTasksDisplay();
                     updateTaskRecommendation();
                     addLogEntry(`已加载 ${tasks.length} 项任务`, 'success', '任务管理');
@@ -3284,7 +3341,33 @@ pomodoroRecords.unshift({
                 console.error('初始化错误:', error);
             }
         }
-        
+        // 将重要性数值转换为文字描述
+        function getImportanceText(level) {
+            const levelNum = parseInt(level);
+            switch(levelNum) {
+                case 6: return '非常重要';
+                case 5: return '重要';
+                case 4: return '较高';
+                case 3: return '中等';
+                case 2: return '较低';
+                case 1: return '非常低';
+                default: return '未知';
+            }
+        }
+
+        // 将紧急性数值转换为文字描述
+        function getUrgencyText(level) {
+            const levelNum = parseInt(level);
+            switch(levelNum) {
+                case 6: return '非常紧急';
+                case 5: return '紧急';
+                case 4: return '较紧急';
+                case 3: return '中等';
+                case 2: return '较宽松';
+                case 1: return '非常宽松';
+                default: return '未知';
+            }
+        }
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
             addLogEntry('DOM已加载，开始初始化应用...', 'info', '系统');
