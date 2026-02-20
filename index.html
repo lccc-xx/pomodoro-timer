@@ -3293,33 +3293,7 @@ function getUrgencyText(level) {
                 console.error('初始化错误:', error);
             }
         }
-        // 将重要性数值转换为文字描述
-        function getImportanceText(level) {
-            const levelNum = parseInt(level);
-            switch(levelNum) {
-                case 6: return '非常重要';
-                case 5: return '重要';
-                case 4: return '较高';
-                case 3: return '中等';
-                case 2: return '较低';
-                case 1: return '非常低';
-                default: return '未知';
-            }
-        }
 
-        // 将紧急性数值转换为文字描述
-        function getUrgencyText(level) {
-            const levelNum = parseInt(level);
-            switch(levelNum) {
-                case 6: return '非常紧急';
-                case 5: return '紧急';
-                case 4: return '较紧急';
-                case 3: return '中等';
-                case 2: return '较宽松';
-                case 1: return '非常宽松';
-                default: return '未知';
-            }
-        }
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
             addLogEntry('DOM已加载，开始初始化应用...', 'info', '系统');
