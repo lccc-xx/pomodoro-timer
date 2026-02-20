@@ -1073,74 +1073,92 @@
                 </div>
             </div>
         </div>
-<!-- === 新增：任务管理区域（四象限法） === -->
-        <div class="task-section">
-            <div class="task-header">
-                <h2>📋 任务管理（四象限法）</h2>
-                <div class="button-group" style="gap: 10px;">
-                    <button id="sortTasksBtn" class="btn btn-secondary" style="padding: 10px 20px;">🔄 智能排序</button>
-                    <button id="clearTasksBtn" class="btn btn-danger" style="padding: 10px 20px;">🗑️ 清空任务</button>
-                </div>
-            </div>
+<!-- === 任务管理区域（四象限法 + 动态期限） === -->
+<div class="task-section">
+    <div class="task-header">
+        <h2>📋 任务管理（四象限法 + 动态期限）</h2>
+        <div class="button-group" style="gap: 10px;">
+            <button id="sortTasksBtn" class="btn btn-secondary" style="padding: 10px 20px;">🔄 智能排序</button>
+            <button id="clearTasksBtn" class="btn btn-danger" style="padding: 10px 20px;">🗑️ 清空任务</button>
+        </div>
+    </div>
 
-            <!-- 任务输入表单 -->
-            <div class="task-input-area" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
-                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: end;">
-                    <div>
-                        <label for="newTaskName" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">任务内容</label>
-                        <input type="text" id="newTaskName" class="interrupt-input" placeholder="例如：完成项目报告" style="width: 100%;">
-                    </div>
-                    <div>
-                        <label for="taskImportance" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">重要性</label>
-                        <select id="taskImportance" class="interrupt-input" style="width: 100%;">
-                            <option value="6">非常重要 (6级)</option>
-                            <option value="5">重要 (5级)</option>
-                            <option value="4" selected>较高 (4级)</option>
-                            <option value="3">中等 (3级)</option>
-                            <option value="2">较低 (2级)</option>
-                            <option value="1">非常低 (1级)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="taskUrgency" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">紧急性</label>
-                        <select id="taskUrgency" class="interrupt-input" style="width: 100%;">
-                            <option value="6">非常紧急 (6级)</option>
-                            <option value="5">紧急 (5级)</option>
-                            <option value="4" selected>较紧急 (4级)</option>
-                            <option value="3">中等 (3级)</option>
-                            <option value="2">较宽松 (2级)</option>
-                            <option value="1">非常宽松 (1级)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <button id="addTaskBtn" class="btn btn-primary" style="padding: 12px 24px;">➕ 添加任务</button>
-                    </div>
-                </div>
+    <!-- 任务输入表单 (新增截止时间) -->
+    <div class="task-input-area" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr auto; gap: 10px; align-items: end;">
+            <div>
+                <label for="newTaskName" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">任务内容</label>
+                <input type="text" id="newTaskName" class="interrupt-input" placeholder="例如：完成项目报告" style="width: 100%;">
             </div>
+            <div>
+                <label for="taskImportance" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">重要性</label>
+                <select id="taskImportance" class="interrupt-input" style="width: 100%;">
+                    <option value="6">非常重要 (6级)</option>
+                    <option value="5">重要 (5级)</option>
+                    <option value="4" selected>较高 (4级)</option>
+                    <option value="3">中等 (3级)</option>
+                    <option value="2">较低 (2级)</option>
+                    <option value="1">非常低 (1级)</option>
+                </select>
+            </div>
+            <div>
+                <label for="taskUrgency" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">紧急性</label>
+                <select id="taskUrgency" class="interrupt-input" style="width: 100%;">
+                    <option value="6">非常紧急 (6级)</option>
+                    <option value="5">紧急 (5级)</option>
+                    <option value="4" selected>较紧急 (4级)</option>
+                    <option value="3">中等 (3级)</option>
+                    <option value="2">较宽松 (2级)</option>
+                    <option value="1">非常宽松 (1级)</option>
+                </select>
+            </div>
+            <div>
+                <label for="taskDueDate" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">截止时间</label>
+                <input type="datetime-local" id="taskDueDate" class="interrupt-input" style="width: 100%;">
+            </div>
+            <div>
+                <button id="addTaskBtn" class="btn btn-primary" style="padding: 12px 24px;">➕ 添加任务</button>
+            </div>
+        </div>
+        <small style="color: #999; margin-top: 5px; display: block;">⏰ 设置截止时间后，智能建议将根据剩余时间自动调整紧急度（只升不降）</small>
+    </div>
 
-            <!-- 四象限任务展示 -->
-            <div class="quadrants-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                <!-- 第一象限：重要且紧急 -->
-                <div class="quadrant" data-quadrant="1" style="border: 2px solid #e74c3c; border-radius: 10px; padding: 15px; background-color: #ffebee;">
-                    <h3 style="color: #c62828; margin-bottom: 10px;">🔥 第一象限：重要且紧急</h3>
-                    <div class="task-list" id="quadrant1List" style="min-height: 80px;"></div>
-                </div>
-                <!-- 第二象限：重要不紧急 -->
-                <div class="quadrant" data-quadrant="2" style="border: 2px solid #2ecc71; border-radius: 10px; padding: 15px; background-color: #e8f5e9;">
-                    <h3 style="color: #2e7d32; margin-bottom: 10px;">📈 第二象限：重要不紧急</h3>
-                    <div class="task-list" id="quadrant2List" style="min-height: 80px;"></div>
-                </div>
-                <!-- 第三象限：紧急不重要 -->
-                <div class="quadrant" data-quadrant="3" style="border: 2px solid #f39c12; border-radius: 10px; padding: 15px; background-color: #fff3e0;">
-                    <h3 style="color: #ef6c00; margin-bottom: 10px;">⚠️ 第三象限：紧急不重要</h3>
-                    <div class="task-list" id="quadrant3List" style="min-height: 80px;"></div>
-                </div>
-                <!-- 第四象限：不紧急不重要 -->
-                <div class="quadrant" data-quadrant="4" style="border: 2px solid #95a5a6; border-radius: 10px; padding: 15px; background-color: #f5f5f5;">
-                    <h3 style="color: #546e7a; margin-bottom: 10px;">💤 第四象限：不紧急不重要</h3>
-                    <div class="task-list" id="quadrant4List" style="min-height: 80px;"></div>
-                </div>
-            </div>
+    <!-- 四象限任务展示（保持不变，但内部任务项会在JS中动态生成期限信息） -->
+    <div class="quadrants-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+        <!-- 第一象限 -->
+        <div class="quadrant" data-quadrant="1" style="border: 2px solid #e74c3c; border-radius: 10px; padding: 15px; background-color: #ffebee;">
+            <h3 style="color: #c62828; margin-bottom: 10px;">🔥 第一象限：重要且紧急</h3>
+            <div class="task-list" id="quadrant1List" style="min-height: 80px;"></div>
+        </div>
+        <!-- 第二象限 -->
+        <div class="quadrant" data-quadrant="2" style="border: 2px solid #2ecc71; border-radius: 10px; padding: 15px; background-color: #e8f5e9;">
+            <h3 style="color: #2e7d32; margin-bottom: 10px;">📈 第二象限：重要不紧急</h3>
+            <div class="task-list" id="quadrant2List" style="min-height: 80px;"></div>
+        </div>
+        <!-- 第三象限 -->
+        <div class="quadrant" data-quadrant="3" style="border: 2px solid #f39c12; border-radius: 10px; padding: 15px; background-color: #fff3e0;">
+            <h3 style="color: #ef6c00; margin-bottom: 10px;">⚠️ 第三象限：紧急不重要</h3>
+            <div class="task-list" id="quadrant3List" style="min-height: 80px;"></div>
+        </div>
+        <!-- 第四象限 -->
+        <div class="quadrant" data-quadrant="4" style="border: 2px solid #95a5a6; border-radius: 10px; padding: 15px; background-color: #f5f5f5;">
+            <h3 style="color: #546e7a; margin-bottom: 10px;">💤 第四象限：不紧急不重要</h3>
+            <div class="task-list" id="quadrant4List" style="min-height: 80px;"></div>
+        </div>
+    </div>
+
+    <!-- 执行建议区域（动态期限版） -->
+    <div class="recommendation-area" style="padding: 15px; background: #e3f2fd; border-radius: 10px; margin-top: 20px;">
+        <h3 style="color: #1565c0; margin-bottom: 10px;">🚀 智能执行建议 <span style="font-size:0.8em; background:#bbdefb; padding:2px 8px; border-radius:12px;">动态紧急度(含期限)</span></h3>
+        <div id="taskRecommendation">暂无任务，请先添加任务。</div>
+        <div id="taskOrderList" style="margin-top: 15px;">
+            <h4 style="color: #0d47a1; margin-bottom: 8px; font-size: 1em;">📋 建议执行顺序 (基于期限动态调整):</h4>
+            <ol id="suggestedTaskList" style="padding-left: 20px; margin: 0;">
+                <!-- 动态生成 -->
+            </ol>
+        </div>
+    </div>
+</div>
 
 <!-- 执行建议区域 -->
             <div class="recommendation-area" style="padding: 15px; background: #e3f2fd; border-radius: 10px; margin-top: 20px;">
@@ -1480,6 +1498,8 @@ stopAll() {
         // === 新增：任务管理相关变量 ===
         let tasks = []; // 存储所有任务
         let currentQuadrantSort = 'priority'; // 当前排序方式
+        // === 新增任务管理变量 (带期限) ===
+        let tasks = [];
         // DOM元素引用
         // === 新增：任务管理DOM元素 ===
         const newTaskNameInput = document.getElementById('newTaskName');
@@ -2495,6 +2515,21 @@ pomodoroRecords.unshift({
         // 初始化事件监听器
         function initEventListeners() {
             addLogEntry('初始化事件监听器...', 'info', '系统');
+            // === 新增任务管理按钮监听 ===
+if (document.getElementById('addTaskBtn')) {
+    document.getElementById('addTaskBtn').addEventListener('click', addNewTask);
+}
+if (document.getElementById('sortTasksBtn')) {
+    document.getElementById('sortTasksBtn').addEventListener('click', sortTasksByQuadrant);
+}
+if (document.getElementById('clearTasksBtn')) {
+    document.getElementById('clearTasksBtn').addEventListener('click', clearAllTasks);
+}
+if (document.getElementById('newTaskName')) {
+    document.getElementById('newTaskName').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') addNewTask();
+    });
+}
             // === 新增：任务管理按钮事件 ===
             if (addTaskBtn) {
                 addTaskBtn.addEventListener('click', addNewTask);
@@ -2921,6 +2956,334 @@ pomodoroRecords.unshift({
                     break;
             }
         });
+// ========== 新增：任务期限与动态紧急度函数 ==========
+
+// 基于剩余时间计算紧急度提升 (返回 0-6 的数值，0表示无提升)
+function getTimeBasedUrgency(dueDateString) {
+    if (!dueDateString) return 0;
+    const due = new Date(dueDateString);
+    const now = new Date();
+    const diffMs = due - now;
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    
+    if (diffMs <= 0) return 6;          // 已过期
+    if (diffDays <= 0.5) return 5;      // 半天内
+    if (diffDays <= 1) return 4;        // 1天内
+    if (diffDays <= 3) return 3;        // 3天内
+    if (diffDays <= 7) return 2;        // 7天内
+    return 1;                            // 超过7天
+}
+
+// 获取任务的有效紧急度 (手动 vs 时间，取较大值)
+function getEffectiveUrgency(task) {
+    const manual = parseInt(task.urgency) || 4;
+    const timeBoost = getTimeBasedUrgency(task.dueDate);
+    return Math.min(6, Math.max(manual, timeBoost));
+}
+
+// 获取剩余时间文本 (用于显示)
+function getRemainingText(dueDateString) {
+    if (!dueDateString) return '';
+    const due = new Date(dueDateString);
+    const now = new Date();
+    const diffMs = due - now;
+    if (diffMs <= 0) return '🔥 已过期';
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    if (diffDays > 0) return `⏳ ${diffDays}天${diffHours}小时`;
+    if (diffHours > 0) return `⏳ ${diffHours}小时`;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    return `⏳ ${diffMins}分钟`;
+}
+
+// 确定任务所属象限 (基于手动重要性和紧急性，与原来保持一致)
+function getTaskQuadrant(importance, urgency) {
+    const imp = parseInt(importance);
+    const urg = parseInt(urgency);
+    if (imp >= 4 && urg >= 4) return 1;
+    if (imp >= 4 && urg < 4) return 2;
+    if (imp < 4 && urg >= 4) return 3;
+    return 4;
+}
+
+// 添加新任务 (含截止时间)
+function addNewTask() {
+    try {
+        const name = document.getElementById('newTaskName')?.value.trim() || '';
+        const importance = parseInt(document.getElementById('taskImportance')?.value) || 4;
+        const urgency = parseInt(document.getElementById('taskUrgency')?.value) || 4;
+        const dueDate = document.getElementById('taskDueDate')?.value || '';
+        
+        if (!name) {
+            showStatus('⚠️ 请输入任务内容', 2000);
+            addLogEntry('添加任务失败：任务内容为空', 'warning', '任务管理');
+            return;
+        }
+        
+        const newTask = {
+            id: Date.now(),
+            name: name,
+            importance: importance,
+            urgency: urgency,
+            dueDate: dueDate || null,
+            quadrant: getTaskQuadrant(importance, urgency),
+            completed: false,
+            createdAt: new Date().toISOString()
+        };
+        
+        tasks.push(newTask);
+        
+        // 清空输入
+        document.getElementById('newTaskName').value = '';
+        document.getElementById('taskDueDate').value = '';
+        
+        updateTasksDisplay();
+        saveTasks();
+        updateTaskRecommendation();
+        
+        addLogEntry(`任务已添加：“${name}” (期限: ${dueDate || '无'})`, 'success', '任务管理');
+        showStatus('✅ 任务已添加', 2000);
+        
+    } catch (error) {
+        addLogEntry(`添加任务失败: ${error.message}`, 'error', '任务管理');
+    }
+}
+
+// 更新任务显示 (含期限信息)
+function updateTasksDisplay() {
+    const quadrantLists = {
+        1: document.getElementById('quadrant1List'),
+        2: document.getElementById('quadrant2List'),
+        3: document.getElementById('quadrant3List'),
+        4: document.getElementById('quadrant4List')
+    };
+    
+    Object.values(quadrantLists).forEach(list => { if (list) list.innerHTML = ''; });
+    
+    if (tasks.length === 0) {
+        Object.values(quadrantLists).forEach(list => {
+            if (list) list.innerHTML = '<div class="empty-quadrant">暂无任务</div>';
+        });
+        return;
+    }
+    
+    const tasksByQuadrant = {1: [], 2: [], 3: [], 4: []};
+    tasks.forEach(task => {
+        if (!task.completed) tasksByQuadrant[task.quadrant].push(task);
+    });
+    
+    Object.entries(tasksByQuadrant).forEach(([quadrantNum, quadrantTasks]) => {
+        const listEl = quadrantLists[quadrantNum];
+        if (!listEl) return;
+        if (quadrantTasks.length === 0) {
+            listEl.innerHTML = '<div class="empty-quadrant">暂无任务</div>';
+            return;
+        }
+        
+        let html = '';
+        quadrantTasks.forEach(task => {
+            const importanceText = getImportanceText(task.importance);
+            const urgencyText = getUrgencyText(task.urgency);
+            const effectiveUrgency = getEffectiveUrgency(task);
+            const remaining = task.dueDate ? getRemainingText(task.dueDate) : '';
+            const dueBadge = task.dueDate ? `<span class="due-indicator">${remaining} (动态:${effectiveUrgency})</span>` : '';
+            
+            html += `
+                <div class="task-item" data-task-id="${task.id}">
+                    <div class="task-content">
+                        <div class="task-name">${task.name}</div>
+                        <div class="task-meta">
+                            重要性：${importanceText} | 手动紧急：${urgencyText}
+                            ${dueBadge ? '<br>' + dueBadge : ''}
+                        </div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="task-action-btn start" onclick="startTaskPomodoro(${task.id})" title="开始番茄钟">▶</button>
+                        <button class="task-action-btn complete" onclick="toggleTaskComplete(${task.id})" title="标记完成">✓</button>
+                        <button class="task-action-btn delete" onclick="deleteTask(${task.id})" title="删除">×</button>
+                    </div>
+                </div>
+            `;
+        });
+        listEl.innerHTML = html;
+    });
+}
+
+// 更新智能执行建议 (基于动态紧急度排序)
+function updateTaskRecommendation() {
+    const taskRecommendationEl = document.getElementById('taskRecommendation');
+    const taskOrderListDiv = document.getElementById('taskOrderList');
+    const suggestedTaskList = document.getElementById('suggestedTaskList');
+    
+    if (!taskRecommendationEl) return;
+    
+    const pendingTasks = tasks.filter(t => !t.completed);
+    if (pendingTasks.length === 0) {
+        taskRecommendationEl.innerHTML = '🎉 恭喜！所有任务已完成。';
+        if (taskOrderListDiv) taskOrderListDiv.style.display = 'none';
+        return;
+    }
+    if (taskOrderListDiv) taskOrderListDiv.style.display = 'block';
+    
+    // 排序：按动态加权分数 (重要性*0.6 + 动态紧急*0.4)
+    const sortedTasks = [...pendingTasks].sort((a, b) => {
+        const urgA = getEffectiveUrgency(a);
+        const urgB = getEffectiveUrgency(b);
+        const impA = parseInt(a.importance);
+        const impB = parseInt(b.importance);
+        
+        const scoreA = impA * 0.6 + urgA * 0.4;
+        const scoreB = impB * 0.6 + urgB * 0.4;
+        if (Math.abs(scoreB - scoreA) > 0.01) return scoreB - scoreA;
+        
+        // 次优先：截止时间更近
+        if (a.dueDate && b.dueDate) {
+            return new Date(a.dueDate) - new Date(b.dueDate);
+        }
+        if (a.dueDate && !b.dueDate) return -1;
+        if (!a.dueDate && b.dueDate) return 1;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+    
+    const urgentCount = sortedTasks.filter(t => getEffectiveUrgency(t) >= 5).length;
+    taskRecommendationEl.innerHTML = `📌 当前待办 ${pendingTasks.length} 项，其中高动态紧急度任务 ${urgentCount} 项。`;
+    
+    if (suggestedTaskList) {
+        suggestedTaskList.innerHTML = '';
+        sortedTasks.forEach((task, index) => {
+            const li = document.createElement('li');
+            li.style.marginBottom = '8px';
+            li.style.padding = '5px';
+            li.style.backgroundColor = index === 0 ? '#fff8e1' : 'transparent';
+            li.style.borderRadius = '4px';
+            li.style.borderLeft = index === 0 ? '3px solid #ff9800' : 'none';
+            
+            const effective = getEffectiveUrgency(task);
+            const remaining = task.dueDate ? getRemainingText(task.dueDate) : '无期限';
+            const quadrantLabels = {1:'🔥',2:'📈',3:'⚠️',4:'💤'};
+            
+            li.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="font-weight: 500;">${task.name}</span>
+                        <div style="font-size: 0.75em; color: #666; margin-top: 2px;">
+                            <span>${quadrantLabels[task.quadrant]} 象限${task.quadrant}</span>
+                            <span style="margin-left: 10px;">⏰ ${remaining}</span>
+                            <span style="margin-left: 10px; color: #d32f2f; font-weight: bold;">动态紧急: ${effective}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="task-action-btn start" onclick="startTaskPomodoro(${task.id})" style="padding:3px 8px;">▶ 开始</button>
+                    </div>
+                </div>
+            `;
+            suggestedTaskList.appendChild(li);
+        });
+    }
+}
+
+// 开始任务的番茄钟
+function startTaskPomodoro(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    const taskNameInput = document.getElementById('taskNameInput');
+    if (taskNameInput) {
+        taskNameInput.value = task.name;
+        taskNameInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+    if (taskElement) {
+        taskElement.style.backgroundColor = '#e3f2fd';
+        setTimeout(() => taskElement.style.backgroundColor = '', 1000);
+    }
+    showStatus(`🎯 已选择任务 “${task.name}”`, 2000);
+    addLogEntry(`选中任务: "${task.name}"`, 'info', '任务管理');
+}
+
+// 切换任务完成状态
+function toggleTaskComplete(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    task.completed = !task.completed;
+    updateTasksDisplay();
+    saveTasks();
+    updateTaskRecommendation();
+    addLogEntry(`任务“${task.name}”标记为${task.completed ? '完成' : '恢复'}`, 'info', '任务管理');
+}
+
+// 删除任务
+function deleteTask(taskId) {
+    const idx = tasks.findIndex(t => t.id === taskId);
+    if (idx === -1) return;
+    const name = tasks[idx].name;
+    tasks.splice(idx, 1);
+    updateTasksDisplay();
+    saveTasks();
+    updateTaskRecommendation();
+    addLogEntry(`任务“${name}”已删除`, 'info', '任务管理');
+}
+
+// 清空所有任务
+function clearAllTasks() {
+    if (tasks.length === 0) return;
+    if (confirm(`确定清空全部 ${tasks.length} 项任务？`)) {
+        tasks = [];
+        updateTasksDisplay();
+        saveTasks();
+        updateTaskRecommendation();
+        addLogEntry('所有任务已清空', 'warning', '任务管理');
+    }
+}
+
+// 按象限排序 (保留原智能排序功能)
+function sortTasksByQuadrant() {
+    tasks.sort((a, b) => {
+        if (a.quadrant !== b.quadrant) return a.quadrant - b.quadrant;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+    updateTasksDisplay();
+    saveTasks();
+    updateTaskRecommendation();
+    addLogEntry('任务已按四象限排序', 'success', '任务管理');
+}
+
+// 保存任务到 localStorage
+function saveTasks() {
+    try {
+        localStorage.setItem('pomodoroTasks', JSON.stringify(tasks));
+    } catch (e) {
+        addLogEntry('保存任务失败', 'error', '任务管理');
+    }
+}
+
+// 从 localStorage 加载任务
+function loadTasks() {
+    try {
+        const saved = localStorage.getItem('pomodoroTasks');
+        if (saved) {
+            tasks = JSON.parse(saved);
+            // 兼容旧数据 (无 dueDate 字段)
+            tasks.forEach(t => {
+                if (t.dueDate === undefined) t.dueDate = null;
+                t.quadrant = getTaskQuadrant(t.importance, t.urgency);
+            });
+            updateTasksDisplay();
+            updateTaskRecommendation();
+        }
+    } catch (e) {
+        tasks = [];
+    }
+}
+
+// 重要性/紧急性文字描述 (如果您的代码中已有，则无需重复；若没有，请添加)
+function getImportanceText(level) {
+    const map = {6:'非常重要',5:'重要',4:'较高',3:'中等',2:'较低',1:'非常低'};
+    return map[parseInt(level)] || '未知';
+}
+function getUrgencyText(level) {
+    const map = {6:'非常紧急',5:'紧急',4:'较紧急',3:'中等',2:'较宽松',1:'非常宽松'};
+    return map[parseInt(level)] || '未知';
+}
         // === 新增：任务管理核心函数 ===
 
 // 确定任务所属象限 (基于6级评分)
@@ -3319,6 +3682,7 @@ const quadrantLabels = {1: '🔥', 2: '📈', 3: '⚠️', 4: '💤'};
                 // 加载番茄钟记录
                 loadRecords();
                 
+                loadTasks();  // 放在已有 loadRecords() 等之后即可
                 // 检查音频上下文状态
                 checkAudioContextStatus();
                 
