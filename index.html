@@ -900,10 +900,13 @@
                 </div>
             </div>
             
-            <div class="button-group">
+<div class="button-group">
                 <button id="startBtn" class="btn btn-primary">▶ 开始</button>
                 <button id="pauseBtn" class="btn btn-secondary" disabled>⏸ 暂停</button>
                 <button id="resetBtn" class="btn btn-warning">🔄 重置</button>
+                <!-- === 新增：跳过休息按钮 === -->
+                <button id="skipBreakBtn" class="btn btn-info" style="display: none;">⏭️ 跳过休息</button>
+                <!-- === 新增结束 === -->
             </div>
             
             <div class="preset-times">
@@ -1303,6 +1306,7 @@ stopAll() {
         const startBtn = document.getElementById('startBtn');
         const pauseBtn = document.getElementById('pauseBtn');
         const resetBtn = document.getElementById('resetBtn');
+        const skipBreakBtn = document.getElementById('skipBreakBtn'); // 新增：跳过休息按钮
         const focusTimeInput = document.getElementById('focusTime');
         const breakTimeInput = document.getElementById('breakTime');
         const customMinutesInput = document.getElementById('customMinutes');
@@ -1692,6 +1696,8 @@ pomodoroRecords.unshift({
                     
                     isPomodoroBreak = true;
                     pomodoroSeconds = (breakTimeInput ? parseInt(breakTimeInput.value) : 5) * 60;
+                    // === 新增：进入休息，显示“跳过休息”按钮 ===
+                    if (skipBreakBtn) skipBreakBtn.style.display = 'inline-block';
                 } else {
                     addLogEntry('休息时间到！', 'info', '番茄钟');
                     showStatus('🔔 休息时间到，请继续专注！', 3000);
@@ -1713,6 +1719,8 @@ pomodoroRecords.unshift({
                     
                     isPomodoroBreak = false;
                     pomodoroSeconds = (focusTimeInput ? parseInt(focusTimeInput.value) : 25) * 60;
+                    // === 新增：休息结束，隐藏“跳过休息”按钮 ===
+                    if (skipBreakBtn) skipBreakBtn.style.display = 'none';
                 }
                 
                 updateTimerDisplay(pomodoroSeconds);
@@ -1757,12 +1765,68 @@ pomodoroRecords.unshift({
                 currentTaskName = '';
                 // === 新增结束 ===
                 showStatus('🔄 番茄钟已重置', 2000);
+                // === 新增：重置时隐藏“跳过休息”按钮 ===
+                if (skipBreakBtn) skipBreakBtn.style.display = 'none';
                 
             } catch (error) {
                 addLogEntry(`重置番茄钟失败: ${error.message}`, 'error', '番茄钟');
             }
         }
-        
+        // 跳过休息时段
+        async function skipBreak() {
+            // 只有当前处于休息状态且计时器在运行时，才能跳过
+            if (!isPomodoroBreak || !isPomodoroRunning) {
+                return;
+            }
+            
+            try {
+                if (clickSoundEnabled) {
+                    await playClickSound('normal');
+                }
+                
+                // 1. 停止当前的休息计时器
+                clearInterval(pomodoroInterval);
+                pomodoroInterval = null;
+                isPomodoroRunning = false;
+                
+                // 2. 记录跳过的休息（可选）
+                const currentTime = new Date().toLocaleTimeString('zh-CN');
+                pomodoroRecords.unshift({
+                    time: currentTime,
+                    duration: `0分钟（已跳过）`,
+                    type: 'break',
+                    date: new Date().toISOString().split('T')[0],
+                    taskName: '休息（已跳过）'
+                });
+                saveRecords(); // 保存记录
+                updateRecordsDisplay(); // 更新显示
+                
+                // 3. 立即切换到专注状态
+                isPomodoroBreak = false;
+                const focusMinutes = focusTimeInput ? parseInt(focusTimeInput.value) : 25;
+                pomodoroSeconds = focusMinutes * 60;
+                
+                // 4. 更新界面显示和状态
+                updateTimerDisplay(pomodoroSeconds);
+                updatePomodoroStatus();
+                
+                // 5. 隐藏“跳过休息”按钮，启用“开始”按钮
+                if (skipBreakBtn) skipBreakBtn.style.display = 'none';
+                if (startBtn) startBtn.disabled = false;
+                if (pauseBtn) pauseBtn.disabled = true;
+                
+                addLogEntry('休息时段已被跳过', 'info', '番茄钟');
+                showStatus('⏭️ 已跳过休息，准备开始下一段专注', 3000);
+                
+                // 可选：播放一个提示音
+                if (soundEnabled) {
+                    await playSound('beep');
+                }
+                
+            } catch (error) {
+                addLogEntry(`跳过休息失败: ${error.message}`, 'error', '番茄钟');
+            }
+        }
         // 开始中断计时
         async function startInterrupt() {
             if (isInterruptRunning || isPomodoroRunning) return;
@@ -2260,7 +2324,13 @@ pomodoroRecords.unshift({
             } else {
                 addLogEntry('重置按钮元素不存在', 'error', '系统');
             }
-            
+           // 新增：跳过休息按钮事件
+            if (skipBreakBtn) {
+                skipBreakBtn.addEventListener('click', skipBreak);
+                addLogEntry('跳过休息按钮监听器已绑定', 'success', '事件');
+            } else {
+                addLogEntry('跳过休息按钮元素不存在', 'error', '系统');
+            } 
             // 控制按钮
             if (exportRecordsBtn) {
                 exportRecordsBtn.addEventListener('click', exportRecords);
