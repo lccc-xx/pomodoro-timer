@@ -2021,7 +2021,7 @@ pomodoroRecords.unshift({
             }
         }
         
-        // 更新记录显示
+// 更新记录显示
         function updateRecordsDisplay() {
             if (!recordList) return;
             
@@ -2036,15 +2036,17 @@ pomodoroRecords.unshift({
                 return;
             }
             
-            let html += `
-                <div class="record-item">
-                    <div class="record-info">
-                        <div class="record-time">${record.time}</div>
-                        <div class="record-duration">${record.duration} • ${record.taskName || '(无任务名)'}</div>
+            let html = '';
+            pomodoroRecords.slice(0, 20).forEach(record => {
+                html += `
+                    <div class="record-item">
+                        <div class="record-info">
+                            <div class="record-time">${record.time}</div>
+                            <div class="record-duration">${record.duration} • ${record.taskName || '(无任务名)'}</div>
+                        </div>
+                        <div class="record-type ${record.type}">${record.type === 'focus' ? '专注' : '休息'}</div>
                     </div>
-                    <div class="record-type ${record.type}">${record.type === 'focus' ? '专注' : '休息'}</div>
-                </div>
-            `;
+                `;
             });
             
             recordList.innerHTML = html;
