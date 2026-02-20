@@ -921,7 +921,14 @@
                 </div>
                 <button id="setCustomTimeBtn" class="btn" style="background: #9c27b0; color: white; margin-top: 25px;">应用自定义时间</button>
             </div>
-            
+            <!-- === 新增：任务名称输入区域 === -->
+            <div class="time-controls" style="margin-top: 15px;">
+                <div class="time-input-group" style="flex: 1;">
+                    <label for="taskNameInput">📝 任务名称 (可选)</label>
+                    <input type="text" id="taskNameInput" class="time-input" placeholder="例如：写报告、阅读Chapter 3" maxlength="50">
+                </div>
+            </div>
+            <!-- === 新增结束 === -->
             <div class="status-indicators">
                 <div id="pomodoroStatus" class="pomodoro-status">🎯 准备开始专注</div>
                 <div id="deviceStatus" class="device-status">🔧 音频系统初始化中...</div>
@@ -1290,7 +1297,7 @@ stopAll() {
         let totalCompleted = 0;
         let totalFocusTime = 0;
         let isLogVisible = true;
-        
+        let currentTaskName = ''; // 新增：用于存储当前番茄钟的任务名
         // DOM元素引用
         const timerDisplay = document.getElementById('timerDisplay');
         const startBtn = document.getElementById('startBtn');
@@ -1582,7 +1589,16 @@ stopAll() {
         // 开始番茄钟
         async function startPomodoro() {
             if (isPomodoroRunning) return;
-            
+            // === 新增：获取并存储任务名称 ===
+            const taskNameInput = document.getElementById('taskNameInput');
+            if (taskNameInput) {
+                currentTaskName = taskNameInput.value.trim() || '(未命名任务)';
+                // 可选：记录到日志
+                addLogEntry(`任务名称设定为: "${currentTaskName}"`, 'info', '番茄钟');
+            } else {
+                currentTaskName = '(未命名任务)';
+            }
+            // === 新增结束 ===
             try {
                 if (clickSoundEnabled) {
                     await playClickSound('normal');
@@ -1662,12 +1678,14 @@ stopAll() {
                     const focusTimeMinutes = parseInt(focusTimeInput ? focusTimeInput.value : 25);
                     totalFocusTime += focusTimeMinutes / 60;
                     
-                    pomodoroRecords.unshift({
-                        time: currentTime,
-                        duration: `${focusTimeMinutes}分钟`,
-                        type: 'focus',
-                        date: new Date().toISOString().split('T')[0]
-                    });
+pomodoroRecords.unshift({
+                    time: currentTime,
+                    duration: `${focusTimeMinutes}分钟`,
+                    type: 'focus',
+                    date: new Date().toISOString().split('T')[0],
+                    // === 新增字段 ===
+                    taskName: currentTaskName // 记录当前任务名称
+                });
                     
                     saveRecords();
                     updateRecordsDisplay();
@@ -1681,12 +1699,14 @@ stopAll() {
                     await playSound('beep');
                     vibrate([300, 100, 300]);
                     
-                    pomodoroRecords.unshift({
-                        time: currentTime,
-                        duration: `${breakTimeInput ? parseInt(breakTimeInput.value) : 5}分钟`,
-                        type: 'break',
-                        date: new Date().toISOString().split('T')[0]
-                    });
+pomodoroRecords.unshift({
+                    time: currentTime,
+                    duration: `${breakTimeInput ? parseInt(breakTimeInput.value) : 5}分钟`,
+                    type: 'break',
+                    date: new Date().toISOString().split('T')[0],
+                    // === 新增字段 ===
+                    taskName: '休息时段' // 休息时段使用固定名称
+                });
                     
                     saveRecords();
                     updateRecordsDisplay();
@@ -1729,6 +1749,13 @@ stopAll() {
                 if (pauseBtn) pauseBtn.disabled = true;
                 
                 addLogEntry('番茄钟已重置', 'info', '番茄钟');
+                // === 新增：重置时清空任务输入框 ===
+                const taskNameInput = document.getElementById('taskNameInput');
+                if (taskNameInput) {
+                    taskNameInput.value = '';
+                }
+                currentTaskName = '';
+                // === 新增结束 ===
                 showStatus('🔄 番茄钟已重置', 2000);
                 
             } catch (error) {
@@ -2009,17 +2036,15 @@ stopAll() {
                 return;
             }
             
-            let html = '';
-            pomodoroRecords.slice(0, 20).forEach(record => {
-                html += `
-                    <div class="record-item">
-                        <div class="record-info">
-                            <div class="record-time">${record.time}</div>
-                            <div class="record-duration">${record.duration}</div>
-                        </div>
-                        <div class="record-type ${record.type}">${record.type === 'focus' ? '专注' : '休息'}</div>
+            let html += `
+                <div class="record-item">
+                    <div class="record-info">
+                        <div class="record-time">${record.time}</div>
+                        <div class="record-duration">${record.duration} • ${record.taskName || '(无任务名)'}</div>
                     </div>
-                `;
+                    <div class="record-type ${record.type}">${record.type === 'focus' ? '专注' : '休息'}</div>
+                </div>
+            `;
             });
             
             recordList.innerHTML = html;
