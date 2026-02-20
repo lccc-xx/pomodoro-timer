@@ -1136,10 +1136,18 @@
                 </div>
             </div>
 
-            <!-- 执行建议区域 -->
+<!-- 执行建议区域 -->
             <div class="recommendation-area" style="padding: 15px; background: #e3f2fd; border-radius: 10px; margin-top: 20px;">
                 <h3 style="color: #1565c0; margin-bottom: 10px;">🚀 智能执行建议</h3>
                 <div id="taskRecommendation">暂无任务，请先添加任务。</div>
+                <!-- === 新增：任务执行顺序列表 === -->
+                <div id="taskOrderList" style="margin-top: 15px; display: none;">
+                    <h4 style="color: #0d47a1; margin-bottom: 8px; font-size: 1em;">📋 建议执行顺序：</h4>
+                    <ol id="suggestedTaskList" style="padding-left: 20px; margin: 0;">
+                        <!-- 有序列表将在此动态生成 -->
+                    </ol>
+                </div>
+                <!-- === 新增结束 === -->
             </div>
         </div>
         <div class="interrupt-section">
@@ -3041,29 +3049,41 @@ pomodoroRecords.unshift({
             updateTaskRecommendation();
         }
 
-        // 更新任务执行建议
+// 更新任务执行建议（含顺序列表）
         function updateTaskRecommendation() {
             if (!taskRecommendationEl) return;
             
             const pendingTasks = tasks.filter(t => !t.completed);
+            const taskOrderListEl = document.getElementById('taskOrderList');
+            const suggestedTaskListEl = document.getElementById('suggestedTaskList');
             
+            // 1. 处理“没有待办任务”的情况
             if (pendingTasks.length === 0) {
                 taskRecommendationEl.innerHTML = '🎉 恭喜！所有任务已完成。';
+                if (taskOrderListEl) taskOrderListEl.style.display = 'none';
                 return;
             }
             
-            // 按象限分组统计
+            // 2. 对未完成任务进行智能排序（按象限优先级）
+            const sortedTasks = [...pendingTasks].sort((a, b) => {
+                // 第一优先级：象限 (1 > 2 > 3 > 4)
+                if (a.quadrant !== b.quadrant) {
+                    return a.quadrant - b.quadrant;
+                }
+                // 第二优先级：创建时间（新的在前，认为可能更紧急）
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+            
+            // 3. 生成并更新文字建议
             const quadrantCounts = {1: 0, 2: 0, 3: 0, 4: 0};
             pendingTasks.forEach(task => {
                 quadrantCounts[task.quadrant]++;
             });
             
             let recommendation = '';
-            
             if (quadrantCounts[1] > 0) {
-                const quadrant1Tasks = pendingTasks.filter(t => t.quadrant === 1);
                 recommendation = `<strong>🚨 立即处理（${quadrantCounts[1]}项重要且紧急的任务）</strong><br>`;
-                recommendation += `建议优先处理：<em>“${quadrant1Tasks[0].name}”</em>`;
+                recommendation += `建议优先处理：<em>“${sortedTasks[0].name}”</em>`;
             } else if (quadrantCounts[2] > 0) {
                 recommendation = `<strong>📅 计划执行（${quadrantCounts[2]}项重要但不紧急的任务）</strong><br>`;
                 recommendation += `这是提升长期价值的关键，请安排时间专注处理。`;
@@ -3074,8 +3094,45 @@ pomodoroRecords.unshift({
                 recommendation = `<strong>🕒 空闲处理（${quadrantCounts[4]}项不紧急不重要的任务）</strong><br>`;
                 recommendation += `可以在休息时间或精力不足时处理。`;
             }
-            
             taskRecommendationEl.innerHTML = recommendation;
+            
+            // 4. 生成并更新任务执行顺序列表
+            if (taskOrderListEl && suggestedTaskListEl) {
+                // 显示列表容器
+                taskOrderListEl.style.display = 'block';
+                
+                // 清空现有列表
+                suggestedTaskListEl.innerHTML = '';
+                
+                // 生成有序列表项
+                sortedTasks.forEach((task, index) => {
+                    const li = document.createElement('li');
+                    li.style.marginBottom = '8px';
+                    li.style.padding = '5px';
+                    li.style.backgroundColor = index === 0 ? '#fff8e1' : 'transparent'; // 高亮第一项
+                    li.style.borderRadius = '4px';
+                    li.style.borderLeft = index === 0 ? '3px solid #ff9800' : 'none';
+                    
+                    // 象限标签
+                    const quadrantLabels = {1: '🔥', 2: '📈', 3: '⚠️', 4: '💤'};
+                    const quadrantTexts = {1: '重要且紧急', 2: '重要不紧急', 3: '紧急不重要', 4: '不紧急不重要'};
+                    
+                    li.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <span style="font-weight: 500;">${task.name}</span>
+                                <span style="font-size: 0.85em; color: #666; margin-left: 8px;">
+                                    ${quadrantLabels[task.quadrant]} ${quadrantTexts[task.quadrant]}
+                                </span>
+                            </div>
+                            <div>
+                                <button class="task-action-btn start" onclick="startTaskPomodoro(${task.id})" title="开始番茄钟" style="padding: 3px 8px; font-size: 0.85em;">▶ 开始</button>
+                            </div>
+                        </div>
+                    `;
+                    suggestedTaskListEl.appendChild(li);
+                });
+            }
         }
 
         // 开始任务的番茄钟
