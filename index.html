@@ -14,7 +14,6 @@
             -webkit-user-select: none;
             user-select: none;
         }
-       function initEventListeners() {
         /* === 新增：任务管理样式 === */
         .task-section {
             background: white;
@@ -2496,7 +2495,7 @@ pomodoroRecords.unshift({
                 console.error('AudioContext状态检查错误:', error);
             }
         }
-        
+        function initEventListeners() {
             // === 新增：任务管理按钮事件 ===
             if (addTaskBtn) {
                 addTaskBtn.addEventListener('click', addNewTask);
