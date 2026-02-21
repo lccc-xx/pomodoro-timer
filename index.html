@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>番茄时钟 Pomodoro Timer v6.2.0</title>
     <style>
+        /* 任务分类徽章 */
+.task-category-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7em;
+    font-weight: 500;
+    margin-right: 5px;
+}
+.category-study { background: #e3f2fd; color: #0d47a1; }
+.category-work { background: #e8f5e9; color: #1b5e20; }
+.category-other { background: #f3e5f5; color: #4a148c; }
+.category-self { background: #fff3e0; color: #bf360c; }
+
+/* 记录中的分类标签 */
+.record-category {
+    font-size: 0.75em;
+    padding: 2px 6px;
+    border-radius: 12px;
+    display: inline-block;
+    margin-left: 5px;
+}
         /* 全局重置和基础样式 */
         * {
             margin: 0;
@@ -1019,12 +1041,13 @@
                 <button id="setCustomTimeBtn" class="btn" style="background: #9c27b0; color: white; margin-top: 25px;">应用自定义时间</button>
             </div>
             <!-- === 新增：任务名称输入区域 === -->
-            <div class="time-controls" style="margin-top: 15px;">
-                <div class="time-input-group" style="flex: 1;">
-                    <label for="taskNameInput">📝 任务名称 (可选)</label>
-                    <input type="text" id="taskNameInput" class="time-input" placeholder="例如：写报告、阅读Chapter 3" maxlength="50">
-                </div>
-            </div>
+<div class="time-controls" style="margin-top: 15px; align-items: flex-end;">
+    <div class="time-input-group" style="flex: 2;">
+        <label for="taskNameInput">📝 任务名称 (可选)</label>
+        <input type="text" id="taskNameInput" class="time-input" placeholder="例如：写报告、阅读Chapter 3" maxlength="50" style="width: 100%;">
+    </div>
+    <input type="hidden" id="taskCategoryInput" value="other">
+</div>
             <!-- === 新增结束 === -->
             <div class="status-indicators">
                 <div id="pomodoroStatus" class="pomodoro-status">🎯 准备开始专注</div>
@@ -1083,45 +1106,53 @@
         </div>
     </div>
 
-    <!-- 任务输入表单 (新增截止时间) -->
-    <div class="task-input-area" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
-        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr auto; gap: 10px; align-items: end;">
-            <div>
-                <label for="newTaskName" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">任务内容</label>
-                <input type="text" id="newTaskName" class="interrupt-input" placeholder="例如：完成项目报告" style="width: 100%;">
-            </div>
-            <div>
-                <label for="taskImportance" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">重要性</label>
-                <select id="taskImportance" class="interrupt-input" style="width: 100%;">
-                    <option value="6">非常重要 (6级)</option>
-                    <option value="5">重要 (5级)</option>
-                    <option value="4" selected>较高 (4级)</option>
-                    <option value="3">中等 (3级)</option>
-                    <option value="2">较低 (2级)</option>
-                    <option value="1">非常低 (1级)</option>
-                </select>
-            </div>
-            <div>
-                <label for="taskUrgency" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">紧急性</label>
-                <select id="taskUrgency" class="interrupt-input" style="width: 100%;">
-                    <option value="6">非常紧急 (6级)</option>
-                    <option value="5">紧急 (5级)</option>
-                    <option value="4" selected>较紧急 (4级)</option>
-                    <option value="3">中等 (3级)</option>
-                    <option value="2">较宽松 (2级)</option>
-                    <option value="1">非常宽松 (1级)</option>
-                </select>
-            </div>
-            <div>
-                <label for="taskDueDate" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">截止时间</label>
-                <input type="datetime-local" id="taskDueDate" class="interrupt-input" style="width: 100%;">
-            </div>
-            <div>
-                <button id="addTaskBtn" class="btn btn-primary" style="padding: 12px 24px;">➕ 添加任务</button>
-            </div>
+<div class="task-input-area" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+    <div style="display: grid; grid-template-columns: 1.5fr 0.8fr 1fr 1.2fr 1.5fr auto; gap: 10px; align-items: end;">
+        <div>
+            <label for="newTaskName" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">任务内容</label>
+            <input type="text" id="newTaskName" class="interrupt-input" placeholder="例如：完成项目报告" style="width: 100%;">
         </div>
-        <small style="color: #999; margin-top: 5px; display: block;">⏰ 设置截止时间后，智能建议将根据剩余时间自动调整紧急度（只升不降）</small>
+        <div>
+            <label for="taskCategory" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">分类</label>
+            <select id="taskCategory" class="interrupt-input" style="width: 100%;">
+                <option value="study">学习</option>
+                <option value="work">工作</option>
+                <option value="self">自我提高</option>
+                <option value="other" selected>其他</option>
+            </select>
+        </div>
+        <div>
+            <label for="taskImportance" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">重要性</label>
+            <select id="taskImportance" class="interrupt-input" style="width: 100%;">
+                <option value="6">非常重要 (6级)</option>
+                <option value="5">重要 (5级)</option>
+                <option value="4" selected>较高 (4级)</option>
+                <option value="3">中等 (3级)</option>
+                <option value="2">较低 (2级)</option>
+                <option value="1">非常低 (1级)</option>
+            </select>
+        </div>
+        <div>
+            <label for="taskUrgency" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">紧急性</label>
+            <select id="taskUrgency" class="interrupt-input" style="width: 100%;">
+                <option value="6">非常紧急 (6级)</option>
+                <option value="5">紧急 (5级)</option>
+                <option value="4" selected>较紧急 (4级)</option>
+                <option value="3">中等 (3级)</option>
+                <option value="2">较宽松 (2级)</option>
+                <option value="1">非常宽松 (1级)</option>
+            </select>
+        </div>
+        <div>
+            <label for="taskDueDate" style="display: block; margin-bottom: 5px; color: #666; font-size: 0.9em;">截止时间</label>
+            <input type="datetime-local" id="taskDueDate" class="interrupt-input" style="width: 100%;">
+        </div>
+        <div>
+            <button id="addTaskBtn" class="btn btn-primary" style="padding: 12px 24px;">➕ 添加任务</button>
+        </div>
     </div>
+    <small style="color: #999; margin-top: 5px; display: block;">⏰ 设置截止时间后，智能建议将根据剩余时间自动调整紧急度（只升不降）</small>
+</div>
 
     <!-- 四象限任务展示（保持不变，但内部任务项会在JS中动态生成期限信息） -->
     <div class="quadrants-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
@@ -1193,7 +1224,7 @@
         </div>
         <div class="records-section">
             <div class="records-header">
-                <h2>📊 番茄钟记录</h2>
+                <h2>📊 番茄钟记录 (含分类)</h2>
                 <div class="button-group" style="gap: 10px;">
                     <button id="exportRecordsBtn" class="btn btn-secondary" style="padding: 10px 20px;">📤 导出记录</button>
                     <button id="clearRecordsBtn" class="btn btn-danger" style="padding: 10px 20px;">🗑️ 清空记录</button>
@@ -1481,12 +1512,15 @@ stopAll() {
         let totalFocusTime = 0;
         let isLogVisible = true;
         let currentTaskName = ''; // 新增：用于存储当前番茄钟的任务名
+        let currentTaskCategory = 'other'; // 新增：当前任务分类
         // === 新增：任务管理相关变量 ===
         let tasks = []; // 存储所有任务
         let currentQuadrantSort = 'priority'; // 当前排序方式
         // DOM元素引用
         // === 新增：任务管理DOM元素 ===
         const newTaskNameInput = document.getElementById('newTaskName');
+        const taskCategorySelect = document.getElementById('taskCategory');      // 新增分类选择
+        const taskCategoryInput = document.getElementById('taskCategoryInput'); // 隐藏的分类字段
         const taskImportanceSelect = document.getElementById('taskImportance');
         const taskUrgencySelect = document.getElementById('taskUrgency');
         const addTaskBtn = document.getElementById('addTaskBtn');
@@ -1799,6 +1833,9 @@ stopAll() {
             } else {
                 currentTaskName = '(未命名任务)';
             }
+               // 读取隐藏的分类字段，如果没有则默认为 'other'
+    currentTaskCategory = taskCategoryInput ? taskCategoryInput.value : 'other';
+    addLogEntry(`任务名称: "${currentTaskName}", 分类: ${currentTaskCategory}`, 'info', '番茄钟');
             // === 新增结束 ===
             try {
                 if (clickSoundEnabled) {
@@ -1886,6 +1923,7 @@ pomodoroRecords.unshift({
                     date: new Date().toISOString().split('T')[0],
                     // === 新增字段 ===
                     taskName: currentTaskName // 记录当前任务名称
+                    category: currentTaskCategory  // 新增
                 });
                     
                     saveRecords();
@@ -1909,6 +1947,7 @@ pomodoroRecords.unshift({
                     date: new Date().toISOString().split('T')[0],
                     // === 新增字段 ===
                     taskName: '休息时段' // 休息时段使用固定名称
+                    category: 'other'   // 固定为 other
                 });
                     
                     saveRecords();
@@ -2298,17 +2337,44 @@ pomodoroRecords.unshift({
             }
             
             let html = '';
-            pomodoroRecords.slice(0, 20).forEach(record => {
-                html += `
-                    <div class="record-item">
-                        <div class="record-info">
-                            <div class="record-time">${record.time}</div>
-                            <div class="record-duration">${record.duration} • ${record.taskName || '(无任务名)'}</div>
-                        </div>
-                        <div class="record-type ${record.type}">${record.type === 'focus' ? '专注' : '休息'}</div>
-                    </div>
-                `;
-            });
+pomodoroRecords.slice(0, 20).forEach(record => {
+    // 获取分类，如果没有则默认为 'other'
+    const category = record.category || 'other';
+    let categoryClass = '';
+    let categoryText = '';
+    
+    // 根据分类值设置对应的 CSS 类和显示文字
+    switch(category) {
+        case 'study':
+            categoryClass = 'category-study';
+            categoryText = '学习';
+            break;
+        case 'work':
+            categoryClass = 'category-work';
+            categoryText = '工作';
+            break;
+        case 'self':
+            categoryClass = 'category-self';
+            categoryText = '自我提高';
+            break;
+        default: // 'other' 或其他未知值
+            categoryClass = 'category-other';
+            categoryText = '其他';
+    }
+    
+    html += `
+        <div class="record-item">
+            <div class="record-info">
+                <div class="record-time">${record.time}</div>
+                <div class="record-duration">
+                    ${record.duration} • ${record.taskName || '(无任务名)'}
+                    <span class="record-category ${categoryClass}">${categoryText}</span>
+                </div>
+            </div>
+            <div class="record-type ${record.type}">${record.type === 'focus' ? '专注' : '休息'}</div>
+        </div>
+    `;
+});
             
             recordList.innerHTML = html;
         }
@@ -2976,6 +3042,7 @@ function getTaskQuadrant(importance, urgency) {
 function addNewTask() {
     try {
         const name = document.getElementById('newTaskName')?.value.trim() || '';
+        const category = taskCategorySelect ? taskCategorySelect.value : 'other';   // 新增
         const importance = parseInt(document.getElementById('taskImportance')?.value) || 4;
         const urgency = parseInt(document.getElementById('taskUrgency')?.value) || 4;
         const dueDate = document.getElementById('taskDueDate')?.value || '';
@@ -2989,6 +3056,7 @@ function addNewTask() {
         const newTask = {
             id: Date.now(),
             name: name,
+            category: category, 
             importance: importance,
             urgency: urgency,
             dueDate: dueDate || null,
@@ -2998,16 +3066,15 @@ function addNewTask() {
         };
         
         tasks.push(newTask);
-        
-        // 清空输入
-        document.getElementById('newTaskName').value = '';
+                // 清空输入时，保留分类下拉框不清空（可选）
+        newTaskNameInput.value = '';
         document.getElementById('taskDueDate').value = '';
         
         updateTasksDisplay();
         saveTasks();
         updateTaskRecommendation();
         
-        addLogEntry(`任务已添加：“${name}” (期限: ${dueDate || '无'})`, 'success', '任务管理');
+        addLogEntry(`任务已添加：“${name}” (分类: ${getCategoryText(category)})`, 'success', '任务管理');
         showStatus('✅ 任务已添加', 2000);
         
     } catch (error) {
@@ -3047,6 +3114,30 @@ function updateTasksDisplay() {
         }
         
         let html = '';
+        // 在循环内，生成每个任务的 html 之前，添加变量
+const categoryClass = getCategoryClass(task.category);
+const categoryText = getCategoryText(task.category);
+
+// 然后在 html 中修改任务名称部分
+html += `
+    <div class="task-item" data-task-id="${task.id}">
+        <div class="task-content">
+            <div class="task-name">
+                <span class="task-category-badge ${categoryClass}">${categoryText}</span>
+                ${task.name}
+            </div>
+            <div class="task-meta">
+                重要性：${importanceText} | 手动紧急：${urgencyText}
+                ${dueBadge ? '<br>' + dueBadge : ''}
+            </div>
+        </div>
+        <div class="task-actions">
+            <button class="task-action-btn start" onclick="startTaskPomodoro(${task.id})" title="开始番茄钟">▶</button>
+            <button class="task-action-btn complete" onclick="toggleTaskComplete(${task.id})" title="标记完成">✓</button>
+            <button class="task-action-btn delete" onclick="deleteTask(${task.id})" title="删除">×</button>
+        </div>
+    </div>
+`;
         quadrantTasks.forEach(task => {
             const importanceText = getImportanceText(task.importance);
             const urgencyText = getUrgencyText(task.urgency);
@@ -3127,22 +3218,26 @@ function updateTaskRecommendation() {
             const effective = getEffectiveUrgency(task);
             const remaining = task.dueDate ? getRemainingText(task.dueDate) : '无期限';
             const quadrantLabels = {1:'🔥',2:'📈',3:'⚠️',4:'💤'};
-            
-            li.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <span style="font-weight: 500;">${task.name}</span>
-                        <div style="font-size: 0.75em; color: #666; margin-top: 2px;">
-                            <span>${quadrantLabels[task.quadrant]} 象限${task.quadrant}</span>
-                            <span style="margin-left: 10px;">⏰ ${remaining}</span>
-                            <span style="margin-left: 10px; color: #d32f2f; font-weight: bold;">动态紧急: ${effective}</span>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="task-action-btn start" onclick="startTaskPomodoro(${task.id})" style="padding:3px 8px;">▶ 开始</button>
-                    </div>
-                </div>
-            `;
+            const categoryClass = getCategoryClass(task.category);
+            const categoryText = getCategoryText(task.category);
+           li.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <span style="font-weight: 500;">
+                <span class="task-category-badge ${categoryClass}" style="margin-right:5px;">${categoryText}</span>
+                ${task.name}
+            </span>
+            <div style="font-size: 0.75em; color: #666; margin-top: 2px;">
+                <span>${quadrantLabels[task.quadrant]} 象限${task.quadrant}</span>
+                <span style="margin-left: 10px;">⏰ ${remaining}</span>
+                <span style="margin-left: 10px; color: #d32f2f; font-weight: bold;">动态紧急: ${effective}</span>
+            </div>
+        </div>
+        <div>
+            <button class="task-action-btn start" onclick="startTaskPomodoro(${task.id})" style="padding:3px 8px;">▶ 开始</button>
+        </div>
+    </div>
+`;
             suggestedTaskList.appendChild(li);
         });
     }
@@ -3152,18 +3247,26 @@ function updateTaskRecommendation() {
 function startTaskPomodoro(taskId) {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
-    const taskNameInput = document.getElementById('taskNameInput');
+    
+    // 设置任务名称输入框
     if (taskNameInput) {
         taskNameInput.value = task.name;
         taskNameInput.dispatchEvent(new Event('input', { bubbles: true }));
     }
+    // 设置隐藏的分类字段
+    if (taskCategoryInput) {
+        taskCategoryInput.value = task.category;
+    }
+    
+    // 高亮显示
     const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
     if (taskElement) {
         taskElement.style.backgroundColor = '#e3f2fd';
         setTimeout(() => taskElement.style.backgroundColor = '', 1000);
     }
-    showStatus(`🎯 已选择任务 “${task.name}”`, 2000);
-    addLogEntry(`选中任务: "${task.name}"`, 'info', '任务管理');
+    
+    showStatus(`🎯 已选择任务 “${task.name}” (分类: ${getCategoryText(task.category)})`, 3000);
+    addLogEntry(`选中任务准备专注: "${task.name}" (分类: ${task.category})`, 'info', '任务管理');
 }
 
 // 切换任务完成状态
@@ -3230,6 +3333,7 @@ function loadTasks() {
             tasks = JSON.parse(saved);
             // 兼容旧数据 (无 dueDate 字段)
             tasks.forEach(t => {
+                if (!t.category) t.category = 'other';
                 if (t.dueDate === undefined) t.dueDate = null;
                 t.quadrant = getTaskQuadrant(t.importance, t.urgency);
             });
@@ -3250,7 +3354,14 @@ function getUrgencyText(level) {
     const map = {6:'非常紧急',5:'紧急',4:'较紧急',3:'中等',2:'较宽松',1:'非常宽松'};
     return map[parseInt(level)] || '未知';
 }
-
+function getCategoryText(category) {
+    const map = { 'study': '学习', 'work': '工作', 'self': '自我提高', 'other': '其他' };
+    return map[category] || '其他';
+}
+function getCategoryClass(category) {
+    const map = { 'study': 'category-study', 'work': 'category-work', 'self': 'category-self', 'other': 'category-other' };
+    return map[category] || 'category-other';
+}
         // 初始化应用
         async function initApp() {
             try {
