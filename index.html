@@ -3038,13 +3038,12 @@ function getTaskQuadrant(importance, urgency) {
     return 4;
 }
 
-// 添加新任务 (含截止时间)
 function addNewTask() {
     try {
-        const name = document.getElementById('newTaskName')?.value.trim() || '';
-        const category = taskCategorySelect ? taskCategorySelect.value : 'other';   // 新增
-        const importance = parseInt(document.getElementById('taskImportance')?.value) || 4;
-        const urgency = parseInt(document.getElementById('taskUrgency')?.value) || 4;
+        const name = newTaskNameInput ? newTaskNameInput.value.trim() : '';
+        const category = taskCategorySelect ? taskCategorySelect.value : 'other';
+        const importance = parseInt(taskImportanceSelect?.value) || 4;
+        const urgency = parseInt(taskUrgencySelect?.value) || 4;
         const dueDate = document.getElementById('taskDueDate')?.value || '';
         
         if (!name) {
@@ -3056,7 +3055,7 @@ function addNewTask() {
         const newTask = {
             id: Date.now(),
             name: name,
-            category: category, 
+            category: category,
             importance: importance,
             urgency: urgency,
             dueDate: dueDate || null,
@@ -3066,7 +3065,8 @@ function addNewTask() {
         };
         
         tasks.push(newTask);
-                // 清空输入时，保留分类下拉框不清空（可选）
+        
+        // 清空输入
         newTaskNameInput.value = '';
         document.getElementById('taskDueDate').value = '';
         
