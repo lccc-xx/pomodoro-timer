@@ -1565,7 +1565,8 @@ stopAll() {
         let currentTaskName = ''; // 新增：用于存储当前番茄钟的任务名
         let currentTaskCategory = 'other'; // 新增：当前任务分类
         // === 新增：反思日志数据 ===
-let reflections = [];           // 存储所有反思条目
+        let reflections = [];           // 存储所有反思条目
+        let currentEditIndex = -1; // -1 表示没有正在编辑的条目
 const REFLECTIONS_STORAGE_KEY = 'pomodoroReflections';
         // === 新增：任务管理相关变量 ===
         let tasks = []; // 存储所有任务
@@ -2629,6 +2630,9 @@ pomodoroRecords.slice(0, 20).forEach(record => {
                 clearTasksBtn.addEventListener('click', clearAllTasks);
                 addLogEntry('清空任务按钮监听器已绑定', 'success', '任务管理');
             }
+            if (document.getElementById('cancelEditBtn')) {
+    document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
+}
             // 支持按回车键添加任务
             if (newTaskNameInput) {
                 newTaskNameInput.addEventListener('keypress', function(e) {
@@ -2871,7 +2875,7 @@ pomodoroRecords.slice(0, 20).forEach(record => {
             }
             // 反思日志按钮
 if (document.getElementById('addReflectionBtn')) {
-    document.getElementById('addReflectionBtn').addEventListener('click', addReflection);
+    document.getElementById('addReflectionBtn').addEventListener('click', addOrUpdateReflection);
 }
 if (document.getElementById('exportReflectionsBtn')) {
     document.getElementById('exportReflectionsBtn').addEventListener('click', exportReflections);
@@ -3269,8 +3273,10 @@ function updateTaskRecommendation() {
             const categoryClass = getCategoryClass(task.category);
             const categoryText = getCategoryText(task.category);
            li.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
+<div style="display: flex; gap: 10px; justify-content: flex-end;">
+    <button id="addReflectionBtn" class="btn btn-primary" style="padding: 10px 24px;">➕ 添加</button>
+    <button id="cancelEditBtn" class="btn btn-warning" style="padding: 10px 24px; display: none;">❌ 取消</button>
+</div>
             <span style="font-weight: 500;">
                 <span class="task-category-badge ${categoryClass}" style="margin-right:5px;">${categoryText}</span>
                 ${task.name}
@@ -3460,18 +3466,41 @@ function renderReflections() {
         const displayDate = new Date(item.date).toLocaleDateString('zh-CN', {
             year: 'numeric', month: '2-digit', day: '2-digit'
         });
+        // 计算原始索引（用于操作）
+        const originalIndex = reflections.length - 1 - index;
         html += `
-            <div class="reflection-item" data-index="${reflections.length - 1 - index}">
-                <div class="reflection-date">📅 ${displayDate}</div>
+            <div class="reflection-item" data-index="${originalIndex}">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="reflection-date">📅 ${displayDate}</div>
+                    <div>
+                        <button class="edit-reflection-btn" data-index="${originalIndex}" style="background: none; border: none; cursor: pointer; font-size: 1.1em; margin-right: 5px;">✏️</button>
+                        <button class="delete-reflection-btn" data-index="${originalIndex}" style="background: none; border: none; cursor: pointer; font-size: 1.1em;">🗑️</button>
+                    </div>
+                </div>
                 <div class="reflection-content">${item.content.replace(/\n/g, '<br>')}</div>
             </div>
         `;
     });
     listContainer.innerHTML = html;
+
+    // 为编辑按钮绑定事件
+    document.querySelectorAll('.edit-reflection-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const index = parseInt(this.dataset.index);
+            editReflection(index);
+        });
+    });
+    // 为删除按钮绑定事件
+    document.querySelectorAll('.delete-reflection-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const index = parseInt(this.dataset.index);
+            deleteReflection(index);
+        });
+    });
 }
 
 // 添加新反思
-function addReflection() {
+function addOrUpdateReflection() {
     const input = document.getElementById('reflectionInput');
     if (!input) return;
     const content = input.value.trim();
@@ -3480,18 +3509,65 @@ function addReflection() {
         return;
     }
 
-    const newEntry = {
-        date: new Date().toISOString().split('T')[0], // 仅日期
-        content: content
-    };
-    reflections.push(newEntry);
+    const addBtn = document.getElementById('addReflectionBtn');
+    const editIndex = addBtn && addBtn.dataset.editIndex !== undefined ? parseInt(addBtn.dataset.editIndex) : -1;
+
+    if (editIndex >= 0 && editIndex < reflections.length) {
+        // 更新模式
+        reflections[editIndex] = {
+            date: reflections[editIndex].date, // 保持原日期不变
+            content: content
+        };
+        showStatus('✅ 反思已更新', 2000);
+        addLogEntry('更新一条反思日志', 'info', '反思');
+        // 重置为添加模式
+        cancelEdit();
+    } else {
+        // 添加模式
+        const newEntry = {
+            date: new Date().toISOString().split('T')[0],
+            content: content
+        };
+        reflections.push(newEntry);
+        showStatus('✅ 反思已添加', 2000);
+        addLogEntry('添加一条反思日志', 'info', '反思');
+        input.value = '';
+    }
     saveReflections();
     renderReflections();
-    input.value = ''; // 清空输入框
-    showStatus('✅ 反思已添加', 2000);
-    addLogEntry('添加一条反思日志', 'info', '反思');
 }
-
+function cancelEdit() {
+    const input = document.getElementById('reflectionInput');
+    if (input) input.value = '';
+    const addBtn = document.getElementById('addReflectionBtn');
+    if (addBtn) {
+        addBtn.textContent = '➕ 添加';
+        delete addBtn.dataset.editIndex;
+    }
+    // 隐藏取消按钮（如果有）
+    const cancelBtn = document.getElementById('cancelEditBtn');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    currentEditIndex = -1;
+}
+        function ensureCancelButton() {
+    let cancelBtn = document.getElementById('cancelEditBtn');
+    if (!cancelBtn) {
+        const btnContainer = document.querySelector('.reflection-section .btn-group');
+        // 如果没有专门的容器，我们可以动态创建并插入到按钮区域
+        const addBtn = document.getElementById('addReflectionBtn');
+        if (addBtn && addBtn.parentNode) {
+            cancelBtn = document.createElement('button');
+            cancelBtn.id = 'cancelEditBtn';
+            cancelBtn.className = 'btn btn-warning';
+            cancelBtn.textContent = '❌ 取消';
+            cancelBtn.style.marginLeft = '10px';
+            cancelBtn.onclick = cancelEdit;
+            addBtn.parentNode.appendChild(cancelBtn);
+        }
+    } else {
+        cancelBtn.style.display = 'inline-block';
+    }
+}
 // 导出反思日志为 JSON 文件
 function exportReflections() {
     if (reflections.length === 0) {
@@ -3549,6 +3625,39 @@ function importReflections() {
     };
     input.click();
 }       
+
+        function editReflection(index) {
+    if (index < 0 || index >= reflections.length) return;
+    const item = reflections[index];
+    const input = document.getElementById('reflectionInput');
+    if (!input) return;
+    input.value = item.content;
+    const cancelBtn = document.getElementById('cancelEditBtn');
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    // 改变添加按钮的文字为“更新”
+    const addBtn = document.getElementById('addReflectionBtn');
+    if (addBtn) {
+        addBtn.textContent = '🔄 更新';
+        addBtn.dataset.editIndex = index; // 保存正在编辑的索引
+    }
+    // 显示取消按钮（如果还没有）
+    ensureCancelButton();
+    currentEditIndex = index;
+}
+        function deleteReflection(index) {
+    if (index < 0 || index >= reflections.length) return;
+    if (confirm('确定删除这条反思吗？')) {
+        reflections.splice(index, 1);
+        saveReflections();
+        renderReflections();
+        // 如果删除的是正在编辑的条目，重置编辑状态
+        if (currentEditIndex === index) {
+            cancelEdit();
+        }
+        showStatus('🗑️ 反思已删除', 2000);
+        addLogEntry('删除一条反思日志', 'info', '反思');
+    }
+}
         // 初始化应用
         async function initApp() {
             try {
