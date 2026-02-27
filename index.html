@@ -993,9 +993,60 @@
         .pulse {
             animation: pulse 2s infinite;
         }
+        /* 反思日志样式 */
+.reflection-item {
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transition: background-color 0.2s;
+}
+.reflection-item:hover {
+    background: #e9ecef;
+}
+.reflection-date {
+    font-size: 0.85em;
+    color: #666;
+    margin-bottom: 5px;
+}
+.reflection-content {
+    color: #333;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.empty-reflections {
+    text-align: center;
+    padding: 30px 20px;
+    color: #999;
+    font-style: italic;
+}
     </style>
 </head>
 <body>
+<!-- === 新增：反思日志区域 === -->
+<div class="reflection-section" style="background: white; border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);">
+    <div class="reflection-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: #2c3e50; font-size: 1.4em;">📔 反思日志</h2>
+        <div style="display: flex; gap: 10px;">
+            <button id="exportReflectionsBtn" class="btn btn-secondary" style="padding: 8px 16px;">📤 导出日志</button>
+            <button id="importReflectionsBtn" class="btn btn-info" style="padding: 8px 16px;">📥 导入日志</button>
+        </div>
+    </div>
+
+    <!-- 日志列表容器 -->
+    <div id="reflectionList" style="max-height: 300px; overflow-y: auto; padding-right: 10px; margin-bottom: 20px;">
+        <!-- 动态生成反思条目 -->
+    </div>
+
+    <!-- 添加新日志的表单 -->
+    <div style="display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
+        <textarea id="reflectionInput" rows="3" placeholder="写下你的反思或笔记……" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; resize: vertical;"></textarea>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button id="addReflectionBtn" class="btn btn-primary" style="padding: 10px 24px;">➕ 添加</button>
+        </div>
+    </div>
+</div>
     <div class="container">
         <div class="header">
             <h1>🍅 番茄时钟 Pomodoro Timer</h1>
@@ -1041,10 +1092,10 @@
                 <button id="setCustomTimeBtn" class="btn" style="background: #9c27b0; color: white; margin-top: 25px;">应用自定义时间</button>
             </div>
             <!-- === 新增：任务名称输入区域 === -->
-<div class="time-controls" style="margin-top: 15px; align-items: flex-end;">
-    <div class="time-input-group" style="flex: 2;">
+<div class="time-controls" ="margin-top: 15px; align-items: flex-end;">
+    <div class="time-input-group" ="flex: 2;">
         <label for="taskNameInput">📝 任务名称 (可选)</label>
-        <input type="text" id="taskNameInput" class="time-input" placeholder="例如：写报告、阅读Chapter 3" maxlength="50" style="width: 100%;">
+        <input type="text" id="taskNameInput" class="time-input" placeholder="例如：写报告、阅读Chapter 3" maxlength="50" ="width: 100%;">
     </div>
     <input type="hidden" id="taskCategoryInput" value="other">
 </div>
@@ -1070,9 +1121,9 @@
                         <div class="sound-option" data-sound="bell">铃声</div>
                         <div class="sound-option" data-sound="chord">和弦</div>
                     </div>
-                    <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button id="testSoundBtn" class="btn btn-info" style="padding: 8px 16px; font-size: 0.9em;">测试声音</button>
-                        <button id="stopSoundBtn" class="btn btn-warning" style="padding: 8px 16px; font-size: 0.9em;">停止所有声音</button>
+                    <div ="display: flex; gap: 10px; margin-top: 15px;">
+                        <button id="testSoundBtn" class="btn btn-info" ="padding: 8px 16px; font-size: 0.9em;">测试声音</button>
+                        <button id="stopSoundBtn" class="btn btn-warning" ="padding: 8px 16px; font-size: 0.9em;">停止所有声音</button>
                     </div>
                 </div>
                 
@@ -1513,6 +1564,9 @@ stopAll() {
         let isLogVisible = true;
         let currentTaskName = ''; // 新增：用于存储当前番茄钟的任务名
         let currentTaskCategory = 'other'; // 新增：当前任务分类
+        // === 新增：反思日志数据 ===
+let reflections = [];           // 存储所有反思条目
+const REFLECTIONS_STORAGE_KEY = 'pomodoroReflections';
         // === 新增：任务管理相关变量 ===
         let tasks = []; // 存储所有任务
         let currentQuadrantSort = 'priority'; // 当前排序方式
@@ -2815,7 +2869,16 @@ pomodoroRecords.slice(0, 20).forEach(record => {
                 });
                 addLogEntry('中断原因输入监听器已绑定', 'success', '事件');
             }
-            
+            // 反思日志按钮
+if (document.getElementById('addReflectionBtn')) {
+    document.getElementById('addReflectionBtn').addEventListener('click', addReflection);
+}
+if (document.getElementById('exportReflectionsBtn')) {
+    document.getElementById('exportReflectionsBtn').addEventListener('click', exportReflections);
+}
+if (document.getElementById('importReflectionsBtn')) {
+    document.getElementById('importReflectionsBtn').addEventListener('click', importReflections);
+}
             addLogEntry('事件监听器初始化完成', 'success', '系统');
         }
         
@@ -3347,6 +3410,145 @@ function getCategoryClass(category) {
     const map = { 'study': 'category-study', 'work': 'category-work', 'self': 'category-self', 'other': 'category-other' };
     return map[category] || 'category-other';
 }
+ // ========== 反思日志功能 ==========
+
+// 加载反思日志
+function loadReflections() {
+    try {
+        const saved = localStorage.getItem(REFLECTIONS_STORAGE_KEY);
+        if (saved) {
+            reflections = JSON.parse(saved);
+            // 确保每个条目都有 date 字段
+            reflections = reflections.filter(r => r && typeof r === 'object').map(r => ({
+                date: r.date || new Date().toISOString().split('T')[0],
+                content: r.content || ''
+            }));
+        } else {
+            reflections = [];
+        }
+        renderReflections();
+        addLogEntry(`已加载 ${reflections.length} 条反思日志`, 'info', '反思');
+    } catch (e) {
+        reflections = [];
+        addLogEntry('加载反思日志失败', 'error', '反思');
+    }
+}
+
+// 保存反思日志
+function saveReflections() {
+    try {
+        localStorage.setItem(REFLECTIONS_STORAGE_KEY, JSON.stringify(reflections));
+        addLogEntry('反思日志已保存', 'info', '反思');
+    } catch (e) {
+        addLogEntry('保存反思日志失败', 'error', '反思');
+    }
+}
+
+// 渲染反思日志列表
+function renderReflections() {
+    const listContainer = document.getElementById('reflectionList');
+    if (!listContainer) return;
+
+    if (reflections.length === 0) {
+        listContainer.innerHTML = '<div class="empty-reflections">暂无反思记录，添加一条吧！</div>';
+        return;
+    }
+
+    let html = '';
+    // 按日期倒序显示（最新的在上）
+    [...reflections].reverse().forEach((item, index) => {
+        const displayDate = new Date(item.date).toLocaleDateString('zh-CN', {
+            year: 'numeric', month: '2-digit', day: '2-digit'
+        });
+        html += `
+            <div class="reflection-item" data-index="${reflections.length - 1 - index}">
+                <div class="reflection-date">📅 ${displayDate}</div>
+                <div class="reflection-content">${item.content.replace(/\n/g, '<br>')}</div>
+            </div>
+        `;
+    });
+    listContainer.innerHTML = html;
+}
+
+// 添加新反思
+function addReflection() {
+    const input = document.getElementById('reflectionInput');
+    if (!input) return;
+    const content = input.value.trim();
+    if (!content) {
+        showStatus('⚠️ 反思内容不能为空', 2000);
+        return;
+    }
+
+    const newEntry = {
+        date: new Date().toISOString().split('T')[0], // 仅日期
+        content: content
+    };
+    reflections.push(newEntry);
+    saveReflections();
+    renderReflections();
+    input.value = ''; // 清空输入框
+    showStatus('✅ 反思已添加', 2000);
+    addLogEntry('添加一条反思日志', 'info', '反思');
+}
+
+// 导出反思日志为 JSON 文件
+function exportReflections() {
+    if (reflections.length === 0) {
+        showStatus('📭 暂无日志可导出', 2000);
+        return;
+    }
+    const dataStr = JSON.stringify(reflections, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `reflections-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showStatus('✅ 日志导出成功', 2000);
+    addLogEntry('导出反思日志', 'info', '反思');
+}
+
+// 导入反思日志（合并）
+function importReflections() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            try {
+                const imported = JSON.parse(ev.target.result);
+                if (!Array.isArray(imported)) throw new Error('数据格式错误');
+                // 简单验证每个条目
+                const valid = imported.every(item => 
+                    item && typeof item === 'object' && 
+                    (item.date && item.content !== undefined)
+                );
+                if (!valid) throw new Error('数据格式不完整');
+
+                // 合并去重
+                const existingSet = new Set(reflections.map(r => r.date + '|' + r.content));
+                const newItems = imported.filter(item => !existingSet.has(item.date + '|' + item.content));
+                reflections = [...reflections, ...newItems];
+                // 按日期排序
+                reflections.sort((a, b) => new Date(a.date) - new Date(b.date));
+                saveReflections();
+                renderReflections();
+                showStatus(`✅ 已导入 ${newItems.length} 条新日志`, 3000);
+                addLogEntry(`导入反思日志，新增 ${newItems.length} 条`, 'info', '反思');
+            } catch (err) {
+                showStatus('❌ 导入失败：文件格式不正确', 3000);
+                addLogEntry('导入反思日志失败：' + err.message, 'error', '反思');
+            }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}       
         // 初始化应用
         async function initApp() {
             try {
@@ -3367,6 +3569,7 @@ function getCategoryClass(category) {
                 loadRecords();
                 
                 loadTasks();  // 放在已有 loadRecords() 等之后即可
+                loadReflections();  // 加载反思日志
                 // 检查音频上下文状态
                 checkAudioContextStatus();
                 
